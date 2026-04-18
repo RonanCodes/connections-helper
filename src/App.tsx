@@ -83,7 +83,7 @@ import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
-import { DatePicker } from './DatePicker'
+import { DatePicker } from './components/DatePicker'
 import '@/lib/themes/css/themes.css'
 
 interface SingleDefinition {
@@ -169,7 +169,9 @@ async function fetchDefinitionsBatch(words: string[]): Promise<Record<string, { 
       body: JSON.stringify({ words: validWords }),
     })
     if (!res.ok) throw new Error('Failed to fetch definitions')
-    const data = await res.json()
+    const data = (await res.json()) as {
+      definitions?: Record<string, { definitions: SingleDefinition[] }>
+    }
     return data.definitions || {}
   } catch {
     // Return empty definitions on error
