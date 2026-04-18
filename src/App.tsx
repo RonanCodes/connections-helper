@@ -76,6 +76,8 @@ function fireConfetti() {
   }
 }
 import { initTheme } from '@/lib/themes'
+import { initPostHog } from '@/lib/posthog'
+import { initSentry } from '@/lib/sentry'
 import { EnvironmentBadge } from '@/lib/env-badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -709,6 +711,8 @@ export default function App() {
       localStorage.setItem('sl-theme', 'nyt')
     }
     initTheme()
+    initSentry()
+    initPostHog()
     loadPuzzle(puzzleDate)
   }, [])
 
