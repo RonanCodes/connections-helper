@@ -9,7 +9,8 @@
     {
       "binding": "DB",
       "database_name": "connections_helper_db",
-      "database_id": "TO_BE_FILLED_BY_WRANGLER_D1_CREATE"
+      "database_id": "19176488-560a-4947-9ae8-69e8c8cf02ff",
+      "migrations_dir": "drizzle"
     }
   ]
 }
