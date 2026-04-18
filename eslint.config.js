@@ -15,6 +15,13 @@ export default [
     },
   },
   {
-    ignores: ['eslint.config.js', 'prettier.config.js'],
+    ignores: [
+      'eslint.config.js',
+      'prettier.config.js',
+      'playwright.config.js',
+      'e2e/**',
+      'tests/**',
+      'worker-configuration.d.ts',
+    ],
   },
 ]

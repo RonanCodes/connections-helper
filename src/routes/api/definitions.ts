@@ -3,10 +3,8 @@ import { env } from 'cloudflare:workers'
 import { inArray } from 'drizzle-orm'
 import { createDb } from '../../db'
 import { definitions } from '../../db/schema'
-import {
-  fetchDefinitionWithFallbacks,
-  type DefinitionResult,
-} from '../../server/definition-fallbacks'
+import { fetchDefinitionWithFallbacks } from '../../server/definition-fallbacks'
+import type { DefinitionResult } from '../../server/definition-fallbacks'
 
 const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000
 
@@ -16,12 +14,9 @@ export const Route = createFileRoute('/api/definitions')({
       POST: async ({ request }) => {
         let body: { words?: Array<string> }
         try {
-          body = (await request.json()) as { words?: Array<string> }
+          body = await request.json()
         } catch {
-          return Response.json(
-            { error: 'Invalid JSON body' },
-            { status: 400 },
-          )
+          return Response.json({ error: 'Invalid JSON body' }, { status: 400 })
         }
 
         if (!Array.isArray(body.words)) {
@@ -51,14 +46,12 @@ export const Route = createFileRoute('/api/definitions')({
         const uncached: Array<{ word: string; original: string }> = []
 
         for (let i = 0; i < words.length; i++) {
-          const word = words[i]!
-          const original = originalWords[i]!
+          const word = words[i]
+          const original = originalWords[i]
           const cached = cacheByWord.get(word)
           if (cached && Date.now() - cached.fetchedAt < THIRTY_DAYS) {
             const cachedData = JSON.parse(cached.data) as DefinitionResult
-            if (
-              !cachedData.definitions[0]?.definition?.includes('not found')
-            ) {
+            if (!cachedData.definitions[0]?.definition?.includes('not found')) {
               results[word] = cachedData
               continue
             }

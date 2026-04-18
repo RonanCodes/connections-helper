@@ -16,8 +16,8 @@ export const Route = createFileRoute('/api/stats')({
           .select({ count: sql<number>`count(*)` })
           .from(definitions)
         return Response.json({
-          puzzles: puzzleRow?.count ?? 0,
-          definitions: definitionRow?.count ?? 0,
+          puzzles: puzzleRow.count,
+          definitions: definitionRow.count,
         })
       },
     },

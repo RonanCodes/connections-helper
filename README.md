@@ -3,86 +3,104 @@
 A self-hostable helper for the [NYT Connections](https://www.nytimes.com/games/connections) puzzle. Shows definitions for each word so you can look up an unfamiliar term without spoiling the categories.
 
 - Fetches the daily puzzle from the public NYT endpoint
-- Pulls definitions from Dictionary API, Datamuse, Urban Dictionary, Wiktionary
-- Caches everything to a local SQLite file so repeat lookups are instant
+- Pulls definitions from Dictionary API, Datamuse, Wiktionary, Urban Dictionary
+- Caches puzzles + definitions to Cloudflare D1 so repeat lookups are instant
 - Hints / category reveal for when you're really stuck
+
+Live instance: [connections-helper.ronanconnolly.dev](https://connections-helper.ronanconnolly.dev)
 
 Not affiliated with the New York Times.
 
 ## Stack
 
-- [Bun](https://bun.sh) runtime
-- [Hono](https://hono.dev) backend + static file serving
-- [Vite](https://vitejs.dev) + React 19 frontend
-- [Tailwind CSS 4](https://tailwindcss.com) + [shadcn/ui](https://ui.shadcn.com) components
-- SQLite (via `bun:sqlite`) for the cache
+- [TanStack Start](https://tanstack.com/start) — full-stack React with file-based server routes + SSR
+- [Cloudflare Workers](https://workers.cloudflare.com) runtime, [D1](https://developers.cloudflare.com/d1/) (SQLite at the edge) for caching
+- [Drizzle ORM](https://orm.drizzle.team) for typed D1 access
+- [Vite](https://vitejs.dev) + React 19
+- [Tailwind CSS 4](https://tailwindcss.com) + Radix UI primitives
+- [Sentry](https://sentry.io) + [PostHog](https://posthog.com) for errors & analytics (both optional)
 
 ## Local development
 
 ```bash
-bun install
-bun start    # or: npm start
+pnpm install
+pnpm db:migrate:local   # applies drizzle migrations to local D1
+pnpm dev                # Vite + Wrangler dev on http://localhost:3000
 ```
 
-Starts the Vite dev server on [http://localhost:5181](http://localhost:5181) and the Hono backend on [http://localhost:3006](http://localhost:3006) together. Vite proxies `/api/*` to the backend.
+Server routes under `src/routes/api/*` run inside the local Workers runtime and talk to a local SQLite file that Wrangler provisions at `.wrangler/state/`.
 
-SQLite `puzzles.db` is created on first request — no setup required.
+## Deploy (Cloudflare Workers + D1)
 
-## Deploy
-
-### Fly.io (recommended)
+One-time setup:
 
 ```bash
-fly launch --copy-config --no-deploy   # uses fly.toml in the repo
-fly volumes create connections_data --size 1 --region lhr
-fly deploy
+pnpm wrangler d1 create connections_helper_db
+# copy the returned database_id into wrangler.jsonc
+pnpm db:migrate:remote
 ```
 
-Fly builds the Dockerfile remotely, mounts a 1GB volume at `/app/data`, and gives you an HTTPS URL. Free tier is enough for a small puzzle helper.
-
-### Docker (any VPS)
+Every deploy:
 
 ```bash
-docker run -d \
-  --name connections-helper \
-  --restart unless-stopped \
-  -p 3006:3006 \
-  -v connections_data:/app/data \
-  ghcr.io/ronancodes/connections-helper:latest
+pnpm deploy   # runs vite build + wrangler deploy
 ```
 
-Or with `docker-compose.yml` from the repo:
+Optional — attach a custom domain via the Cloudflare dashboard or API:
 
 ```bash
-docker compose up -d
-```
-
-### Auto-update with Watchtower
-
-If you're running on a VPS and want automatic updates when a new image is published:
-
-```bash
-docker run -d \
-  --name watchtower \
-  -v /var/run/docker.sock:/var/run/docker.sock \
-  containrrr/watchtower \
-  --interval 3600
+curl -X PUT -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+  "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/domains" \
+  -H "Content-Type: application/json" \
+  -d '{"environment":"production","hostname":"connections-helper.example.com","service":"connections-helper","zone_id":"<zone-id>"}'
 ```
 
 ## Configuration
 
-| Env var | Default | Purpose |
-|---|---|---|
-| `PORT` | `3006` | HTTP port |
-| `NODE_ENV` | - | Set to `production` to serve the built frontend from `dist/` |
+Runtime D1 binding is declared in `wrangler.jsonc`; no secrets needed for core app.
 
-## Development
+Observability keys are **injected at runtime**, not built into the bundle. The server exposes them via `GET /api/config`, and the browser fetches that on load before initialising Sentry / PostHog. Keys are public by design (they ship to browsers), but keeping them out of the bundle means operators can rotate without rebuilds and forks don't ship your keys.
+
+| Env var               | Purpose                                                   |
+| --------------------- | --------------------------------------------------------- |
+| `SENTRY_DSN`          | Sentry project DSN. Empty ⇒ Sentry disabled.              |
+| `POSTHOG_PROJECT_KEY` | PostHog `phc_…` project key. Empty ⇒ PostHog disabled.    |
+| `POSTHOG_INGEST_HOST` | PostHog ingest host (default `https://eu.i.posthog.com`). |
+
+**Local dev** — create `.dev.vars` (gitignored) with the keys. Wrangler loads it automatically.
+**CI deploys** — set as GitHub Actions secrets; the workflow passes them to `wrangler deploy --var`.
+**Manual deploys** — edit the `vars` block in `wrangler.jsonc`, or pass `--var KEY:value` at deploy time.
+
+See [ARCHITECTURE.md](./ARCHITECTURE.md) for the full runtime-config flow.
+
+## Continuous deployment
+
+`.github/workflows/ci.yml` runs on every push/PR: `pnpm install → lint → build → test`. On green, the `deploy` job (push to `main` only) applies pending D1 migrations and runs `wrangler deploy`, pulling observability keys from repo secrets.
+
+Required repo secrets:
+
+- `CLOUDFLARE_API_TOKEN` — Workers + D1 permissions
+- `CLOUDFLARE_ACCOUNT_ID`
+- `SENTRY_DSN`
+- `POSTHOG_PROJECT_KEY`
+
+Optional repo variable: `POSTHOG_INGEST_HOST` (defaults to `https://eu.i.posthog.com`).
+
+## Scripts
 
 ```bash
-bun run lint           # ESLint
-bun run build          # Type-check + production build
-bun test               # Vitest unit tests
-bun run test:e2e       # Playwright e2e tests (needs app running)
+pnpm dev                # dev server
+pnpm build              # production bundle
+pnpm deploy             # build + wrangler deploy
+pnpm lint               # ESLint
+pnpm format             # prettier --check
+pnpm check              # prettier --write + eslint --fix
+pnpm test               # Vitest unit tests
+pnpm test:e2e           # Playwright e2e tests (needs app running)
+pnpm quality            # format + lint + build + test (what CI runs)
+pnpm db:generate        # emit drizzle migrations from schema changes
+pnpm db:migrate:local   # apply migrations to local D1
+pnpm db:migrate:remote  # apply migrations to remote D1
 ```
 
 ## License

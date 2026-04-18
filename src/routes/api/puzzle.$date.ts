@@ -46,7 +46,7 @@ export const Route = createFileRoute('/api/puzzle/$date')({
               { status: 404 },
             )
           }
-          const puzzle = (await res.json()) as NYTPuzzle
+          const puzzle = await res.json()
           await db
             .insert(puzzles)
             .values({

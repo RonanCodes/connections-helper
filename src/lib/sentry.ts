@@ -1,15 +1,14 @@
 import * as Sentry from '@sentry/react'
+import { getRuntimeConfig } from './runtime-config'
 
 let initialised = false
 
-export function initSentry() {
+export async function initSentry() {
   if (initialised || typeof window === 'undefined') return
-  const dsn = import.meta.env.VITE_SENTRY_DSN as string | undefined
-  if (!dsn || !dsn.startsWith('https://')) {
-    return
-  }
+  const { sentryDsn } = await getRuntimeConfig()
+  if (!sentryDsn.startsWith('https://')) return
   Sentry.init({
-    dsn,
+    dsn: sentryDsn,
     tracesSampleRate: 0.1,
     replaysSessionSampleRate: 0,
     replaysOnErrorSampleRate: 1,

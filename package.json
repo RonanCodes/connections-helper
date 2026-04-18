@@ -23,6 +23,7 @@
     "lint": "eslint",
     "format": "prettier --check .",
     "check": "prettier --write . && eslint --fix",
+    "quality": "pnpm run format && pnpm run lint && pnpm run build && pnpm run test",
     "db:generate": "drizzle-kit generate",
     "db:migrate:local": "wrangler d1 migrations apply connections_helper_db --local",
     "db:migrate:remote": "wrangler d1 migrations apply connections_helper_db --remote"
