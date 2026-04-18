@@ -9,9 +9,9 @@
   },
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "start": "concurrently -n fe,be -c cyan,magenta \"bun run dev:client\" \"bun run dev:server\"",
+    "dev:client": "vite",
     "dev:server": "bun run --watch server/index.ts",
-    "dev:full": "concurrently \"bun run dev\" \"bun run dev:server\"",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",

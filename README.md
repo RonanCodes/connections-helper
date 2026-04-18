@@ -21,10 +21,10 @@ Not affiliated with the New York Times.
 
 ```bash
 bun install
-bun run dev:full
+bun start    # or: npm start
 ```
 
-Opens the Vite dev server on [http://localhost:5181](http://localhost:5181) and the Hono backend on [http://localhost:3006](http://localhost:3006). Vite proxies `/api/*` to the backend.
+Starts the Vite dev server on [http://localhost:5181](http://localhost:5181) and the Hono backend on [http://localhost:3006](http://localhost:3006) together. Vite proxies `/api/*` to the backend.
 
 SQLite `puzzles.db` is created on first request — no setup required.
 
