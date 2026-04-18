@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Get instant definitions for NYT Connections puzzle words. Stuck on a word? Look it up without spoiling the categories!" />
+    <meta name="theme-color" content="#121213" />
+    <title>Connections Helper — NYT Puzzle Sidekick 🧩</title>
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Connections Helper — NYT Puzzle Sidekick 🧩" />
+    <meta property="og:description" content="Get instant definitions for NYT Connections puzzle words. Stuck on a word? Look it up without spoiling the categories!" />
+    <meta property="og:image" content="/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Connections Helper — NYT Puzzle Sidekick 🧩" />
+    <meta name="twitter:description" content="Get instant definitions for NYT Connections puzzle words. Stuck on a word? Look it up without spoiling the categories!" />
+    <meta name="twitter:image" content="/og-image.png" />
+
+    <meta name="robots" content="index, follow" />
+  </head>
+  <body>
+    <!-- Prevent flash: apply theme before React loads -->
+    <script>
+      (function() {
+        var theme = localStorage.getItem('sl-theme') || 'nyt';
+        document.documentElement.setAttribute('data-theme', theme);
+        var bg = theme === 'nyt' ? '#ffffff' :
+                 theme === 'light' ? '#ffffff' :
+                 theme === 'synthwave' ? '#1a1025' :
+                 theme === 'geocities' ? '#008080' :
+                 theme === 'neubrutalism' ? '#fef3c7' : '#121213';
+        document.body.style.backgroundColor = bg;
+      })();
+    </script>
+    <div id="root">
+      <div style="max-width: 672px; margin: 0 auto; padding: 24px 16px;">
+        <div style="display: flex; justify-content: space-between; margin-bottom: 32px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 32px; height: 32px; background: #e5e5e5; border-radius: 6px; animation: pulse 1.5s ease-in-out infinite;"></div>
+            <div style="width: 200px; height: 28px; background: #e5e5e5; border-radius: 6px; animation: pulse 1.5s ease-in-out infinite;"></div>
+          </div>
+        </div>
+        <div style="background: #f5f5f5; border-radius: 12px; padding: 16px; margin-bottom: 24px;">
+          <div style="display: flex; justify-content: center; gap: 12px;">
+            <div style="width: 40px; height: 40px; background: #e5e5e5; border-radius: 6px;"></div>
+            <div style="width: 120px; height: 40px; background: #e5e5e5; border-radius: 6px;"></div>
+            <div style="width: 80px; height: 40px; background: #e5e5e5; border-radius: 6px;"></div>
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div style="background: #f5f5f5; border-radius: 12px; height: 100px; animation: pulse 1.5s ease-in-out infinite;"></div>
+          <div style="background: #f5f5f5; border-radius: 12px; height: 100px; animation: pulse 1.5s ease-in-out infinite; animation-delay: 0.2s;"></div>
+          <div style="background: #f5f5f5; border-radius: 12px; height: 100px; animation: pulse 1.5s ease-in-out infinite; animation-delay: 0.4s;"></div>
+          <div style="background: #f5f5f5; border-radius: 12px; height: 100px; animation: pulse 1.5s ease-in-out infinite; animation-delay: 0.6s;"></div>
+        </div>
+      </div>
+      <style>@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }</style>
+    </div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

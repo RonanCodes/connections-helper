@@ -1,0 +1,165 @@
+/*
+ * Synthwave '84 Theme — Neon Dreams
+ * Deep purple background, hot pink/cyan neon, glow effects
+ */
+
+[data-theme="synthwave"] {
+  /* Brand - Hot pink neon */
+  --color-primary: #ff2a6d;
+  --color-primary-hover: #ff5a8d;
+  --color-primary-foreground: #ffffff;
+  --color-primary-text: #ff79c6; /* Lighter pink for text - passes AA contrast */
+  
+  /* Surfaces - Deep purple/blue */
+  --color-background: #1a1a2e;
+  --color-foreground: #f0f0f0;
+  --color-surface: #16213e;
+  --color-surface-elevated: #0f3460;
+  
+  /* Borders - Pink tinted */
+  --color-border: #4a1942;
+  --color-divider: #4a1942;
+  
+  /* Text */
+  --color-text: #f0f0f0;
+  --color-text-muted: #b4a5c7;
+  --color-text-subtle: #7c6f8a;
+  
+  /* Semantic - Neon variants */
+  --color-success: #05ffa1;
+  --color-warning: #ffe66d;
+  --color-error: #ff2a6d;
+  --color-info: #00d4ff;
+  
+  /* Effects - GLOW shadows */
+  --shadow-sm: 0 0 10px rgba(255, 42, 109, 0.3);
+  --shadow-md: 0 0 20px rgba(255, 42, 109, 0.4), 0 0 40px rgba(255, 42, 109, 0.2);
+  --shadow-lg: 0 0 30px rgba(255, 42, 109, 0.5), 0 0 60px rgba(255, 42, 109, 0.3);
+  
+  /* Radius - Slightly rounded */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-full: 9999px;
+  
+  /* Synthwave-specific colors */
+  --neon-pink: #ff2a6d;
+  --neon-cyan: #00d4ff;
+  --neon-purple: #b14aed;
+  --neon-green: #05ffa1;
+
+  /* ===== shadcn/ui compatibility ===== */
+  --background: #1a1a2e;
+  --foreground: #f0f0f0;
+  --card: #16213e;
+  --card-foreground: #f0f0f0;
+  --popover: #16213e;
+  --popover-foreground: #f0f0f0;
+  --primary: #ff2a6d;
+  --primary-foreground: #ffffff;
+  --secondary: #0f3460;
+  --secondary-foreground: #f0f0f0;
+  --muted: #0f3460;
+  --muted-foreground: #b4a5c7;
+  --accent: #0f3460;
+  --accent-foreground: #f0f0f0;
+  --destructive: #ff2a6d;
+  --destructive-foreground: #ffffff;
+  --border: #4a1942;
+  --input: #4a1942;
+  --ring: #ff2a6d;
+  --radius: 0.5rem;
+}
+
+/* Synthwave-specific component overrides */
+[data-theme="synthwave"] h1,
+[data-theme="synthwave"] h2,
+[data-theme="synthwave"] h3,
+[data-theme="synthwave"] header h1,
+[data-theme="synthwave"] .title {
+  text-shadow: 0 0 10px #ff2a6d, 0 0 20px #ff2a6d, 0 0 40px #ff2a6d, 0 0 80px #ff2a6d, 0 0 120px #ff2a6d !important;
+  color: #ff79c6 !important;
+}
+
+/* Cyan accent for variety */
+[data-theme="synthwave"] header .text-sm,
+[data-theme="synthwave"] .stats {
+  color: #00d4ff !important;
+  text-shadow: 0 0 10px #00d4ff !important;
+}
+
+[data-theme="synthwave"] button,
+[data-theme="synthwave"] .btn {
+  border: 1px solid #ff2a6d !important;
+  box-shadow: 0 0 10px rgba(255, 42, 109, 0.3), inset 0 0 10px rgba(255, 42, 109, 0.1) !important;
+  transition: all 0.3s ease !important;
+}
+
+[data-theme="synthwave"] button:hover,
+[data-theme="synthwave"] .btn:hover {
+  box-shadow: 0 0 20px rgba(255, 42, 109, 0.5), 0 0 40px rgba(255, 42, 109, 0.3), inset 0 0 15px rgba(255, 42, 109, 0.2) !important;
+  text-shadow: 0 0 10px currentColor !important;
+}
+
+[data-theme="synthwave"] .card {
+  border: 2px solid #ff2a6d !important;
+  box-shadow: 0 0 15px rgba(255, 42, 109, 0.4), inset 0 0 30px rgba(255, 42, 109, 0.1) !important;
+  background: linear-gradient(180deg, rgba(22, 33, 62, 0.95) 0%, rgba(26, 26, 46, 1) 100%) !important;
+}
+
+[data-theme="synthwave"] .card:hover {
+  box-shadow: 0 0 30px rgba(255, 42, 109, 0.6), 0 0 60px rgba(255, 42, 109, 0.3), inset 0 0 40px rgba(255, 42, 109, 0.15) !important;
+  border-color: #00d4ff !important;
+}
+
+/* Header styling */
+[data-theme="synthwave"] header {
+  background: linear-gradient(180deg, #16213e 0%, #1a1a2e 100%) !important;
+  border-bottom: 2px solid #ff2a6d !important;
+  box-shadow: 0 0 20px rgba(255, 42, 109, 0.3) !important;
+}
+
+/* Grid background effect */
+[data-theme="synthwave"]::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: 
+    linear-gradient(rgba(255, 42, 109, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 42, 109, 0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+[data-theme="synthwave"] > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Badge overrides for synthwave */
+[data-theme="synthwave"] .badge,
+[data-theme="synthwave"] .count-badge {
+  background: linear-gradient(135deg, #ff2a6d 0%, #b14aed 100%) !important;
+  color: #ffffff !important;
+  border: 1px solid #ff2a6d !important;
+  box-shadow: 0 0 10px rgba(255, 42, 109, 0.5) !important;
+  text-shadow: 0 0 5px rgba(255, 255, 255, 0.5) !important;
+}
+
+[data-theme="synthwave"] .badge-warning,
+[data-theme="synthwave"] .badge-new {
+  background: linear-gradient(135deg, #00d4ff 0%, #05ffa1 100%) !important;
+  color: #000000 !important;
+  border: 1px solid #00d4ff !important;
+  box-shadow: 0 0 15px rgba(0, 212, 255, 0.6) !important;
+  text-shadow: none !important;
+}
+
+[data-theme="synthwave"] .status-new {
+  background: linear-gradient(135deg, #00d4ff 0%, #b14aed 100%) !important;
+  box-shadow: 0 0 10px rgba(0, 212, 255, 0.5) !important;
+}

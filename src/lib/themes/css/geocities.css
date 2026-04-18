@@ -1,0 +1,165 @@
+/*
+ * GeoCities Theme — Retro 90s Web
+ * Windows 95 gray, beveled buttons, system fonts, web 1.0 nostalgia
+ */
+
+[data-theme="geocities"] {
+  /* Brand - Classic web blue */
+  --color-primary: #0000ff;
+  --color-primary-hover: #0000cc;
+  --color-primary-foreground: #ffffff;
+  
+  /* Surfaces - Windows 95 gray */
+  --color-background: #c0c0c0;
+  --color-foreground: #000000;
+  --color-surface: #d4d4d4;
+  --color-surface-elevated: #ffffff;
+  
+  /* Borders */
+  --color-border: #808080;
+  --color-divider: #808080;
+  
+  /* Text */
+  --color-text: #000000;
+  --color-text-muted: #333333;
+  --color-text-subtle: #666666;
+  
+  /* Semantic - Web-safe colors */
+  --color-success: #008000;
+  --color-warning: #ff8c00;
+  --color-error: #ff0000;
+  --color-info: #0000ff;
+  
+  /* Effects - Beveled/inset (no soft shadows in the 90s!) */
+  --shadow-sm: inset -1px -1px 0 #808080, inset 1px 1px 0 #ffffff;
+  --shadow-md: inset -2px -2px 0 #808080, inset 2px 2px 0 #ffffff;
+  --shadow-lg: inset -2px -2px 0 #404040, inset 2px 2px 0 #ffffff;
+  
+  /* Radius - NONE (it's the 90s!) */
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-full: 0;
+  
+  /* Fonts */
+  --font-system: 'MS Sans Serif', 'Segoe UI', Tahoma, Geneva, sans-serif;
+  --font-fancy: 'Comic Sans MS', 'Chalkboard', cursive;
+
+  /* ===== shadcn/ui compatibility ===== */
+  --background: #c0c0c0;
+  --foreground: #000000;
+  --card: #d4d4d4;
+  --card-foreground: #000000;
+  --popover: #ffffff;
+  --popover-foreground: #000000;
+  --primary: #0000ff;
+  --primary-foreground: #ffffff;
+  --secondary: #d4d4d4;
+  --secondary-foreground: #000000;
+  --muted: #d4d4d4;
+  --muted-foreground: #333333;
+  --accent: #d4d4d4;
+  --accent-foreground: #000000;
+  --destructive: #ff0000;
+  --destructive-foreground: #ffffff;
+  --border: #808080;
+  --input: #808080;
+  --ring: #0000ff;
+  --radius: 0;
+}
+
+/* GeoCities-specific component overrides */
+[data-theme="geocities"] {
+  font-family: var(--font-system) !important;
+  font-size: 13px !important;
+}
+
+[data-theme="geocities"] h1,
+[data-theme="geocities"] h2,
+[data-theme="geocities"] h3,
+[data-theme="geocities"] .title {
+  font-family: var(--font-fancy) !important;
+  color: #000080 !important;
+  text-shadow: none !important;
+}
+
+[data-theme="geocities"] button,
+[data-theme="geocities"] .btn {
+  background: linear-gradient(180deg, #dfdfdf 0%, #c0c0c0 50%, #a0a0a0 100%) !important;
+  border: 2px solid !important;
+  border-color: #ffffff #808080 #808080 #ffffff !important;
+  border-radius: 0 !important;
+  color: #000000 !important;
+  font-family: var(--font-system) !important;
+  font-size: 12px !important;
+  font-weight: normal !important;
+  text-transform: none !important;
+  padding: 4px 12px !important;
+  box-shadow: none !important;
+}
+
+[data-theme="geocities"] button:hover,
+[data-theme="geocities"] .btn:hover {
+  background: linear-gradient(180deg, #e8e8e8 0%, #d0d0d0 50%, #b0b0b0 100%) !important;
+  transform: none !important;
+}
+
+[data-theme="geocities"] button:active,
+[data-theme="geocities"] .btn:active {
+  border-color: #808080 #ffffff #ffffff #808080 !important;
+  background: linear-gradient(180deg, #a0a0a0 0%, #c0c0c0 50%, #d0d0d0 100%) !important;
+}
+
+[data-theme="geocities"] .card {
+  background: #c0c0c0 !important;
+  border: 2px solid !important;
+  border-color: #808080 #ffffff #ffffff #808080 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+[data-theme="geocities"] .card:hover {
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+[data-theme="geocities"] input,
+[data-theme="geocities"] select {
+  background: #ffffff !important;
+  border: 2px solid !important;
+  border-color: #808080 #ffffff #ffffff #808080 !important;
+  border-radius: 0 !important;
+  font-family: var(--font-system) !important;
+}
+
+/* Classic link colors */
+[data-theme="geocities"] a {
+  color: #0000ff !important;
+  text-decoration: underline !important;
+}
+
+[data-theme="geocities"] a:visited {
+  color: #800080 !important;
+}
+
+[data-theme="geocities"] a:hover {
+  color: #ff0000 !important;
+}
+
+/* Under construction banner */
+[data-theme="geocities"] header {
+  background: repeating-linear-gradient(
+    45deg,
+    #c0c0c0,
+    #c0c0c0 10px,
+    #ffcc00 10px,
+    #ffcc00 20px
+  ) !important;
+  border-bottom: 3px solid #000000 !important;
+}
+
+[data-theme="geocities"] header h1 {
+  background: #c0c0c0;
+  padding: 4px 8px;
+  display: inline-block;
+}
