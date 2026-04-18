@@ -36,5 +36,10 @@ test-results/
 playwright-report/
 .playwright-mcp/
 
-# Fly
-.fly/
+# Wrangler / Cloudflare
+.wrangler/
+.dev.vars
+.dev.vars.*
+
+# TanStack (generated)
+src/routeTree.gen.ts
