@@ -4,16 +4,12 @@ dist/
 dist-ssr/
 .turbo/
 
-# SQLite runtime data (cache, filled from NYT API on first request)
-data/*.db
-data/*.db-shm
-data/*.db-wal
-data/.puzzles.db-litestream/
-
-# Env
+# Env (only .env.example is committed; every operator brings their own real keys)
 .env
 .env.local
 .env.*.local
+.env.production
+.env.production.*
 *.local
 
 # Logs
@@ -36,5 +32,11 @@ test-results/
 playwright-report/
 .playwright-mcp/
 
-# Fly
-.fly/
+# Wrangler / Cloudflare
+.wrangler/
+.dev.vars
+.dev.vars.*
+
+# TanStack (generated)
+src/routeTree.gen.ts
+.tanstack/

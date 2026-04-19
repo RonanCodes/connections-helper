@@ -20,8 +20,16 @@
 body {
   background-color: var(--color-background);
   color: var(--color-text);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  font-family:
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease;
 }
 
 /* Links */
@@ -116,7 +124,9 @@ a:hover {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   color: var(--color-text);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
 .input:focus {
@@ -202,14 +212,14 @@ a:hover {
 }
 
 /* Light theme tooltip */
-[data-theme="light"] .tooltip-content {
+[data-theme='light'] .tooltip-content {
   background-color: #1f2937 !important;
   color: #f9fafb !important;
   border: 1px solid #374151 !important;
 }
 
 /* Neubrutalism tooltip */
-[data-theme="neubrutalism"] .tooltip-content {
+[data-theme='neubrutalism'] .tooltip-content {
   background-color: #ffffff !important;
   color: #000000 !important;
   border: 3px solid #000000 !important;
@@ -219,7 +229,7 @@ a:hover {
 }
 
 /* Synthwave tooltip */
-[data-theme="synthwave"] .tooltip-content {
+[data-theme='synthwave'] .tooltip-content {
   background-color: #16213e !important;
   color: #f0f0f0 !important;
   border: 1px solid #ff2a6d !important;
@@ -227,14 +237,14 @@ a:hover {
 }
 
 /* GeoCities tooltip */
-[data-theme="geocities"] .tooltip-content {
+[data-theme='geocities'] .tooltip-content {
   border: 2px solid !important;
   border-color: #808080 #ffffff #ffffff #808080 !important;
   border-radius: 0 !important;
   background: #ffffcc !important;
   color: #000000 !important;
   box-shadow: none !important;
-  font-family: "Comic Sans MS", "Trebuchet MS", sans-serif !important;
+  font-family: 'Comic Sans MS', 'Trebuchet MS', sans-serif !important;
 }
 
 /* ========================================
@@ -242,7 +252,7 @@ a:hover {
    ======================================== */
 
 /* Neubrutalism - Bold borders and hard shadows */
-[data-theme="neubrutalism"] .btn {
+[data-theme='neubrutalism'] .btn {
   border-width: 3px;
   border-color: var(--color-border);
   border-radius: 0;
@@ -251,66 +261,70 @@ a:hover {
   letter-spacing: 0.05em;
 }
 
-[data-theme="neubrutalism"] .btn:hover {
+[data-theme='neubrutalism'] .btn:hover {
   transform: translate(-2px, -2px);
 }
 
-[data-theme="neubrutalism"] .btn:active {
+[data-theme='neubrutalism'] .btn:active {
   transform: translate(2px, 2px);
   box-shadow: var(--shadow-sm);
 }
 
-[data-theme="neubrutalism"] .card {
+[data-theme='neubrutalism'] .card {
   border-width: 3px;
   border-radius: 0;
 }
 
-[data-theme="neubrutalism"] .card:hover {
+[data-theme='neubrutalism'] .card:hover {
   transform: translate(-4px, -4px);
   box-shadow: var(--shadow-lg);
 }
 
-[data-theme="neubrutalism"] .badge {
+[data-theme='neubrutalism'] .badge {
   border-width: 2px;
   border-radius: 0;
   font-weight: 900;
 }
 
 /* Synthwave - Glowing neon effects */
-[data-theme="synthwave"] .btn-primary {
+[data-theme='synthwave'] .btn-primary {
   text-shadow: 0 0 10px currentColor;
   box-shadow: var(--shadow-md);
 }
 
-[data-theme="synthwave"] .btn-primary:hover {
+[data-theme='synthwave'] .btn-primary:hover {
   box-shadow: var(--shadow-lg);
 }
 
-[data-theme="synthwave"] .card {
+[data-theme='synthwave'] .card {
   border-color: var(--color-neon-pink);
   box-shadow: 0 0 5px rgba(255, 42, 109, 0.3);
 }
 
-[data-theme="synthwave"] .card:hover {
-  box-shadow: 0 0 15px rgba(255, 42, 109, 0.5), 0 0 30px rgba(255, 42, 109, 0.3);
+[data-theme='synthwave'] .card:hover {
+  box-shadow:
+    0 0 15px rgba(255, 42, 109, 0.5),
+    0 0 30px rgba(255, 42, 109, 0.3);
 }
 
-[data-theme="synthwave"] h1,
-[data-theme="synthwave"] h2,
-[data-theme="synthwave"] h3 {
-  text-shadow: 0 0 10px var(--color-neon-pink), 0 0 20px var(--color-neon-pink);
+[data-theme='synthwave'] h1,
+[data-theme='synthwave'] h2,
+[data-theme='synthwave'] h3 {
+  text-shadow:
+    0 0 10px var(--color-neon-pink),
+    0 0 20px var(--color-neon-pink);
 }
 
-[data-theme="synthwave"] .badge-primary {
+[data-theme='synthwave'] .badge-primary {
   box-shadow: var(--glow-pink);
 }
 
 /* GeoCities - Beveled buttons, system fonts */
-[data-theme="geocities"] {
+[data-theme='geocities'] {
   font-family: var(--font-family-system);
 }
 
-[data-theme="geocities"] .btn {
+[data-theme='geocities'] .btn {
   border: 2px solid;
   border-color: #ffffff #808080 #808080 #ffffff;
   border-radius: 0;
@@ -322,23 +336,23 @@ a:hover {
   box-shadow: none;
 }
 
-[data-theme="geocities"] .btn:hover {
+[data-theme='geocities'] .btn:hover {
   background: linear-gradient(180deg, #e8e8e8 0%, #d0d0d0 100%);
   transform: none;
 }
 
-[data-theme="geocities"] .btn:active {
+[data-theme='geocities'] .btn:active {
   border-color: #808080 #ffffff #ffffff #808080;
   background: linear-gradient(180deg, #b0b0b0 0%, #c0c0c0 100%);
 }
 
-[data-theme="geocities"] .btn-primary {
+[data-theme='geocities'] .btn-primary {
   background: linear-gradient(180deg, #0066ff 0%, #0000cc 100%);
   border-color: #4488ff #000066 #000066 #4488ff;
   color: #ffffff;
 }
 
-[data-theme="geocities"] .card {
+[data-theme='geocities'] .card {
   border: 2px solid;
   border-color: #808080 #ffffff #ffffff #808080;
   border-radius: 0;
@@ -346,12 +360,12 @@ a:hover {
   box-shadow: none;
 }
 
-[data-theme="geocities"] .card:hover {
+[data-theme='geocities'] .card:hover {
   box-shadow: none;
   transform: none;
 }
 
-[data-theme="geocities"] .input {
+[data-theme='geocities'] .input {
   border: 2px solid;
   border-color: #808080 #ffffff #ffffff #808080;
   border-radius: 0;
@@ -359,9 +373,9 @@ a:hover {
   font-family: var(--font-family-system);
 }
 
-[data-theme="geocities"] h1,
-[data-theme="geocities"] h2,
-[data-theme="geocities"] h3 {
+[data-theme='geocities'] h1,
+[data-theme='geocities'] h2,
+[data-theme='geocities'] h3 {
   font-family: var(--font-family-fancy);
   text-shadow: none;
 }
@@ -390,22 +404,22 @@ a:hover {
 }
 
 /* Neubrutalism scrollbar */
-[data-theme="neubrutalism"] ::-webkit-scrollbar-thumb {
+[data-theme='neubrutalism'] ::-webkit-scrollbar-thumb {
   border-radius: 0;
   border: 2px solid var(--color-border);
 }
 
 /* GeoCities scrollbar */
-[data-theme="geocities"] ::-webkit-scrollbar {
+[data-theme='geocities'] ::-webkit-scrollbar {
   width: 16px;
 }
 
-[data-theme="geocities"] ::-webkit-scrollbar-track {
+[data-theme='geocities'] ::-webkit-scrollbar-track {
   background: #c0c0c0;
   border: 1px solid #808080;
 }
 
-[data-theme="geocities"] ::-webkit-scrollbar-thumb {
+[data-theme='geocities'] ::-webkit-scrollbar-thumb {
   background: linear-gradient(180deg, #dfdfdf 0%, #c0c0c0 100%);
   border: 2px solid;
   border-color: #ffffff #808080 #808080 #ffffff;
@@ -416,32 +430,67 @@ a:hover {
    Utility Classes
    ======================================== */
 
-.text-primary { color: var(--color-primary); }
-.text-muted { color: var(--color-text-muted); }
-.text-subtle { color: var(--color-text-subtle); }
-.text-success { color: var(--color-success); }
-.text-warning { color: var(--color-warning); }
-.text-error { color: var(--color-error); }
+.text-primary {
+  color: var(--color-primary);
+}
+.text-muted {
+  color: var(--color-text-muted);
+}
+.text-subtle {
+  color: var(--color-text-subtle);
+}
+.text-success {
+  color: var(--color-success);
+}
+.text-warning {
+  color: var(--color-warning);
+}
+.text-error {
+  color: var(--color-error);
+}
 
-.bg-surface { background-color: var(--color-surface); }
-.bg-surface-elevated { background-color: var(--color-surface-elevated); }
+.bg-surface {
+  background-color: var(--color-surface);
+}
+.bg-surface-elevated {
+  background-color: var(--color-surface-elevated);
+}
 
-.border-default { border-color: var(--color-border); }
-.border-primary { border-color: var(--color-primary); }
+.border-default {
+  border-color: var(--color-border);
+}
+.border-primary {
+  border-color: var(--color-primary);
+}
 
-.shadow-sm { box-shadow: var(--shadow-sm); }
-.shadow-md { box-shadow: var(--shadow-md); }
-.shadow-lg { box-shadow: var(--shadow-lg); }
+.shadow-sm {
+  box-shadow: var(--shadow-sm);
+}
+.shadow-md {
+  box-shadow: var(--shadow-md);
+}
+.shadow-lg {
+  box-shadow: var(--shadow-lg);
+}
 
-.rounded-sm { border-radius: var(--radius-sm); }
-.rounded-md { border-radius: var(--radius-md); }
-.rounded-lg { border-radius: var(--radius-lg); }
-.rounded-full { border-radius: var(--radius-full); }
+.rounded-sm {
+  border-radius: var(--radius-sm);
+}
+.rounded-md {
+  border-radius: var(--radius-md);
+}
+.rounded-lg {
+  border-radius: var(--radius-lg);
+}
+.rounded-full {
+  border-radius: var(--radius-full);
+}
 
 /* Smooth theme transitions - only on key elements, not descendants */
 .theme-transition {
-  transition: background-color 0.25s ease-out, 
-              color 0.25s ease-out;
+  transition:
+    background-color 0.25s ease-out,
+    color 0.25s ease-out;
 }
 
 /* Key elements that should animate on theme change */
@@ -449,16 +498,18 @@ a:hover {
 .theme-transition .card,
 .theme-transition .btn,
 .theme-transition button {
-  transition: background-color 0.2s ease-out, 
-              border-color 0.2s ease-out,
-              box-shadow 0.2s ease-out;
+  transition:
+    background-color 0.2s ease-out,
+    border-color 0.2s ease-out,
+    box-shadow 0.2s ease-out;
 }
 
 /* Opt-in class for other elements */
 .theme-transition-item {
-  transition: background-color 0.2s ease-out, 
-              color 0.2s ease-out, 
-              border-color 0.2s ease-out;
+  transition:
+    background-color 0.2s ease-out,
+    color 0.2s ease-out,
+    border-color 0.2s ease-out;
 }
 
 /* ========================================
@@ -509,51 +560,51 @@ a:hover {
 /* Theme-specific lightbox overrides */
 
 /* Neubrutalism lightbox */
-[data-theme="neubrutalism"] .lightbox-overlay {
+[data-theme='neubrutalism'] .lightbox-overlay {
   background-color: var(--color-background);
 }
 
-[data-theme="neubrutalism"] .lightbox-btn,
-[data-theme="neubrutalism"] .lightbox-nav {
+[data-theme='neubrutalism'] .lightbox-btn,
+[data-theme='neubrutalism'] .lightbox-nav {
   border: 3px solid var(--color-border) !important;
   border-radius: 0 !important;
   box-shadow: 4px 4px 0 0 var(--color-border) !important;
   font-weight: 900 !important;
 }
 
-[data-theme="neubrutalism"] .lightbox-btn:hover,
-[data-theme="neubrutalism"] .lightbox-nav:hover {
+[data-theme='neubrutalism'] .lightbox-btn:hover,
+[data-theme='neubrutalism'] .lightbox-nav:hover {
   transform: translate(-2px, -2px) !important;
   box-shadow: 6px 6px 0 0 var(--color-border) !important;
 }
 
-[data-theme="neubrutalism"] .lightbox-panel {
+[data-theme='neubrutalism'] .lightbox-panel {
   border-top: 3px solid var(--color-border) !important;
 }
 
 /* Synthwave lightbox */
-[data-theme="synthwave"] .lightbox-overlay {
+[data-theme='synthwave'] .lightbox-overlay {
   background: linear-gradient(180deg, #0f0f1e 0%, #1a1a2e 100%);
 }
 
-[data-theme="synthwave"] .lightbox-btn,
-[data-theme="synthwave"] .lightbox-nav {
+[data-theme='synthwave'] .lightbox-btn,
+[data-theme='synthwave'] .lightbox-nav {
   box-shadow: 0 0 10px rgba(255, 42, 109, 0.3);
   border-color: var(--color-neon-pink);
 }
 
-[data-theme="synthwave"] .lightbox-btn:hover,
-[data-theme="synthwave"] .lightbox-nav:hover {
+[data-theme='synthwave'] .lightbox-btn:hover,
+[data-theme='synthwave'] .lightbox-nav:hover {
   box-shadow: 0 0 20px rgba(255, 42, 109, 0.5);
 }
 
 /* GeoCities lightbox */
-[data-theme="geocities"] .lightbox-overlay {
+[data-theme='geocities'] .lightbox-overlay {
   background: #008080;
 }
 
-[data-theme="geocities"] .lightbox-btn,
-[data-theme="geocities"] .lightbox-nav {
+[data-theme='geocities'] .lightbox-btn,
+[data-theme='geocities'] .lightbox-nav {
   border: 2px solid;
   border-color: #ffffff #808080 #808080 #ffffff;
   border-radius: 0;
@@ -562,12 +613,12 @@ a:hover {
   box-shadow: none;
 }
 
-[data-theme="geocities"] .lightbox-btn:hover,
-[data-theme="geocities"] .lightbox-nav:hover {
+[data-theme='geocities'] .lightbox-btn:hover,
+[data-theme='geocities'] .lightbox-nav:hover {
   background: linear-gradient(180deg, #e8e8e8 0%, #d0d0d0 100%);
 }
 
-[data-theme="geocities"] .lightbox-panel {
+[data-theme='geocities'] .lightbox-panel {
   background: #c0c0c0;
   border-top: 2px solid;
   border-color: #808080 #ffffff #ffffff #808080;
@@ -584,7 +635,7 @@ a:hover {
   border-radius: var(--radius-md);
 }
 
-[data-theme="neubrutalism"] .powered-by-badge {
+[data-theme='neubrutalism'] .powered-by-badge {
   border: 3px solid var(--color-border) !important;
   border-radius: 0 !important;
   box-shadow: 4px 4px 0 0 var(--color-border) !important;
@@ -592,33 +643,33 @@ a:hover {
   background: var(--color-surface) !important;
 }
 
-[data-theme="neubrutalism"] .powered-by-badge:hover {
+[data-theme='neubrutalism'] .powered-by-badge:hover {
   transform: translate(-2px, -2px) !important;
   box-shadow: 6px 6px 0 0 var(--color-border) !important;
 }
 
-[data-theme="synthwave"] .powered-by-badge {
+[data-theme='synthwave'] .powered-by-badge {
   border: 1px solid var(--neon-pink) !important;
   box-shadow: 0 0 10px rgba(255, 42, 109, 0.3) !important;
   background: var(--color-surface) !important;
 }
 
-[data-theme="synthwave"] .powered-by-badge:hover {
+[data-theme='synthwave'] .powered-by-badge:hover {
   box-shadow: 0 0 20px rgba(255, 42, 109, 0.5) !important;
 }
 
-[data-theme="geocities"] .powered-by-badge {
+[data-theme='geocities'] .powered-by-badge {
   border: 2px solid !important;
   border-color: #808080 #ffffff #ffffff #808080 !important;
   border-radius: 0 !important;
   background: linear-gradient(180deg, #dfdfdf 0%, #c0c0c0 100%) !important;
   color: #000 !important;
-  font-family: "Comic Sans MS", cursive !important;
+  font-family: 'Comic Sans MS', cursive !important;
   box-shadow: none !important;
 }
 
-[data-theme="nyt"] .powered-by-badge,
-[data-theme="light"] .powered-by-badge {
+[data-theme='nyt'] .powered-by-badge,
+[data-theme='light'] .powered-by-badge {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
 }

@@ -1,59 +1,85 @@
 {
   "name": "connections-helper",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "NYT Connections puzzle helper — shows word definitions to help solve the daily puzzle",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/RonanCodes/connections-helper.git"
   },
+  "private": true,
   "type": "module",
+  "imports": {
+    "#/*": "./src/*"
+  },
   "scripts": {
-    "start": "concurrently -n fe,be -c cyan,magenta \"bun run dev:client\" \"bun run dev:server\"",
-    "dev:client": "vite",
-    "dev:server": "bun run --watch server/index.ts",
-    "build": "tsc -b && vite build",
-    "lint": "eslint .",
+    "dev": "vite dev --port 3000",
+    "build": "vite build",
     "preview": "vite preview",
-    "server": "bun run server/index.ts",
+    "deploy": "pnpm run build && wrangler deploy",
     "test": "vitest run",
+    "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "test:watch": "vitest"
+    "lint": "eslint",
+    "format": "prettier --check .",
+    "check": "prettier --write . && eslint --fix",
+    "quality": "pnpm run format && pnpm run lint && pnpm run build && pnpm run test",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate:local": "wrangler d1 migrations apply connections_helper_db --local",
+    "db:migrate:remote": "wrangler d1 migrations apply connections_helper_db --remote"
   },
   "dependencies": {
+    "@cloudflare/vite-plugin": "^1.26.0",
     "@radix-ui/react-alert-dialog": "^1.1.15",
     "@radix-ui/react-dialog": "^1.1.15",
     "@radix-ui/react-popover": "^1.1.15",
     "@radix-ui/react-slot": "^1.2.4",
     "@radix-ui/react-tooltip": "^1.2.8",
+    "@sentry/react": "^10.49.0",
+    "@tailwindcss/vite": "^4.1.18",
+    "@tanstack/react-devtools": "latest",
+    "@tanstack/react-router": "latest",
+    "@tanstack/react-router-devtools": "latest",
+    "@tanstack/react-router-ssr-query": "latest",
+    "@tanstack/react-start": "latest",
+    "@tanstack/router-plugin": "^1.132.0",
     "canvas-confetti": "^1.9.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-    "hono": "^4.11.6",
+    "drizzle-orm": "^0.36.4",
     "lucide-react": "^0.511.0",
+    "posthog-js": "^1.369.3",
     "react": "^19.2.0",
     "react-day-picker": "^9.13.0",
     "react-dom": "^19.2.0",
-    "tailwind-merge": "^3.3.0"
+    "tailwind-merge": "^3.3.0",
+    "tailwindcss": "^4.1.18"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.1",
+    "@cloudflare/workers-types": "^4.20241218.0",
     "@playwright/test": "^1.52.0",
-    "@tailwindcss/vite": "^4.1.18",
+    "@tailwindcss/typography": "^0.5.16",
+    "@tanstack/devtools-vite": "latest",
+    "@tanstack/eslint-config": "latest",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/react": "^16.3.0",
     "@types/canvas-confetti": "^1.9.0",
-    "@types/node": "^24.10.1",
+    "@types/node": "^22.10.2",
     "@types/react": "^19.2.5",
     "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^5.1.1",
-    "concurrently": "^9.1.2",
-    "eslint": "^9.39.1",
-    "eslint-plugin-react-hooks": "^7.0.1",
-    "eslint-plugin-react-refresh": "^0.4.24",
-    "globals": "^16.5.0",
-    "tailwindcss": "^4.1.18",
+    "@vitejs/plugin-react": "^6.0.1",
+    "drizzle-kit": "^0.30.0",
+    "jsdom": "^28.1.0",
+    "prettier": "^3.8.1",
     "typescript": "~5.9.3",
-    "typescript-eslint": "^8.46.4",
-    "vite": "^7.2.4",
-    "vitest": "^4.0.18"
+    "vite": "^8.0.0",
+    "vitest": "^3.0.5",
+    "wrangler": "^4.70.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "lightningcss"
+    ]
   }
 }

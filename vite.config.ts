@@ -1,27 +1,21 @@
-import { defineConfig } from 'vitest/config'
-import react from '@vitejs/plugin-react'
-import tailwindcss from '@tailwindcss/vite'
-import path from 'path'
+import { defineConfig } from 'vite'
+import { devtools } from '@tanstack/devtools-vite'
 
-export default defineConfig({
-  test: {
-    exclude: ['e2e/**', 'node_modules/**'],
-  },
-  base: './',
-  plugins: [react(), tailwindcss()],
-  resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src'),
-    },
-  },
-  server: { 
-    host: true, 
-    port: 5181,
-    proxy: {
-      '/api': {
-        target: 'http://localhost:3006',
-        changeOrigin: true,
-      },
-    },
-  },
+import { tanstackStart } from '@tanstack/react-start/plugin/vite'
+
+import viteReact from '@vitejs/plugin-react'
+import tailwindcss from '@tailwindcss/vite'
+import { cloudflare } from '@cloudflare/vite-plugin'
+
+const config = defineConfig({
+  resolve: { tsconfigPaths: true },
+  plugins: [
+    devtools(),
+    cloudflare({ viteEnvironment: { name: 'ssr' } }),
+    tailwindcss(),
+    tanstackStart(),
+    viteReact(),
+  ],
 })
+
+export default config

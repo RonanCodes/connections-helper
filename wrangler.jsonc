@@ -1,0 +1,24 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "connections-helper",
+  "compatibility_date": "2025-09-02",
+  "compatibility_flags": ["nodejs_compat"],
+  "main": "@tanstack/react-start/server-entry",
+  "observability": { "enabled": true },
+  "vars": {
+    // Observability keys — public by design (Sentry DSN and PostHog phc_ keys
+    // are intended to ship to browsers). CI overrides via `wrangler deploy --var`
+    // from GitHub secrets. For local dev, put overrides in `.dev.vars`.
+    "SENTRY_DSN": "",
+    "POSTHOG_PROJECT_KEY": "",
+    "POSTHOG_INGEST_HOST": "https://eu.i.posthog.com",
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "connections_helper_db",
+      "database_id": "19176488-560a-4947-9ae8-69e8c8cf02ff",
+      "migrations_dir": "drizzle",
+    },
+  ],
+}

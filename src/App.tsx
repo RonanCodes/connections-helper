@@ -1,9 +1,52 @@
 import { useState, useEffect, useRef } from 'react'
-import { ChevronLeft, ChevronRight, Eye, EyeOff, Loader2, RefreshCw, Calendar, Sparkles, Puzzle, Share2, Copy, Check, Palette } from 'lucide-react'
+import {
+  ChevronLeft,
+  ChevronRight,
+  Eye,
+  EyeOff,
+  Loader2,
+  RefreshCw,
+  Calendar,
+  Sparkles,
+  Puzzle,
+  Share2,
+  Copy,
+  Check,
+  Palette,
+} from 'lucide-react'
 import confetti from 'canvas-confetti'
+import { initTheme } from '@/lib/themes'
+import { initPostHog } from '@/lib/posthog'
+import { initSentry } from '@/lib/sentry'
+import { EnvironmentBadge } from '@/lib/env-badge'
+import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Skeleton } from '@/components/ui/skeleton'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
+import { cn } from '@/lib/utils'
+import { DatePicker } from './components/DatePicker'
+import '@/lib/themes/css/themes.css'
 
 // Easter egg utilities
-type Theme = 'default' | 'light' | 'neubrutalism' | 'synthwave' | 'geocities' | 'nyt';
+type Theme =
+  | 'default'
+  | 'light'
+  | 'neubrutalism'
+  | 'synthwave'
+  | 'geocities'
+  | 'nyt'
 
 const THEME_CONFETTI: Record<Theme, string[]> = {
   default: ['#60a5fa', '#818cf8', '#a78bfa', '#c084fc', '#e879f9'],
@@ -12,7 +55,7 @@ const THEME_CONFETTI: Record<Theme, string[]> = {
   neubrutalism: ['#facc15', '#a3e635', '#000000', '#ffffff', '#f472b6'],
   synthwave: ['#ff2a6d', '#00d4ff', '#b14aed', '#05ffa1', '#ff79c6'],
   geocities: ['#ffff00', '#00ff00', '#ff00ff', '#00ffff', '#ff0000'],
-};
+}
 
 const WIGGLE_CSS = `
 @-webkit-keyframes wiggle {
@@ -53,38 +96,47 @@ const WIGGLE_CSS = `
   -webkit-animation: squish 0.15s ease-out;
   animation: squish 0.15s ease-out;
 }
-`;
+`
 
 function fireConfetti() {
-  const theme = (document.documentElement.getAttribute('data-theme') as Theme) || 'light';
-  const colors = THEME_CONFETTI[theme] || THEME_CONFETTI.light;
+  const theme = (document.documentElement.getAttribute('data-theme') ??
+    'light') as Theme
+  const colors = THEME_CONFETTI[theme]
 
-  confetti({ particleCount: 150, spread: 100, origin: { y: 0.3 }, colors });
+  confetti({ particleCount: 150, spread: 100, origin: { y: 0.3 }, colors })
   setTimeout(() => {
-    confetti({ particleCount: 50, angle: 60, spread: 55, origin: { x: 0 }, colors });
-    confetti({ particleCount: 50, angle: 120, spread: 55, origin: { x: 1 }, colors });
-  }, 200);
+    confetti({
+      particleCount: 50,
+      angle: 60,
+      spread: 55,
+      origin: { x: 0 },
+      colors,
+    })
+    confetti({
+      particleCount: 50,
+      angle: 120,
+      spread: 55,
+      origin: { x: 1 },
+      colors,
+    })
+  }, 200)
 
   // Synthwave extra sparkle
   if (theme === 'synthwave') {
     setTimeout(() => {
       confetti({
-        particleCount: 30, spread: 360, startVelocity: 20, gravity: 0.5,
-        origin: { x: 0.5, y: 0.5 }, colors: ['#ff2a6d', '#00d4ff'], shapes: ['star'], scalar: 1.5,
-      });
-    }, 400);
+        particleCount: 30,
+        spread: 360,
+        startVelocity: 20,
+        gravity: 0.5,
+        origin: { x: 0.5, y: 0.5 },
+        colors: ['#ff2a6d', '#00d4ff'],
+        shapes: ['star'],
+        scalar: 1.5,
+      })
+    }, 400)
   }
 }
-import { initTheme } from '@/lib/themes'
-import { EnvironmentBadge } from '@/lib/env-badge'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Badge } from '@/components/ui/badge'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { cn } from '@/lib/utils'
-import { DatePicker } from './DatePicker'
-import '@/lib/themes/css/themes.css'
 
 interface SingleDefinition {
   definition: string
@@ -93,12 +145,40 @@ interface SingleDefinition {
 }
 
 // Source icons, labels, and URLs (word placeholder: {word})
-const SOURCE_INFO: Record<string, { icon: string; label: string; color: string; url?: string }> = {
-  dictionary: { icon: '📖', label: 'Dictionary', color: 'text-green-500', url: 'https://www.dictionary.com/browse/{word}' },
-  dictionarycom: { icon: '📖', label: 'Dictionary.com', color: 'text-green-500', url: 'https://www.dictionary.com/browse/{word}' },
-  datamuse: { icon: '🔤', label: 'Datamuse', color: 'text-blue-500', url: 'https://www.datamuse.com/api/' },
-  wikipedia: { icon: '🌐', label: 'Wikipedia', color: 'text-slate-400', url: 'https://en.wikipedia.org/wiki/{word}' },
-  urban: { icon: '🏙️', label: 'Urban Dictionary', color: 'text-orange-500', url: 'https://www.urbandictionary.com/define.php?term={word}' },
+const SOURCE_INFO: Record<
+  string,
+  { icon: string; label: string; color: string; url?: string }
+> = {
+  dictionary: {
+    icon: '📖',
+    label: 'Dictionary',
+    color: 'text-green-500',
+    url: 'https://www.dictionary.com/browse/{word}',
+  },
+  dictionarycom: {
+    icon: '📖',
+    label: 'Dictionary.com',
+    color: 'text-green-500',
+    url: 'https://www.dictionary.com/browse/{word}',
+  },
+  datamuse: {
+    icon: '🔤',
+    label: 'Datamuse',
+    color: 'text-blue-500',
+    url: 'https://www.datamuse.com/api/',
+  },
+  wikipedia: {
+    icon: '🌐',
+    label: 'Wikipedia',
+    color: 'text-slate-400',
+    url: 'https://en.wikipedia.org/wiki/{word}',
+  },
+  urban: {
+    icon: '🏙️',
+    label: 'Urban Dictionary',
+    color: 'text-orange-500',
+    url: 'https://www.urbandictionary.com/define.php?term={word}',
+  },
   inferred: { icon: '🤔', label: 'Inferred', color: 'text-yellow-500' },
 }
 
@@ -134,9 +214,9 @@ const getToday = () => new Date().toISOString().split('T')[0]
 // NYT category colors
 const CATEGORY_COLORS = [
   'bg-yellow-400 text-yellow-950 border-yellow-500',
-  'bg-green-400 text-green-950 border-green-500', 
+  'bg-green-400 text-green-950 border-green-500',
   'bg-blue-400 text-blue-950 border-blue-500',
-  'bg-purple-400 text-purple-950 border-purple-500'
+  'bg-purple-400 text-purple-950 border-purple-500',
 ]
 
 function getSavedDate(): string | null {
@@ -157,11 +237,15 @@ async function fetchPuzzle(date: string): Promise<NYTPuzzle | null> {
   }
 }
 
-async function fetchDefinitionsBatch(words: string[]): Promise<Record<string, { definitions: SingleDefinition[] }>> {
+async function fetchDefinitionsBatch(
+  words: string[],
+): Promise<Record<string, { definitions: SingleDefinition[] }>> {
   // Filter out null/undefined/empty words (e.g. image-based puzzle cards with no text content)
-  const validWords = words.filter(w => w && typeof w === 'string' && w.trim().length > 0)
+  const validWords = words.filter(
+    (w) => w && typeof w === 'string' && w.trim().length > 0,
+  )
   if (validWords.length === 0) return {}
-  
+
   try {
     const res = await fetch('/api/definitions', {
       method: 'POST',
@@ -173,41 +257,63 @@ async function fetchDefinitionsBatch(words: string[]): Promise<Record<string, { 
     return data.definitions || {}
   } catch {
     // Return empty definitions on error
-    return Object.fromEntries(validWords.map(w => [w.toLowerCase(), { definitions: [{ definition: 'Failed to fetch definition' }] }]))
+    return Object.fromEntries(
+      validWords.map((w) => [
+        w.toLowerCase(),
+        { definitions: [{ definition: 'Failed to fetch definition' }] },
+      ]),
+    )
   }
 }
 
-function WordCard({ word, index, showHints }: { word: WordDefinition; index: number; showHints?: boolean }) {
+function WordCard({
+  word,
+  index,
+  showHints,
+}: {
+  word: WordDefinition
+  index: number
+  showHints?: boolean
+}) {
   const [showColor, setShowColor] = useState(false)
   const [expanded, setExpanded] = useState(false)
   const categoryIndex = word.categoryIndex ?? 0
-  
-  const definitions = word.definitions || []
+
+  const definitions = word.definitions
   const primaryDef = definitions[0]
   const hasMore = definitions.length > 1
-  
+
   return (
-    <Card 
+    <Card
       className={cn(
-        "transition-all duration-200 hover:shadow-lg",
-        "animate-in fade-in slide-in-from-bottom-2",
-        "h-full flex flex-col",
-        showColor && CATEGORY_COLORS[categoryIndex]
+        'transition-all duration-200 hover:shadow-lg',
+        'animate-in fade-in slide-in-from-bottom-2',
+        'h-full flex flex-col',
+        showColor && CATEGORY_COLORS[categoryIndex],
       )}
-      style={{ animationDelay: `${index * 50}ms`, animationFillMode: 'backwards' }}
+      style={{
+        animationDelay: `${index * 50}ms`,
+        animationFillMode: 'backwards',
+      }}
     >
       <CardHeader className="pb-1">
         <CardTitle className="text-lg flex items-center justify-between">
           {word.imageUrl ? (
             <div className="flex items-center gap-2">
-              <img src={word.imageUrl} alt={word.imageAltText || word.word} className="w-8 h-8" />
-              <span className="uppercase tracking-wide text-sm">{word.imageAltText || word.word}</span>
+              <img
+                src={word.imageUrl}
+                alt={word.imageAltText || word.word}
+                className="w-8 h-8"
+              />
+              <span className="uppercase tracking-wide text-sm">
+                {word.imageAltText || word.word}
+              </span>
             </div>
           ) : (
             <span className="uppercase tracking-wide">{word.word}</span>
           )}
           <div className="flex items-center gap-2">
-            {primaryDef?.partOfSpeech && !word.loading && (
+            {primaryDef.partOfSpeech && !word.loading && (
               <Badge variant="secondary" className="text-xs font-normal">
                 {primaryDef.partOfSpeech}
               </Badge>
@@ -219,19 +325,21 @@ function WordCard({ word, index, showHints }: { word: WordDefinition; index: num
                   setShowColor(!showColor)
                 }}
                 className={cn(
-                  "p-1.5 rounded-md transition-all duration-300 border",
-                  showColor 
-                    ? "bg-black/10 border-transparent scale-110" 
-                    : "bg-muted/50 border-border hover:bg-muted hover:scale-105"
+                  'p-1.5 rounded-md transition-all duration-300 border',
+                  showColor
+                    ? 'bg-black/10 border-transparent scale-110'
+                    : 'bg-muted/50 border-border hover:bg-muted hover:scale-105',
                 )}
-                title={showColor ? "Hide color" : "Reveal category color"}
+                title={showColor ? 'Hide color' : 'Reveal category color'}
               >
                 {showColor ? (
-                  <div className={cn(
-                    "w-4 h-4 rounded-sm transition-all duration-500",
-                    CATEGORY_COLORS[categoryIndex].split(' ')[0],
-                    "animate-in zoom-in-50"
-                  )} />
+                  <div
+                    className={cn(
+                      'w-4 h-4 rounded-sm transition-all duration-500',
+                      CATEGORY_COLORS[categoryIndex].split(' ')[0],
+                      'animate-in zoom-in-50',
+                    )}
+                  />
                 ) : (
                   <Palette className="w-4 h-4 text-muted-foreground" />
                 )}
@@ -249,19 +357,24 @@ function WordCard({ word, index, showHints }: { word: WordDefinition; index: num
         ) : (
           <div className="flex flex-col h-full gap-3">
             {/* Primary definition - grows to fill space */}
-            <CardDescription className={cn(
-              "text-sm leading-relaxed flex-grow",
-              showColor && "text-current opacity-90"
-            )}>
-              {primaryDef?.definition || 'No definition found'}
+            <CardDescription
+              className={cn(
+                'text-sm leading-relaxed flex-grow',
+                showColor && 'text-current opacity-90',
+              )}
+            >
+              {primaryDef.definition || 'No definition found'}
             </CardDescription>
-            
+
             {/* Source indicator - clickable link to source (default to dictionary.com) */}
             {(() => {
-              const sourceKey = primaryDef?.source || 'dictionarycom'
-              const sourceInfo = SOURCE_INFO[sourceKey] || SOURCE_INFO.dictionarycom
-              const sourceUrl = sourceInfo.url?.replace('{word}', encodeURIComponent(word.word))
-              
+              const sourceKey = primaryDef.source || 'dictionarycom'
+              const sourceInfo = SOURCE_INFO[sourceKey]
+              const sourceUrl = sourceInfo.url.replace(
+                '{word}',
+                encodeURIComponent(word.word),
+              )
+
               return sourceUrl ? (
                 <a
                   href={sourceUrl}
@@ -277,7 +390,7 @@ function WordCard({ word, index, showHints }: { word: WordDefinition; index: num
                   </span>
                 </a>
               ) : (
-                <div 
+                <div
                   className="flex items-center gap-1 text-xs opacity-40 transition-opacity cursor-pointer"
                   title={`Source: ${sourceInfo.label}`}
                 >
@@ -288,44 +401,53 @@ function WordCard({ word, index, showHints }: { word: WordDefinition; index: num
                 </div>
               )
             })()}
-            
+
             {/* Expandable additional definitions */}
             {hasMore && expanded && (
               <div className="space-y-2 pt-2 border-t border-border/50 animate-in slide-in-from-top-2 max-h-48 overflow-y-auto">
                 {definitions.slice(1).map((def, i) => (
                   <div key={i} className="text-sm">
-                    <CardDescription className={cn(
-                      "leading-relaxed",
-                      showColor && "text-current opacity-90"
-                    )}>
-                      {def.partOfSpeech && def.partOfSpeech !== primaryDef?.partOfSpeech && (
-                        <Badge variant="outline" className="text-xs font-normal mr-1.5 align-middle">
-                          {def.partOfSpeech}
-                        </Badge>
+                    <CardDescription
+                      className={cn(
+                        'leading-relaxed',
+                        showColor && 'text-current opacity-90',
                       )}
+                    >
+                      {def.partOfSpeech &&
+                        def.partOfSpeech !== primaryDef.partOfSpeech && (
+                          <Badge
+                            variant="outline"
+                            className="text-xs font-normal mr-1.5 align-middle"
+                          >
+                            {def.partOfSpeech}
+                          </Badge>
+                        )}
                       {def.definition}
                     </CardDescription>
                   </div>
                 ))}
               </div>
             )}
-            
+
             {/* More definitions button - always at bottom */}
             {hasMore && (
               <button
                 onClick={() => setExpanded(!expanded)}
                 className={cn(
-                  "w-full text-xs px-3 py-2.5 rounded-lg transition-all mt-auto",
-                  "bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground",
-                  "border border-border/50 hover:border-border",
-                  "flex items-center justify-center gap-1.5",
-                  expanded && "bg-primary/10 text-primary border-primary/30"
+                  'w-full text-xs px-3 py-2.5 rounded-lg transition-all mt-auto',
+                  'bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground',
+                  'border border-border/50 hover:border-border',
+                  'flex items-center justify-center gap-1.5',
+                  expanded && 'bg-primary/10 text-primary border-primary/30',
                 )}
               >
                 {expanded ? (
                   <>Less</>
                 ) : (
-                  <>{definitions.length - 1} more definition{definitions.length > 2 ? 's' : ''}</>
+                  <>
+                    {definitions.length - 1} more definition
+                    {definitions.length > 2 ? 's' : ''}
+                  </>
                 )}
               </button>
             )}
@@ -342,15 +464,22 @@ function getUnlockKey(date: string) {
 }
 
 // Streak tracking for Easter egg
-function ShareButton({ puzzleId, puzzleDate }: { puzzleId: number | null; puzzleDate: string }) {
+function ShareButton({
+  puzzleId,
+  puzzleDate,
+}: {
+  puzzleId: number | null
+  puzzleDate: string
+}) {
   const [copied, setCopied] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
 
-  const shareUrl = typeof window !== 'undefined' 
-    ? `${window.location.origin}?date=${puzzleDate}` 
-    : ''
-  const shareText = puzzleId 
+  const shareUrl =
+    typeof window !== 'undefined'
+      ? `${window.location.origin}?date=${puzzleDate}`
+      : ''
+  const shareText = puzzleId
     ? `Check out NYT Connections #${puzzleId} - can you solve it?`
     : `Check out today's NYT Connections puzzle!`
 
@@ -385,7 +514,7 @@ function ShareButton({ puzzleId, puzzleDate }: { puzzleId: number | null; puzzle
   }
 
   const handleNativeShare = async () => {
-    if (navigator.share) {
+    if ('share' in navigator) {
       try {
         await navigator.share({
           title: 'Connections Helper',
@@ -400,7 +529,10 @@ function ShareButton({ puzzleId, puzzleDate }: { puzzleId: number | null; puzzle
   }
 
   const handleWhatsApp = () => {
-    window.open(`https://wa.me/?text=${encodeURIComponent(shareText + ' ' + shareUrl)}`, '_blank')
+    window.open(
+      `https://wa.me/?text=${encodeURIComponent(shareText + ' ' + shareUrl)}`,
+      '_blank',
+    )
     setShowMenu(false)
   }
 
@@ -415,9 +547,9 @@ function ShareButton({ puzzleId, puzzleDate }: { puzzleId: number | null; puzzle
       >
         <Share2 className="w-4 h-4" />
       </Button>
-      
+
       {showMenu && (
-        <div 
+        <div
           className="absolute top-full right-0 mt-2 z-50 min-w-[180px] rounded-lg p-1 shadow-lg"
           style={{
             backgroundColor: 'var(--color-surface, #ffffff)',
@@ -438,7 +570,7 @@ function ShareButton({ puzzleId, puzzleDate }: { puzzleId: number | null; puzzle
             className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors hover:bg-black/5"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
             </svg>
             WhatsApp
           </button>
@@ -446,7 +578,11 @@ function ShareButton({ puzzleId, puzzleDate }: { puzzleId: number | null; puzzle
             onClick={handleCopy}
             className="w-full flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors hover:bg-black/5"
           >
-            {copied ? <Check className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+            {copied ? (
+              <Check className="w-4 h-4 text-green-500" />
+            ) : (
+              <Copy className="w-4 h-4" />
+            )}
             {copied ? 'Copied!' : 'Copy Link'}
           </button>
         </div>
@@ -456,13 +592,23 @@ function ShareButton({ puzzleId, puzzleDate }: { puzzleId: number | null; puzzle
 }
 
 function CategoryHints({ hints, show }: { hints: string[]; show: boolean }) {
-  const [revealedCards, setRevealedCards] = useState<boolean[]>([false, false, false, false])
-  const [showColors, setShowColors] = useState<boolean[]>([false, false, false, false])
-  
+  const [revealedCards, setRevealedCards] = useState<boolean[]>([
+    false,
+    false,
+    false,
+    false,
+  ])
+  const [showColors, setShowColors] = useState<boolean[]>([
+    false,
+    false,
+    false,
+    false,
+  ])
+
   if (!show || hints.length === 0) return null
 
   const toggleCard = (index: number) => {
-    setRevealedCards(prev => {
+    setRevealedCards((prev) => {
       const next = [...prev]
       next[index] = !next[index]
       return next
@@ -471,7 +617,7 @@ function CategoryHints({ hints, show }: { hints: string[]; show: boolean }) {
 
   const toggleColor = (index: number, e: React.MouseEvent) => {
     e.stopPropagation()
-    setShowColors(prev => {
+    setShowColors((prev) => {
       const next = [...prev]
       next[index] = !next[index]
       return next
@@ -487,36 +633,43 @@ function CategoryHints({ hints, show }: { hints: string[]; show: boolean }) {
         </p>
         <div className="grid grid-cols-2 gap-1.5">
           {hints.map((hint, i) => (
-            <div 
+            <div
               key={i}
               onClick={() => toggleCard(i)}
               className={cn(
-                "relative cursor-pointer select-none px-2 py-2 rounded-lg font-semibold text-center text-[10px] border-2 transition-all duration-300 min-h-[52px] overflow-hidden",
+                'relative cursor-pointer select-none px-2 py-2 rounded-lg font-semibold text-center text-[10px] border-2 transition-all duration-300 min-h-[52px] overflow-hidden',
                 revealedCards[i]
                   ? showColors[i]
                     ? CATEGORY_COLORS[i]
-                    : "bg-card text-foreground border-border"
-                  : "bg-muted border-border text-muted-foreground hover:bg-muted/80"
+                    : 'bg-card text-foreground border-border'
+                  : 'bg-muted border-border text-muted-foreground hover:bg-muted/80',
               )}
             >
               {revealedCards[i] ? (
                 <div className="flex items-center justify-center gap-1 h-full">
-                  <span className="flex-1 leading-tight break-words hyphens-auto" style={{ wordBreak: 'break-word' }}>{hint}</span>
+                  <span
+                    className="flex-1 leading-tight break-words hyphens-auto"
+                    style={{ wordBreak: 'break-word' }}
+                  >
+                    {hint}
+                  </span>
                   <button
                     onClick={(e) => toggleColor(i, e)}
                     className={cn(
-                      "flex-shrink-0 p-1.5 rounded-md transition-all duration-300 border",
-                      showColors[i] 
-                        ? "bg-black/10 border-transparent scale-110" 
-                        : "bg-muted/50 border-border hover:bg-muted hover:scale-105"
+                      'flex-shrink-0 p-1.5 rounded-md transition-all duration-300 border',
+                      showColors[i]
+                        ? 'bg-black/10 border-transparent scale-110'
+                        : 'bg-muted/50 border-border hover:bg-muted hover:scale-105',
                     )}
-                    title={showColors[i] ? "Hide color" : "Reveal color hint"}
+                    title={showColors[i] ? 'Hide color' : 'Reveal color hint'}
                   >
                     {showColors[i] ? (
-                      <div className={cn(
-                        "w-4 h-4 rounded-sm",
-                        CATEGORY_COLORS[i].split(' ')[0]
-                      )} />
+                      <div
+                        className={cn(
+                          'w-4 h-4 rounded-sm',
+                          CATEGORY_COLORS[i].split(' ')[0],
+                        )}
+                      />
                     ) : (
                       <Palette className="w-4 h-4 text-muted-foreground" />
                     )}
@@ -534,56 +687,64 @@ function CategoryHints({ hints, show }: { hints: string[]; show: boolean }) {
 }
 
 // Flip card component for classic mode
-function FlipCard({ word, isFlipped, onFlip }: { 
-  word: WordDefinition; 
-  isFlipped: boolean; 
-  onFlip: () => void;
+function FlipCard({
+  word,
+  isFlipped,
+  onFlip,
+}: {
+  word: WordDefinition
+  isFlipped: boolean
+  onFlip: () => void
 }) {
   return (
-    <div 
+    <div
       className="aspect-square cursor-pointer"
       style={{ perspective: '1000px' }}
       onClick={onFlip}
     >
-      <div 
+      <div
         className={cn(
-          "relative w-full h-full transition-transform duration-500",
-          "transform-style-preserve-3d"
+          'relative w-full h-full transition-transform duration-500',
+          'transform-style-preserve-3d',
         )}
-        style={{ 
+        style={{
           transformStyle: 'preserve-3d',
           transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
-          transition: 'transform 0.5s ease-in-out'
+          transition: 'transform 0.5s ease-in-out',
         }}
       >
         {/* Front - Word */}
-        <div 
+        <div
           className={cn(
-            "absolute inset-0 rounded-lg font-bold p-1.5",
-            "flex items-center justify-center text-center uppercase",
-            "bg-muted border-2 border-border",
-            "text-[0.65rem] sm:text-xs md:text-sm",
-            "overflow-hidden break-words leading-tight"
+            'absolute inset-0 rounded-lg font-bold p-1.5',
+            'flex items-center justify-center text-center uppercase',
+            'bg-muted border-2 border-border',
+            'text-[0.65rem] sm:text-xs md:text-sm',
+            'overflow-hidden break-words leading-tight',
           )}
           style={{ backfaceVisibility: 'hidden' }}
         >
           {word.imageUrl ? (
-            <img src={word.imageUrl} alt={word.imageAltText || word.word} className="w-8 h-8" />
+            <img
+              src={word.imageUrl}
+              alt={word.imageAltText || word.word}
+              className="w-8 h-8"
+            />
           ) : (
             <span className="line-clamp-2">{word.word}</span>
           )}
         </div>
         {/* Back - Definition with word at top */}
-        <div 
+        <div
           className={cn(
-            "absolute inset-0 rounded-lg p-1.5",
-            "flex flex-col text-center",
-            "bg-primary text-primary-foreground border-2 border-primary",
-            "overflow-hidden"
+            'absolute inset-0 rounded-lg p-1.5',
+            'flex flex-col text-center',
+            'bg-primary text-primary-foreground border-2 border-primary',
+            'overflow-hidden',
           )}
-          style={{ 
+          style={{
             backfaceVisibility: 'hidden',
-            transform: 'rotateY(180deg)'
+            transform: 'rotateY(180deg)',
           }}
         >
           {/* Word at top, faded */}
@@ -592,34 +753,30 @@ function FlipCard({ word, isFlipped, onFlip }: {
           </span>
           {/* Definition - larger, centered */}
           <span className="flex-1 flex items-center justify-center text-[0.55rem] sm:text-[0.65rem] md:text-xs leading-snug line-clamp-4">
-            {word.definitions?.[0]?.definition || 'No definition'}
+            {word.definitions[0]?.definition || 'No definition'}
           </span>
         </div>
       </div>
     </div>
-  );
+  )
 }
 
 // Classic mode grid (NYT-style 4x4 layout - display only, no game mechanics)
-function ClassicGrid({ 
-  words
-}: { 
-  words: WordDefinition[]
-}) {
-  const [flippedCards, setFlippedCards] = useState<Set<string>>(new Set());
-  
+function ClassicGrid({ words }: { words: WordDefinition[] }) {
+  const [flippedCards, setFlippedCards] = useState<Set<string>>(new Set())
+
   const toggleFlip = (wordText: string) => {
-    setFlippedCards(prev => {
-      const next = new Set(prev);
+    setFlippedCards((prev) => {
+      const next = new Set(prev)
       if (next.has(wordText)) {
-        next.delete(wordText);
+        next.delete(wordText)
       } else {
-        next.add(wordText);
+        next.add(wordText)
       }
-      return next;
-    });
-  };
-  
+      return next
+    })
+  }
+
   return (
     <div className="space-y-4">
       {/* 4x4 Grid - tap to flip */}
@@ -645,15 +802,17 @@ export default function App() {
   const [categoryHints, setCategoryHints] = useState<string[]>([])
   const [loadingPuzzle, setLoadingPuzzle] = useState(true)
   const [hasSearched, setHasSearched] = useState(false)
-  const [puzzleDate, setPuzzleDate] = useState<string>(getSavedDate() || getToday())
+  const [puzzleDate, setPuzzleDate] = useState<string>(
+    getSavedDate() || getToday(),
+  )
   const [puzzleId, setPuzzleId] = useState<number | null>(null)
   const [showHints, setShowHints] = useState(false)
   // TODO: Restore view mode toggle after fixing @bendr/themes
-  const viewMode = 'helper' as const
+  const [viewMode] = useState<'helper' | 'classic'>('helper')
   const [error, setError] = useState<string | null>(null)
   const [rainbowMode, setRainbowMode] = useState(false)
-  const [wiggleDisabled, setWiggleDisabled] = useState(() => 
-    localStorage.getItem('connections-wiggle-seen') === 'true'
+  const [wiggleDisabled, setWiggleDisabled] = useState(
+    () => localStorage.getItem('connections-wiggle-seen') === 'true',
   )
   const clickCountRef = useRef(0)
   const clickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -666,7 +825,7 @@ export default function App() {
       setWiggleDisabled(true)
       localStorage.setItem('connections-wiggle-seen', 'true')
     }
-    
+
     // Add bounce animation
     if (puzzleIconRef.current) {
       puzzleIconRef.current.classList.remove('bounce-click')
@@ -674,19 +833,19 @@ export default function App() {
       void puzzleIconRef.current.getBoundingClientRect()
       puzzleIconRef.current.classList.add('bounce-click')
     }
-    
+
     clickCountRef.current += 1
-    
+
     // Reset count after 2 seconds of no clicks
     if (clickTimeoutRef.current) clearTimeout(clickTimeoutRef.current)
     clickTimeoutRef.current = setTimeout(() => {
       clickCountRef.current = 0
     }, 2000)
-    
+
     if (clickCountRef.current >= 7) {
       clickCountRef.current = 0
-      setRainbowMode(prev => !prev)
-      
+      setRainbowMode((prev) => !prev)
+
       // Fire theme-aware confetti!
       fireConfetti()
     }
@@ -701,12 +860,14 @@ export default function App() {
       style.textContent = WIGGLE_CSS
       document.head.appendChild(style)
     }
-    
+
     // Set NYT as default theme for this app if no theme saved
     if (!localStorage.getItem('sl-theme')) {
       localStorage.setItem('sl-theme', 'nyt')
     }
     initTheme()
+    initSentry()
+    initPostHog()
     loadPuzzle(puzzleDate)
   }, [])
 
@@ -717,19 +878,19 @@ export default function App() {
     setWords([])
     setCategoryHints([])
     setShowHints(false)
-    
+
     const puzzle = await fetchPuzzle(date)
-    
+
     if (puzzle) {
       setPuzzleDate(puzzle.print_date)
       setPuzzleId(puzzle.id)
-      
+
       const allWords: WordDefinition[] = []
       const hints: string[] = []
-      
+
       puzzle.categories.forEach((cat, categoryIndex) => {
         hints.push(cat.title)
-        cat.cards.forEach(card => {
+        cat.cards.forEach((card) => {
           // Support both text cards (content) and image cards (image_url + image_alt_text)
           const displayWord = card.content || card.image_alt_text || ''
           allWords.push({
@@ -743,36 +904,49 @@ export default function App() {
           })
         })
       })
-      
+
       // Sort by position to match NYT grid order (not random)
-      const sorted = [...allWords].sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
+      const sorted = [...allWords].sort(
+        (a, b) => (a.position ?? 0) - (b.position ?? 0),
+      )
       setCategoryHints(hints)
       setWords(sorted)
       setHasSearched(true)
-      
+
       // For image-based puzzles, use alt text for definitions lookup
       // Skip definitions for cards that are purely visual (no meaningful text)
-      const isImagePuzzle = sorted.some(w => w.imageUrl)
-      const wordList = sorted.map(w => w.word).filter(Boolean)
-      const definitions = isImagePuzzle ? {} : await fetchDefinitionsBatch(wordList)
-      
-      setWords(sorted.map((word) => {
-        const key = word.word?.toLowerCase?.()
-        const defs = key ? definitions[key] : undefined
-        return {
-          ...word,
-          ...(defs || {}),
-          // For image puzzles with no definitions, provide a useful fallback
-          definitions: defs?.definitions || (isImagePuzzle
-            ? [{ definition: word.imageAltText ? `Shape: ${word.imageAltText}` : 'Visual element' }]
-            : []),
-          loading: false,
-        }
-      }))
+      const isImagePuzzle = sorted.some((w) => w.imageUrl)
+      const wordList = sorted.map((w) => w.word).filter(Boolean)
+      const definitions: Record<string, { definitions: SingleDefinition[] }> =
+        isImagePuzzle ? {} : await fetchDefinitionsBatch(wordList)
+
+      setWords(
+        sorted.map((word) => {
+          const key = word.word.toLowerCase()
+          const defs = definitions[key] as
+            | { definitions: SingleDefinition[] }
+            | undefined
+          const fallback: Array<SingleDefinition> = isImagePuzzle
+            ? [
+                {
+                  definition: word.imageAltText
+                    ? `Shape: ${word.imageAltText}`
+                    : 'Visual element',
+                },
+              ]
+            : []
+          return {
+            ...word,
+            ...defs,
+            definitions: defs?.definitions ?? fallback,
+            loading: false,
+          }
+        }),
+      )
     } else {
       setError('Puzzle not found for this date')
     }
-    
+
     setLoadingPuzzle(false)
   }
 
@@ -798,28 +972,32 @@ export default function App() {
 
   const isToday = puzzleDate === getToday()
   const isFirstDay = puzzleDate <= FIRST_PUZZLE_DATE
-  const loadingDefinitions = words.some(w => w.loading)
+  const loadingDefinitions = words.some((w) => w.loading)
 
   return (
     <TooltipProvider>
       <div className="min-h-screen bg-background transition-colors">
         <div className="max-w-4xl mx-auto px-4 py-6 md:py-10">
-          
           {/* Header */}
           <header className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between gap-3">
                 <h1 className="text-2xl md:text-3xl font-bold tracking-tight flex items-center gap-3">
-                  <Puzzle 
+                  <Puzzle
                     ref={puzzleIconRef}
                     className={cn(
-                      "w-8 h-8 flex-shrink-0 cursor-pointer transition-all hover:scale-110 select-none",
-                      wiggleDisabled ? "" : "wiggle-occasional",
-                      rainbowMode ? "rainbow-icon" : "text-green-500"
+                      'w-8 h-8 flex-shrink-0 cursor-pointer transition-all hover:scale-110 select-none',
+                      wiggleDisabled ? '' : 'wiggle-occasional',
+                      rainbowMode ? 'rainbow-icon' : 'text-green-500',
                     )}
                     onClick={handlePuzzleClick}
                   />
-                  <span className={cn("truncate", rainbowMode ? "rainbow-text" : "")}>
+                  <span
+                    className={cn(
+                      'truncate',
+                      rainbowMode ? 'rainbow-text' : '',
+                    )}
+                  >
                     Connections Helper
                   </span>
                 </h1>
@@ -853,7 +1031,7 @@ export default function App() {
                   </TooltipTrigger>
                   <TooltipContent>Previous day</TooltipContent>
                 </Tooltip>
-                
+
                 <div className="flex-1 flex flex-wrap items-center justify-center gap-2 sm:gap-3">
                   <DatePicker
                     value={puzzleDate}
@@ -866,17 +1044,17 @@ export default function App() {
                       #{puzzleId}
                     </span>
                   )}
-                  <Button 
-                    onClick={() => handleDateChange(getToday())} 
+                  <Button
+                    onClick={() => handleDateChange(getToday())}
                     size="sm"
                     disabled={isToday}
-                    variant={isToday ? "outline" : "default"}
+                    variant={isToday ? 'outline' : 'default'}
                   >
                     <Calendar className="w-4 h-4 sm:mr-2" />
                     <span className="hidden sm:inline">Today</span>
                   </Button>
                 </div>
-                
+
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
@@ -966,7 +1144,12 @@ export default function App() {
                 /* Helper Mode - Word Cards with Definitions */
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {words.map((word, i) => (
-                    <WordCard key={word.word} word={word} index={i} showHints={showHints} />
+                    <WordCard
+                      key={word.word}
+                      word={word}
+                      index={i}
+                      showHints={showHints}
+                    />
                   ))}
                 </div>
               ) : (
@@ -980,15 +1163,15 @@ export default function App() {
           <footer className="mt-12 text-center space-y-3">
             <p className="text-xs text-muted-foreground">
               Made by{' '}
-              <a 
-                href="https://ronanconnolly.dev" 
-                target="_blank" 
-                rel="noopener noreferrer" 
+              <a
+                href="https://ronanconnolly.dev"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="underline hover:text-foreground transition-colors"
               >
                 Ronan Connolly
-              </a>
-              {' '}• Not affiliated with NYT
+              </a>{' '}
+              • Not affiliated with NYT
             </p>
           </footer>
         </div>

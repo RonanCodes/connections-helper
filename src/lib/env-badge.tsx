@@ -19,11 +19,15 @@ function detectEnvironment(): Environment {
     h.startsWith('192.168.') ||
     h.startsWith('10.') ||
     h.startsWith('172.')
-  ) return 'local'
+  )
+    return 'local'
   return 'external'
 }
 
-const ENV_CONFIG: Record<Environment, { label: string; Icon: typeof Monitor; className: string }> = {
+const ENV_CONFIG: Record<
+  Environment,
+  { label: string; Icon: typeof Monitor; className: string }
+> = {
   local: {
     label: 'Local Dev',
     Icon: Monitor,

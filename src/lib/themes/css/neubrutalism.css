@@ -3,38 +3,38 @@
  * Cream background, black borders, hard shadows, chunky elements
  */
 
-[data-theme="neubrutalism"] {
+[data-theme='neubrutalism'] {
   /* Brand - Bright orange */
   --color-primary: #ff6b35;
   --color-primary-hover: #ff8c5a;
   --color-primary-foreground: #000000;
-  
+
   /* Surfaces - Cream/off-white */
   --color-background: #fffbeb;
   --color-foreground: #000000;
   --color-surface: #ffffff;
   --color-surface-elevated: #fef3c7;
-  
+
   /* Borders - BOLD BLACK */
   --color-border: #000000;
   --color-divider: #000000;
-  
+
   /* Text - Maximum contrast */
   --color-text: #000000;
   --color-text-muted: #374151;
   --color-text-subtle: #6b7280;
-  
+
   /* Semantic - Saturated */
   --color-success: #22c55e;
   --color-warning: #facc15;
   --color-error: #ef4444;
   --color-info: #3b82f6;
-  
+
   /* Effects - HARD shadows (signature look) */
   --shadow-sm: 3px 3px 0 0 #000000;
   --shadow-md: 5px 5px 0 0 #000000;
   --shadow-lg: 8px 8px 0 0 #000000;
-  
+
   /* Radius - NONE (sharp corners) */
   --radius-sm: 0;
   --radius-md: 0;
@@ -65,50 +65,52 @@
 }
 
 /* Neubrutalism-specific component overrides */
-[data-theme="neubrutalism"] button,
-[data-theme="neubrutalism"] .btn {
+[data-theme='neubrutalism'] button,
+[data-theme='neubrutalism'] .btn {
   border: 3px solid #000000 !important;
   font-weight: 900 !important;
   text-transform: uppercase !important;
   letter-spacing: 0.05em !important;
-  transition: transform 0.1s ease, box-shadow 0.1s ease !important;
+  transition:
+    transform 0.1s ease,
+    box-shadow 0.1s ease !important;
   box-shadow: 4px 4px 0 0 #000000 !important;
   background: #ffffff !important;
   color: #000000 !important;
 }
 
-[data-theme="neubrutalism"] button[style*="primary"],
-[data-theme="neubrutalism"] .btn-primary {
+[data-theme='neubrutalism'] button[style*='primary'],
+[data-theme='neubrutalism'] .btn-primary {
   background: #ff6b35 !important;
   color: #000000 !important;
 }
 
-[data-theme="neubrutalism"] button:hover,
-[data-theme="neubrutalism"] .btn:hover {
+[data-theme='neubrutalism'] button:hover,
+[data-theme='neubrutalism'] .btn:hover {
   transform: translate(-3px, -3px) !important;
   box-shadow: 6px 6px 0 0 #000000 !important;
 }
 
-[data-theme="neubrutalism"] button:active,
-[data-theme="neubrutalism"] .btn:active {
+[data-theme='neubrutalism'] button:active,
+[data-theme='neubrutalism'] .btn:active {
   transform: translate(2px, 2px) !important;
   box-shadow: 2px 2px 0 0 #000000 !important;
 }
 
-[data-theme="neubrutalism"] .card {
+[data-theme='neubrutalism'] .card {
   border: 3px solid #000000 !important;
   border-radius: 0 !important;
   box-shadow: 5px 5px 0 0 #000000 !important;
   background: #ffffff !important;
 }
 
-[data-theme="neubrutalism"] .card:hover {
+[data-theme='neubrutalism'] .card:hover {
   transform: translate(-4px, -4px) !important;
   box-shadow: 9px 9px 0 0 #000000 !important;
 }
 
-[data-theme="neubrutalism"] input,
-[data-theme="neubrutalism"] select {
+[data-theme='neubrutalism'] input,
+[data-theme='neubrutalism'] select {
   border: 3px solid #000000 !important;
   border-radius: 0 !important;
 }
