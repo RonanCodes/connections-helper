@@ -20,6 +20,8 @@ Not affiliated with the New York Times.
 - [Tailwind CSS 4](https://tailwindcss.com) + Radix UI primitives
 - [Sentry](https://sentry.io) + [PostHog](https://posthog.com) for errors & analytics (both optional)
 
+See [TECH_CHOICES.md](./TECH_CHOICES.md) for why each piece of the stack was picked (and what was rejected).
+
 ## Local development
 
 ```bash
