@@ -13,6 +13,7 @@ import {
   Copy,
   Check,
   Palette,
+  Github,
 } from 'lucide-react'
 import confetti from 'canvas-confetti'
 import { initTheme } from '@/lib/themes'
@@ -369,8 +370,8 @@ function WordCard({
             {/* Source indicator - clickable link to source (default to dictionary.com) */}
             {(() => {
               const sourceKey = primaryDef.source || 'dictionarycom'
-              const sourceInfo = SOURCE_INFO[sourceKey]
-              const sourceUrl = sourceInfo.url.replace(
+              const sourceInfo = SOURCE_INFO[sourceKey] ?? SOURCE_INFO.inferred
+              const sourceUrl = sourceInfo.url?.replace(
                 '{word}',
                 encodeURIComponent(word.word),
               )
@@ -1170,6 +1171,16 @@ export default function App() {
                 className="underline hover:text-foreground transition-colors"
               >
                 Ronan Connolly
+              </a>{' '}
+              •{' '}
+              <a
+                href="https://github.com/RonanCodes/connections-helper"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline hover:text-foreground transition-colors inline-flex items-center gap-1"
+              >
+                <Github className="w-3 h-3" />
+                Source
               </a>{' '}
               • Not affiliated with NYT
             </p>
