@@ -349,6 +349,49 @@ function SkeletonWordCard({ index }: { index: number }) {
   )
 }
 
+function DefinitionLines({ text }: { text: string }) {
+  const usageNoteKeywords =
+    /\s+[—–-]\s*(?=(?:often|usually|sometimes|chiefly|now|used|always|mostly|also|formerly|originally|esp\.?|specif\.?)\b)/i
+  const parts = text.split(usageNoteKeywords)
+  const mainText = parts[0]
+  const notes = parts.slice(1)
+
+  const senses = mainText.split(/;\s+/).filter(Boolean)
+  const labelPrefix =
+    /^(especially|specifically|also|broadly|chiefly|usually|often|sometimes|esp\.?|specif\.?)\s*:\s*(.+)$/i
+
+  return (
+    <div className="space-y-1">
+      {senses.map((sense, i) => {
+        const trimmed = sense.trim()
+        const match = trimmed.match(labelPrefix)
+        return (
+          <div key={i} className="leading-relaxed">
+            {match ? (
+              <>
+                <span className="italic text-muted-foreground/80 mr-1">
+                  {match[1].toLowerCase()}:
+                </span>
+                {match[2]}
+              </>
+            ) : (
+              trimmed
+            )}
+          </div>
+        )
+      })}
+      {notes.map((note, i) => (
+        <div
+          key={`n-${i}`}
+          className="text-xs italic text-muted-foreground/75 leading-relaxed pl-3 border-l-2 border-border/40"
+        >
+          {note.trim()}
+        </div>
+      ))}
+    </div>
+  )
+}
+
 function WordCard({
   word,
   index,
@@ -446,7 +489,11 @@ function WordCard({
                 showColor && 'text-current opacity-90',
               )}
             >
-              {primaryDef.definition || 'No definition found'}
+              {primaryDef.definition ? (
+                <DefinitionLines text={primaryDef.definition} />
+              ) : (
+                'No definition found'
+              )}
             </CardDescription>
 
             {/* Source + alternate lookups */}
@@ -526,12 +573,12 @@ function WordCard({
                         def.partOfSpeech !== primaryDef.partOfSpeech && (
                           <Badge
                             variant="outline"
-                            className="text-xs font-normal mr-1.5 align-middle"
+                            className="text-xs font-normal mr-1.5 mb-1 align-middle"
                           >
                             {def.partOfSpeech}
                           </Badge>
                         )}
-                      {def.definition}
+                      <DefinitionLines text={def.definition} />
                     </CardDescription>
                   </div>
                 ))}
