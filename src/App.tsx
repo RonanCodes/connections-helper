@@ -14,7 +14,18 @@ import {
   Check,
   Palette,
   Github,
+  Book,
+  BookOpen,
+  BookText,
+  BookMarked,
+  Globe,
+  Search,
+  MessageSquareMore,
+  HelpCircle,
+  ExternalLink,
+  Loader2,
 } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import confetti from 'canvas-confetti'
 import { initTheme } from '@/lib/themes'
 import { initPostHog } from '@/lib/posthog'
@@ -145,66 +156,74 @@ interface SingleDefinition {
   source?: string
 }
 
-// Source icons, labels, and URLs (word placeholder: {word})
-const SOURCE_INFO: Record<
-  string,
-  { icon: string; label: string; color: string; url?: string }
-> = {
-  // Merriam-Webster Collegiate API. Links match exactly; URL is merriam-webster.com/dictionary/{word}.
+type SourceInfo = {
+  Icon: LucideIcon
+  label: string
+  color: string
+  url?: string
+  fetchKey?: string
+}
+
+const SOURCE_INFO: Record<string, SourceInfo> = {
   'merriam-webster': {
-    icon: '📘',
+    Icon: BookOpen,
     label: 'Merriam-Webster',
     color: 'text-blue-600',
     url: 'https://www.merriam-webster.com/dictionary/{word}',
+    fetchKey: 'merriam-webster',
   },
-  // Wordnik aggregates several dictionaries; its own site has a per-word page that matches.
   wordnik: {
-    icon: '📗',
+    Icon: BookText,
     label: 'Wordnik',
-    color: 'text-green-600',
+    color: 'text-emerald-600',
     url: 'https://www.wordnik.com/words/{word}',
+    fetchKey: 'wordnik',
   },
-  // Backend source key is 'dictionary' (from dictionaryapi.dev, a free dictionary API backed by Wiktionary).
-  // Linking to Wiktionary is semantically correct: it's the underlying source that dictionaryapi.dev pulls from.
   dictionary: {
-    icon: '📖',
-    label: 'Dictionary',
+    Icon: Book,
+    label: 'Wiktionary',
     color: 'text-green-500',
     url: 'https://en.wiktionary.org/wiki/{word}',
+    fetchKey: 'dictionary',
   },
-  // Only used as an alt-source link (user-facing cross-check), never as the primary source key.
   dictionarycom: {
-    icon: '📖',
+    Icon: BookMarked,
     label: 'Dictionary.com',
-    color: 'text-green-500',
+    color: 'text-teal-500',
     url: 'https://www.dictionary.com/browse/{word}',
   },
   datamuse: {
-    icon: '🔤',
+    Icon: Search,
     label: 'Datamuse',
-    color: 'text-blue-500',
-    // Datamuse is an API with no per-word entry page, but its definitions come from Wiktionary,
-    // so link there for click-through.
+    color: 'text-sky-500',
     url: 'https://en.wiktionary.org/wiki/{word}',
+    fetchKey: 'datamuse',
   },
   wikipedia: {
-    icon: '🌐',
+    Icon: Globe,
     label: 'Wikipedia',
-    color: 'text-slate-400',
+    color: 'text-slate-500',
     url: 'https://en.wikipedia.org/wiki/{word}',
+    fetchKey: 'wikipedia',
   },
   urban: {
-    icon: '🏙️',
+    Icon: MessageSquareMore,
     label: 'Urban Dictionary',
     color: 'text-orange-500',
     url: 'https://www.urbandictionary.com/define.php?term={word}',
+    fetchKey: 'urban',
   },
-  inferred: { icon: '🤔', label: 'Inferred', color: 'text-yellow-500' },
+  inferred: { Icon: HelpCircle, label: 'Inferred', color: 'text-yellow-500' },
 }
 
-// Sources always offered as one-tap alternates next to the primary definition.
-// If the primary source matches one of these, it's removed from the alternate row.
-const ALT_SOURCE_KEYS = ['dictionarycom', 'urban', 'wikipedia'] as const
+const SWAPPABLE_SOURCE_KEYS = [
+  'merriam-webster',
+  'wordnik',
+  'dictionary',
+  'datamuse',
+  'wikipedia',
+  'urban',
+] as const
 
 // NYT puzzle words are ALL CAPS, but some sources need specific casing:
 // - Wikipedia article titles are case-sensitive (Hobo ✓, HOBO ✗) and use underscores for spaces
@@ -405,9 +424,58 @@ function WordCard({
   const [expanded, setExpanded] = useState(false)
   const categoryIndex = word.categoryIndex ?? 0
 
-  const definitions = word.definitions
-  const primaryDef = definitions[0]
-  const hasMore = definitions.length > 1
+  const originalDefinitions = word.definitions
+  const originalSource = originalDefinitions[0]?.source || 'dictionary'
+  const [activeSource, setActiveSource] = useState<string>(originalSource)
+  const [sourceCache, setSourceCache] = useState<
+    Record<string, SingleDefinition[]>
+  >({ [originalSource]: originalDefinitions })
+  const [sourceLoading, setSourceLoading] = useState<string | null>(null)
+
+  useEffect(() => {
+    setActiveSource(originalSource)
+    setSourceCache({ [originalSource]: originalDefinitions })
+    setExpanded(false)
+    setSourceLoading(null)
+  }, [originalSource, originalDefinitions])
+
+  const activeDefinitions: SingleDefinition[] =
+    sourceCache[activeSource] ?? originalDefinitions
+  const primaryDef = activeDefinitions.at(0) ?? originalDefinitions.at(0)
+  const hasMore = activeDefinitions.length > 1
+
+  async function switchSource(sourceKey: string) {
+    if (sourceKey === activeSource) return
+    if (sourceKey in sourceCache) {
+      setActiveSource(sourceKey)
+      setExpanded(false)
+      return
+    }
+    setSourceLoading(sourceKey)
+    try {
+      const res = await fetch(
+        `/api/definition/${encodeURIComponent(word.word)}?source=${encodeURIComponent(sourceKey)}`,
+      )
+      if (!res.ok) throw new Error(`Status ${res.status}`)
+      const data = await res.json()
+      const defs: SingleDefinition[] =
+        data.definitions && data.definitions.length > 0
+          ? data.definitions.map((d) => ({ ...d, source: sourceKey }))
+          : [
+              {
+                definition: `No entry on ${SOURCE_INFO[sourceKey].label}.`,
+                source: sourceKey,
+              },
+            ]
+      setSourceCache((prev) => ({ ...prev, [sourceKey]: defs }))
+      setActiveSource(sourceKey)
+      setExpanded(false)
+    } catch (err) {
+      console.error('Failed to switch source', err)
+    } finally {
+      setSourceLoading(null)
+    }
+  }
 
   return (
     <Card
@@ -439,7 +507,7 @@ function WordCard({
             <span className="uppercase tracking-wide">{word.word}</span>
           )}
           <div className="flex items-center gap-2">
-            {primaryDef.partOfSpeech && !word.loading && (
+            {primaryDef?.partOfSpeech && !word.loading && (
               <Badge variant="secondary" className="text-xs font-normal">
                 {primaryDef.partOfSpeech}
               </Badge>
@@ -489,66 +557,94 @@ function WordCard({
                 showColor && 'text-current opacity-90',
               )}
             >
-              {primaryDef.definition ? (
+              {primaryDef?.definition ? (
                 <DefinitionLines text={primaryDef.definition} />
               ) : (
                 'No definition found'
               )}
             </CardDescription>
 
-            {/* Source + alternate lookups */}
+            {/* Active source chip + one-tap source swap */}
             {(() => {
-              const primaryKey = primaryDef.source || 'dictionary'
-              const sourceInfo = SOURCE_INFO[primaryKey] ?? SOURCE_INFO.inferred
-              const sourceUrl = buildSourceUrl(primaryKey, word.word)
-              const alternates = ALT_SOURCE_KEYS.filter((k) => k !== primaryKey)
+              const activeInfo =
+                SOURCE_INFO[activeSource] ?? SOURCE_INFO.inferred
+              const activeUrl = buildSourceUrl(activeSource, word.word)
+              const ActiveIcon = activeInfo.Icon
 
               return (
-                <div className="flex items-center justify-between gap-2 text-xs">
-                  {sourceUrl ? (
-                    <a
-                      href={sourceUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors hover:underline min-w-0"
-                      title={`View "${word.word}" on ${sourceInfo.label}`}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <span>{sourceInfo.icon}</span>
-                      <span className="truncate">{sourceInfo.label}</span>
-                    </a>
-                  ) : (
-                    <span
-                      className="inline-flex items-center gap-1.5 text-muted-foreground min-w-0"
-                      title={`Source: ${sourceInfo.label}`}
-                    >
-                      <span>{sourceInfo.icon}</span>
-                      <span className="truncate">{sourceInfo.label}</span>
+                <div className="flex flex-col gap-2 text-xs">
+                  {/* Currently selected source (prominent chip with external link) */}
+                  <div
+                    className={cn(
+                      'inline-flex items-center gap-1.5 px-2 py-1 rounded-md self-start max-w-full',
+                      'bg-muted/60 border border-border/50',
+                      activeInfo.color,
+                    )}
+                    title={`Showing definition from ${activeInfo.label}`}
+                  >
+                    <ActiveIcon className="w-3.5 h-3.5 shrink-0" />
+                    <span className="truncate font-medium text-foreground/90">
+                      {activeInfo.label}
                     </span>
-                  )}
+                    {activeUrl && (
+                      <a
+                        href={activeUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={(e) => e.stopPropagation()}
+                        aria-label={`Open ${activeInfo.label} for "${word.word}" in a new tab`}
+                        className="inline-flex items-center justify-center w-5 h-5 rounded-sm text-muted-foreground hover:text-foreground hover:bg-background/80 transition-colors"
+                      >
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    )}
+                  </div>
 
-                  {/* One-tap alternate lookups */}
-                  <div className="flex items-center gap-0.5 shrink-0">
-                    {alternates.map((altKey) => {
-                      const alt = SOURCE_INFO[altKey]
-                      const altUrl = buildSourceUrl(altKey, word.word)
-                      if (!altUrl) return null
+                  {/* Switchable source icons */}
+                  <div className="flex items-center flex-wrap gap-1">
+                    {SWAPPABLE_SOURCE_KEYS.map((key) => {
+                      const info = SOURCE_INFO[key]
+                      const Icon = info.Icon
+                      const isActive = key === activeSource
+                      const isLoading = sourceLoading === key
                       return (
-                        <Tooltip key={altKey}>
+                        <Tooltip key={key}>
                           <TooltipTrigger asChild>
-                            <a
-                              href={altUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center justify-center w-7 h-7 rounded-md opacity-60 hover:opacity-100 hover:bg-muted transition-all"
-                              onClick={(e) => e.stopPropagation()}
-                              aria-label={`Check ${alt.label} for "${word.word}"`}
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                void switchSource(key)
+                              }}
+                              disabled={isLoading}
+                              aria-pressed={isActive}
+                              aria-label={
+                                isActive
+                                  ? `${info.label} (current source)`
+                                  : `Switch to ${info.label}`
+                              }
+                              className={cn(
+                                'inline-flex items-center justify-center w-8 h-8 rounded-md border transition-all',
+                                'disabled:cursor-wait',
+                                isActive
+                                  ? cn(
+                                      'bg-foreground/10 border-foreground/30 scale-105',
+                                      info.color,
+                                    )
+                                  : 'bg-transparent border-border/40 text-muted-foreground hover:text-foreground hover:bg-muted hover:border-border',
+                              )}
                             >
-                              <span>{alt.icon}</span>
-                            </a>
+                              {isLoading ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              ) : (
+                                <Icon className="w-4 h-4" />
+                              )}
+                            </button>
                           </TooltipTrigger>
                           <TooltipContent side="top">
-                            Check {alt.label}
+                            {isActive
+                              ? `${info.label} (current)`
+                              : `Try ${info.label}`}
                           </TooltipContent>
                         </Tooltip>
                       )
@@ -561,7 +657,7 @@ function WordCard({
             {/* Expandable additional definitions */}
             {hasMore && expanded && (
               <div className="space-y-2 pt-2 border-t border-border/50 animate-in slide-in-from-top-2 max-h-48 overflow-y-auto">
-                {definitions.slice(1).map((def, i) => (
+                {activeDefinitions.slice(1).map((def, i) => (
                   <div key={i} className="text-sm">
                     <CardDescription
                       className={cn(
@@ -570,7 +666,7 @@ function WordCard({
                       )}
                     >
                       {def.partOfSpeech &&
-                        def.partOfSpeech !== primaryDef.partOfSpeech && (
+                        def.partOfSpeech !== primaryDef?.partOfSpeech && (
                           <Badge
                             variant="outline"
                             className="text-xs font-normal mr-1.5 mb-1 align-middle"
@@ -601,8 +697,8 @@ function WordCard({
                   <>Less</>
                 ) : (
                   <>
-                    {definitions.length - 1} more definition
-                    {definitions.length > 2 ? 's' : ''}
+                    {activeDefinitions.length - 1} more definition
+                    {activeDefinitions.length > 2 ? 's' : ''}
                   </>
                 )}
               </button>

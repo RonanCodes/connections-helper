@@ -3,14 +3,39 @@ import { env } from 'cloudflare:workers'
 import { eq } from 'drizzle-orm'
 import { createDb } from '../../db'
 import { definitions } from '../../db/schema'
-import { fetchDefinitionWithFallbacks } from '../../server/definition-fallbacks'
+import {
+  fetchDefinitionWithFallbacks,
+  tryMerriamWebster,
+  tryWordnik,
+  tryDictionaryApi,
+  tryDatamuse,
+  tryWikipedia,
+  tryUrbanDictionary,
+} from '../../server/definition-fallbacks'
 
 const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000
+
+const SINGLE_SOURCE_FETCHERS: Record<
+  string,
+  (
+    word: string,
+    originalWord: string,
+    opts: { wordnikApiKey?: string; merriamWebsterApiKey?: string },
+  ) => Promise<{ definitions: Array<{ definition: string }> } | null>
+> = {
+  'merriam-webster': (w, _o, opts) =>
+    tryMerriamWebster(w, opts.merriamWebsterApiKey),
+  wordnik: (w, _o, opts) => tryWordnik(w, opts.wordnikApiKey),
+  dictionary: (w) => tryDictionaryApi(w),
+  datamuse: (w) => tryDatamuse(w),
+  wikipedia: (_w, o) => tryWikipedia(o),
+  urban: (w) => tryUrbanDictionary(w),
+}
 
 export const Route = createFileRoute('/api/definition/$word')({
   server: {
     handlers: {
-      GET: async ({ params }) => {
+      GET: async ({ params, request }) => {
         const originalWord = params.word
         const word = originalWord.toLowerCase()
         if (word.trim().length === 0) {
@@ -18,6 +43,27 @@ export const Route = createFileRoute('/api/definition/$word')({
             { error: 'Word parameter is required' },
             { status: 400 },
           )
+        }
+
+        const url = new URL(request.url)
+        const source = url.searchParams.get('source')
+
+        if (source) {
+          if (!(source in SINGLE_SOURCE_FETCHERS)) {
+            return Response.json(
+              { error: `Unknown source: ${source}` },
+              { status: 400 },
+            )
+          }
+          const fetcher = SINGLE_SOURCE_FETCHERS[source]
+          const result = await fetcher(word, originalWord, {
+            wordnikApiKey: env.WORDNIK_API_KEY,
+            merriamWebsterApiKey: env.MERRIAM_WEBSTER_API_KEY,
+          })
+          if (!result) {
+            return Response.json({ definitions: [], source })
+          }
+          return Response.json(result)
         }
 
         const db = createDb(env.DB)
