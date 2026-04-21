@@ -61,7 +61,10 @@ export const Route = createFileRoute('/api/definitions')({
 
         await Promise.all(
           uncached.map(async ({ word, original }) => {
-            const result = await fetchDefinitionWithFallbacks(word, original)
+            const result = await fetchDefinitionWithFallbacks(word, original, {
+              wordnikApiKey: env.WORDNIK_API_KEY,
+              merriamWebsterApiKey: env.MERRIAM_WEBSTER_API_KEY,
+            })
             await db
               .insert(definitions)
               .values({

@@ -34,7 +34,10 @@ export const Route = createFileRoute('/api/definition/$word')({
           }
         }
 
-        const result = await fetchDefinitionWithFallbacks(word, originalWord)
+        const result = await fetchDefinitionWithFallbacks(word, originalWord, {
+          wordnikApiKey: env.WORDNIK_API_KEY,
+          merriamWebsterApiKey: env.MERRIAM_WEBSTER_API_KEY,
+        })
         await db
           .insert(definitions)
           .values({

@@ -36,6 +36,7 @@ playwright-report/
 .wrangler/
 .dev.vars
 .dev.vars.*
+!.dev.vars.example
 
 # TanStack (generated)
 src/routeTree.gen.ts

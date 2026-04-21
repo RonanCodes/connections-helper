@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
+import { Link } from '@tanstack/react-router'
 import {
   ChevronLeft,
   ChevronRight,
   Eye,
   EyeOff,
-  Loader2,
   RefreshCw,
   Calendar,
   Sparkles,
@@ -150,12 +150,29 @@ const SOURCE_INFO: Record<
   string,
   { icon: string; label: string; color: string; url?: string }
 > = {
+  // Merriam-Webster Collegiate API. Links match exactly; URL is merriam-webster.com/dictionary/{word}.
+  'merriam-webster': {
+    icon: '📘',
+    label: 'Merriam-Webster',
+    color: 'text-blue-600',
+    url: 'https://www.merriam-webster.com/dictionary/{word}',
+  },
+  // Wordnik aggregates several dictionaries; its own site has a per-word page that matches.
+  wordnik: {
+    icon: '📗',
+    label: 'Wordnik',
+    color: 'text-green-600',
+    url: 'https://www.wordnik.com/words/{word}',
+  },
+  // Backend source key is 'dictionary' (from dictionaryapi.dev, a free dictionary API backed by Wiktionary).
+  // Linking to Wiktionary is semantically correct: it's the underlying source that dictionaryapi.dev pulls from.
   dictionary: {
     icon: '📖',
     label: 'Dictionary',
     color: 'text-green-500',
-    url: 'https://www.dictionary.com/browse/{word}',
+    url: 'https://en.wiktionary.org/wiki/{word}',
   },
+  // Only used as an alt-source link (user-facing cross-check), never as the primary source key.
   dictionarycom: {
     icon: '📖',
     label: 'Dictionary.com',
@@ -166,7 +183,9 @@ const SOURCE_INFO: Record<
     icon: '🔤',
     label: 'Datamuse',
     color: 'text-blue-500',
-    url: 'https://www.datamuse.com/api/',
+    // Datamuse is an API with no per-word entry page, but its definitions come from Wiktionary,
+    // so link there for click-through.
+    url: 'https://en.wiktionary.org/wiki/{word}',
   },
   wikipedia: {
     icon: '🌐',
@@ -181,6 +200,32 @@ const SOURCE_INFO: Record<
     url: 'https://www.urbandictionary.com/define.php?term={word}',
   },
   inferred: { icon: '🤔', label: 'Inferred', color: 'text-yellow-500' },
+}
+
+// Sources always offered as one-tap alternates next to the primary definition.
+// If the primary source matches one of these, it's removed from the alternate row.
+const ALT_SOURCE_KEYS = ['dictionarycom', 'urban', 'wikipedia'] as const
+
+// NYT puzzle words are ALL CAPS, but some sources need specific casing:
+// - Wikipedia article titles are case-sensitive (Hobo ✓, HOBO ✗) and use underscores for spaces
+// - Dictionary.com uses lowercase + hyphens for multi-word entries
+// - Urban Dictionary is case-insensitive
+function buildSourceUrl(sourceKey: string, word: string): string | undefined {
+  const info = SOURCE_INFO[sourceKey] as
+    | (typeof SOURCE_INFO)[keyof typeof SOURCE_INFO]
+    | undefined
+  if (!info?.url) return undefined
+  const lower = word.toLowerCase()
+  let slug = lower
+  if (sourceKey === 'wikipedia') {
+    slug = (lower.charAt(0).toUpperCase() + lower.slice(1)).replace(/ /g, '_')
+  } else if (sourceKey === 'dictionary' || sourceKey === 'datamuse') {
+    // Wiktionary: lowercase + underscores for spaces (canonical for common words).
+    slug = lower.replace(/ /g, '_')
+  } else if (sourceKey === 'dictionarycom' || sourceKey === 'wordnik') {
+    slug = lower.replace(/ /g, '-')
+  }
+  return info.url.replace('{word}', encodeURIComponent(slug))
 }
 
 interface WordDefinition {
@@ -267,6 +312,43 @@ async function fetchDefinitionsBatch(
   }
 }
 
+function SkeletonWordCard({ index }: { index: number }) {
+  return (
+    <Card
+      className={cn(
+        'h-full flex flex-col',
+        'animate-in fade-in slide-in-from-bottom-2',
+      )}
+      style={{
+        animationDelay: `${index * 30}ms`,
+        animationFillMode: 'backwards',
+      }}
+    >
+      <CardHeader className="pb-1">
+        <CardTitle className="text-lg flex items-center justify-between">
+          <Skeleton className="h-6 w-28" />
+          <Skeleton className="h-5 w-14 rounded-md" />
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="flex flex-col flex-grow gap-3">
+        <div className="space-y-2 flex-grow">
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-11/12" />
+          <Skeleton className="h-4 w-3/4" />
+        </div>
+        <div className="flex items-center justify-between pt-1">
+          <Skeleton className="h-4 w-24" />
+          <div className="flex items-center gap-1">
+            <Skeleton className="h-7 w-7 rounded-md" />
+            <Skeleton className="h-7 w-7 rounded-md" />
+            <Skeleton className="h-7 w-7 rounded-md" />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
 function WordCard({
   word,
   index,
@@ -287,13 +369,13 @@ function WordCard({
   return (
     <Card
       className={cn(
-        'transition-all duration-200 hover:shadow-lg',
+        'transition-shadow duration-150 md:hover:shadow-md',
         'animate-in fade-in slide-in-from-bottom-2',
         'h-full flex flex-col',
         showColor && CATEGORY_COLORS[categoryIndex],
       )}
       style={{
-        animationDelay: `${index * 50}ms`,
+        animationDelay: `${index * 30}ms`,
         animationFillMode: 'backwards',
       }}
     >
@@ -367,38 +449,64 @@ function WordCard({
               {primaryDef.definition || 'No definition found'}
             </CardDescription>
 
-            {/* Source indicator - clickable link to source (default to dictionary.com) */}
+            {/* Source + alternate lookups */}
             {(() => {
-              const sourceKey = primaryDef.source || 'dictionarycom'
-              const sourceInfo = SOURCE_INFO[sourceKey] ?? SOURCE_INFO.inferred
-              const sourceUrl = sourceInfo.url?.replace(
-                '{word}',
-                encodeURIComponent(word.word),
-              )
+              const primaryKey = primaryDef.source || 'dictionary'
+              const sourceInfo = SOURCE_INFO[primaryKey] ?? SOURCE_INFO.inferred
+              const sourceUrl = buildSourceUrl(primaryKey, word.word)
+              const alternates = ALT_SOURCE_KEYS.filter((k) => k !== primaryKey)
 
-              return sourceUrl ? (
-                <a
-                  href={sourceUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-xs opacity-40 hover:opacity-80 transition-opacity cursor-pointer hover:underline"
-                  title={`View on ${sourceInfo.label}`}
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <span>{sourceInfo.icon}</span>
-                  <span className="hidden sm:inline text-muted-foreground">
-                    {sourceInfo.label}
-                  </span>
-                </a>
-              ) : (
-                <div
-                  className="flex items-center gap-1 text-xs opacity-40 transition-opacity cursor-pointer"
-                  title={`Source: ${sourceInfo.label}`}
-                >
-                  <span>{sourceInfo.icon}</span>
-                  <span className="hidden sm:inline text-muted-foreground">
-                    {sourceInfo.label}
-                  </span>
+              return (
+                <div className="flex items-center justify-between gap-2 text-xs">
+                  {sourceUrl ? (
+                    <a
+                      href={sourceUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors hover:underline min-w-0"
+                      title={`View "${word.word}" on ${sourceInfo.label}`}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <span>{sourceInfo.icon}</span>
+                      <span className="truncate">{sourceInfo.label}</span>
+                    </a>
+                  ) : (
+                    <span
+                      className="inline-flex items-center gap-1.5 text-muted-foreground min-w-0"
+                      title={`Source: ${sourceInfo.label}`}
+                    >
+                      <span>{sourceInfo.icon}</span>
+                      <span className="truncate">{sourceInfo.label}</span>
+                    </span>
+                  )}
+
+                  {/* One-tap alternate lookups */}
+                  <div className="flex items-center gap-0.5 shrink-0">
+                    {alternates.map((altKey) => {
+                      const alt = SOURCE_INFO[altKey]
+                      const altUrl = buildSourceUrl(altKey, word.word)
+                      if (!altUrl) return null
+                      return (
+                        <Tooltip key={altKey}>
+                          <TooltipTrigger asChild>
+                            <a
+                              href={altUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center justify-center w-7 h-7 rounded-md opacity-60 hover:opacity-100 hover:bg-muted transition-all"
+                              onClick={(e) => e.stopPropagation()}
+                              aria-label={`Check ${alt.label} for "${word.word}"`}
+                            >
+                              <span>{alt.icon}</span>
+                            </a>
+                          </TooltipTrigger>
+                          <TooltipContent side="top">
+                            Check {alt.label}
+                          </TooltipContent>
+                        </Tooltip>
+                      )
+                    })}
+                  </div>
                 </div>
               )
             })()}
@@ -1074,14 +1182,19 @@ export default function App() {
             </CardContent>
           </Card>
 
-          {/* Loading State */}
+          {/* Loading State: skeleton grid matching the real layout */}
           {loadingPuzzle && (
-            <Card className="text-center py-16">
-              <CardContent>
-                <Loader2 className="w-12 h-12 mx-auto animate-spin text-primary mb-4" />
-                <p className="text-muted-foreground">Loading puzzle...</p>
-              </CardContent>
-            </Card>
+            <>
+              <div className="flex justify-between items-center mb-4 min-h-9">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-9 w-28 rounded-md" />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {Array.from({ length: 16 }).map((_, i) => (
+                  <SkeletonWordCard key={i} index={i} />
+                ))}
+              </div>
+            </>
           )}
 
           {/* Error State */}
@@ -1102,17 +1215,8 @@ export default function App() {
           {hasSearched && words.length > 0 && !loadingPuzzle && (
             <>
               {/* Controls */}
-              <div className="flex justify-between items-center mb-4">
-                <p className="text-sm text-muted-foreground">
-                  {loadingDefinitions ? (
-                    <span className="flex items-center gap-2">
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Loading definitions...
-                    </span>
-                  ) : (
-                    `${words.length} words`
-                  )}
-                </p>
+              <div className="flex justify-between items-center mb-4 min-h-9">
+                <span />
                 {showHints ? (
                   <Button
                     variant="default"
@@ -1182,6 +1286,13 @@ export default function App() {
                 <Github className="w-3 h-3" />
                 Source
               </a>{' '}
+              •{' '}
+              <Link
+                to="/how-it-works"
+                className="underline hover:text-foreground transition-colors"
+              >
+                How it works
+              </Link>{' '}
               • Not affiliated with NYT
             </p>
           </footer>

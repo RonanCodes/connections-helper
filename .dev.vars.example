@@ -1,0 +1,15 @@
+# Copy this file to `.dev.vars` for local development.
+# For production, use `wrangler secret put <KEY>`.
+#
+# All keys here are OPTIONAL. If a key is absent, the corresponding tier in the
+# definition-lookup fallback chain is skipped gracefully.
+
+# Merriam-Webster Collegiate Dictionary API
+# Free sign-up: https://dictionaryapi.com/register/index
+# Tier 1 source in the fallback chain when set.
+MERRIAM_WEBSTER_API_KEY=
+
+# Wordnik API
+# Free sign-up: https://developer.wordnik.com/
+# Tier 2 source in the fallback chain when set.
+WORDNIK_API_KEY=
