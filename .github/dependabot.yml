@@ -1,0 +1,37 @@
+version: 2
+updates:
+  # npm / pnpm dependencies (Dependabot reads pnpm-lock.yaml via the npm ecosystem)
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '07:00'
+      timezone: Europe/Dublin
+    open-pull-requests-limit: 10
+    commit-message:
+      prefix: '🧹 chore'
+      include: scope
+    labels:
+      - dependencies
+    groups:
+      minor-and-patch:
+        update-types:
+          - minor
+          - patch
+
+  # GitHub Actions — keeps actions/checkout, pnpm/action-setup, etc. up to date
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: '07:00'
+      timezone: Europe/Dublin
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: '🧹 chore'
+      include: scope
+    labels:
+      - dependencies
+      - github-actions
