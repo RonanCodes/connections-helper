@@ -6,7 +6,7 @@
   "main": "@tanstack/react-start/server-entry",
   "observability": { "enabled": true },
   "vars": {
-    // Observability keys — public by design (Sentry DSN and PostHog phc_ keys
+    // Observability keys, public by design (Sentry DSN and PostHog phc_ keys
     // are intended to ship to browsers). CI overrides via `wrangler deploy --var`
     // from GitHub secrets. For local dev, put overrides in `.dev.vars`.
     "SENTRY_DSN": "",

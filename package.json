@@ -1,7 +1,7 @@
 {
   "name": "connections-helper",
   "version": "2.0.0",
-  "description": "NYT Connections puzzle helper — shows word definitions to help solve the daily puzzle",
+  "description": "NYT Connections puzzle helper. Shows word definitions to help solve the daily puzzle.",
   "keywords": [
     "nyt",
     "connections",

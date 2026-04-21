@@ -3,7 +3,7 @@
 set -e
 
 if [ -n "$SKIP_QUALITY_CHECKS" ]; then
-  echo "⏭️  SKIP_QUALITY_CHECKS set — skipping quality-checks hook"
+  echo "⏭️  SKIP_QUALITY_CHECKS set, skipping quality-checks hook"
   exit 0
 fi
 

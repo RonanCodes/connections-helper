@@ -2,7 +2,7 @@ name: Security
 
 on:
   schedule:
-    - cron: '17 6 * * *' # 06:17 UTC daily — off-peak, avoids top-of-hour GitHub load
+    - cron: '17 6 * * *' # 06:17 UTC daily, off-peak, avoids top-of-hour GitHub load
   push:
     branches: [main]
   pull_request:

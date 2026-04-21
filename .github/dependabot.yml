@@ -20,7 +20,7 @@ updates:
           - minor
           - patch
 
-  # GitHub Actions — keeps actions/checkout, pnpm/action-setup, etc. up to date
+  # GitHub Actions: keeps actions/checkout, pnpm/action-setup, etc. up to date
   - package-ecosystem: github-actions
     directory: /
     schedule:

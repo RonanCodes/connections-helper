@@ -13,7 +13,7 @@ Not affiliated with the New York Times.
 
 ## Stack
 
-- [TanStack Start](https://tanstack.com/start) — full-stack React with file-based server routes + SSR
+- [TanStack Start](https://tanstack.com/start): full-stack React with file-based server routes + SSR
 - [Cloudflare Workers](https://workers.cloudflare.com) runtime, [D1](https://developers.cloudflare.com/d1/) (SQLite at the edge) for caching
 - [Drizzle ORM](https://orm.drizzle.team) for typed D1 access
 - [Vite](https://vitejs.dev) + React 19
@@ -48,7 +48,7 @@ Every deploy:
 pnpm deploy   # runs vite build + wrangler deploy
 ```
 
-Optional — attach a custom domain via the Cloudflare dashboard or API:
+Optional: attach a custom domain via the Cloudflare dashboard or API:
 
 ```bash
 curl -X PUT -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
@@ -69,9 +69,9 @@ Observability keys are **injected at runtime**, not built into the bundle. The s
 | `POSTHOG_PROJECT_KEY` | PostHog `phc_…` project key. Empty ⇒ PostHog disabled.    |
 | `POSTHOG_INGEST_HOST` | PostHog ingest host (default `https://eu.i.posthog.com`). |
 
-**Local dev** — create `.dev.vars` (gitignored) with the keys. Wrangler loads it automatically.
-**CI deploys** — set as GitHub Actions secrets; the workflow passes them to `wrangler deploy --var`.
-**Manual deploys** — edit the `vars` block in `wrangler.jsonc`, or pass `--var KEY:value` at deploy time.
+**Local dev:** create `.dev.vars` (gitignored) with the keys. Wrangler loads it automatically.
+**CI deploys:** set as GitHub Actions secrets; the workflow passes them to `wrangler deploy --var`.
+**Manual deploys:** edit the `vars` block in `wrangler.jsonc`, or pass `--var KEY:value` at deploy time.
 
 See [ARCHITECTURE.md](./ARCHITECTURE.md) for the full runtime-config flow.
 
@@ -81,7 +81,7 @@ See [ARCHITECTURE.md](./ARCHITECTURE.md) for the full runtime-config flow.
 
 Required repo secrets:
 
-- `CLOUDFLARE_API_TOKEN` — Workers + D1 permissions
+- `CLOUDFLARE_API_TOKEN`: Workers + D1 permissions
 - `CLOUDFLARE_ACCOUNT_ID`
 - `SENTRY_DSN`
 - `POSTHOG_PROJECT_KEY`

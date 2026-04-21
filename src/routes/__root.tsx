@@ -6,7 +6,7 @@ import appCss from '../styles.css?url'
 
 const DESCRIPTION =
   'Get instant definitions for NYT Connections puzzle words. Stuck on a word? Look it up without spoiling the categories!'
-const TITLE = 'Connections Helper — NYT Puzzle Sidekick 🧩'
+const TITLE = 'Connections Helper: NYT Puzzle Sidekick 🧩'
 
 const PRE_HYDRATE_THEME = `(function() {
   try {
