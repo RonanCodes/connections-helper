@@ -11,7 +11,10 @@ export type DefinitionResult = {
 
 // Strip HTML-ish tags that Wordnik includes in definition text (e.g. <xref>, <fw>).
 function stripTags(s: string): string {
-  return s.replace(/<[^>]+>/g, '').replace(/\s+/g, ' ').trim()
+  return s
+    .replace(/<[^>]+>/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
 }
 
 export async function tryMerriamWebster(
@@ -24,7 +27,7 @@ export async function tryMerriamWebster(
       `https://www.dictionaryapi.com/api/v3/references/collegiate/json/${encodeURIComponent(word)}?key=${apiKey}`,
     )
     if (!res.ok) return null
-    const data = (await res.json())
+    const data = await res.json()
     if (!Array.isArray(data) || data.length === 0) return null
     // When MW has no direct match, it returns an array of strings (spelling suggestions).
     if (typeof data[0] === 'string') return null
@@ -62,12 +65,14 @@ export async function tryWordnik(
       `https://api.wordnik.com/v4/word.json/${encodeURIComponent(word)}/definitions?limit=5&includeRelated=false&useCanonical=false&includeTags=false&api_key=${apiKey}`,
     )
     if (!res.ok) return null
-    const data = (await res.json())
+    const data = await res.json()
     if (!Array.isArray(data) || data.length === 0) return null
-    const defs: Array<Definition> = (data as Array<{
-      text?: string
-      partOfSpeech?: string
-    }>)
+    const defs: Array<Definition> = (
+      data as Array<{
+        text?: string
+        partOfSpeech?: string
+      }>
+    )
       .filter((d) => typeof d.text === 'string' && d.text.length > 0)
       .map((d) => ({
         definition: stripTags(d.text as string),

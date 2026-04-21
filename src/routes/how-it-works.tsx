@@ -131,7 +131,9 @@ function HowItWorks() {
         </section>
 
         <section className="mb-10">
-          <h2 className="text-xl font-semibold mb-1">Where definitions come from</h2>
+          <h2 className="text-xl font-semibold mb-1">
+            Where definitions come from
+          </h2>
           <p className="text-sm text-muted-foreground mb-5 leading-relaxed">
             Each word is looked up in a waterfall: if the top source has no
             entry, the next one is tried. Whichever source returns the
@@ -207,19 +209,19 @@ function HowItWorks() {
         <section className="mb-10">
           <h2 className="text-xl font-semibold mb-3">Privacy</h2>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            No account, no tracking cookies beyond the usual analytics
-            (PostHog + Sentry for error reporting). Your puzzle selections
-            and theme preference are stored locally in your browser. Nothing
-            you do is linked to an identity.
+            No account, no tracking cookies beyond the usual analytics (PostHog
+            + Sentry for error reporting). Your puzzle selections and theme
+            preference are stored locally in your browser. Nothing you do is
+            linked to an identity.
           </p>
         </section>
 
         <section className="mb-10">
           <h2 className="text-xl font-semibold mb-3">Stack</h2>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            TanStack Start (React 19) on Cloudflare Workers with D1 (SQLite)
-            for caching. Drizzle ORM for the database layer, Tailwind + shadcn
-            for the UI, Radix for primitives. Source available on{' '}
+            TanStack Start (React 19) on Cloudflare Workers with D1 (SQLite) for
+            caching. Drizzle ORM for the database layer, Tailwind + shadcn for
+            the UI, Radix for primitives. Source available on{' '}
             <a
               href="https://github.com/RonanCodes/connections-helper"
               target="_blank"
@@ -234,7 +236,9 @@ function HowItWorks() {
         </section>
 
         <section className="mb-10">
-          <h2 className="text-xl font-semibold mb-3">Not affiliated with NYT</h2>
+          <h2 className="text-xl font-semibold mb-3">
+            Not affiliated with NYT
+          </h2>
           <p className="text-sm text-muted-foreground leading-relaxed">
             This is an unofficial helper built by a fan. The puzzle content
             belongs to the New York Times; this tool just surfaces definitions
