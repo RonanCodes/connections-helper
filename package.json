@@ -2,10 +2,27 @@
   "name": "connections-helper",
   "version": "2.0.0",
   "description": "NYT Connections puzzle helper — shows word definitions to help solve the daily puzzle",
+  "keywords": [
+    "nyt",
+    "connections",
+    "puzzle",
+    "word-game",
+    "definitions",
+    "tanstack-start",
+    "cloudflare-workers"
+  ],
+  "homepage": "https://github.com/RonanCodes/connections-helper#readme",
+  "bugs": {
+    "url": "https://github.com/RonanCodes/connections-helper/issues"
+  },
   "license": "MIT",
+  "author": {
+    "name": "Ronan Connolly",
+    "url": "https://ronanconnolly.dev"
+  },
   "repository": {
     "type": "git",
-    "url": "https://github.com/RonanCodes/connections-helper.git"
+    "url": "git+https://github.com/RonanCodes/connections-helper.git"
   },
   "private": true,
   "type": "module",
