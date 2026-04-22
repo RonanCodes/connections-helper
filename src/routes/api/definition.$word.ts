@@ -55,15 +55,29 @@ export const Route = createFileRoute('/api/definition/$word')({
               { status: 400 },
             )
           }
+
+          // Cloudflare's Workers runtime exposes `caches.default`, but the DOM
+          // lib typings (which win in TS resolution) only declare the standard
+          // CacheStorage methods. Cast through the Workers-specific shape.
+          const cache = (caches as unknown as { default: Cache }).default
+          const cacheKey = new Request(request.url, { method: 'GET' })
+          const cached = await cache.match(cacheKey)
+          if (cached) return cached
+
           const fetcher = SINGLE_SOURCE_FETCHERS[source]
           const result = await fetcher(word, originalWord, {
             wordnikApiKey: env.WORDNIK_API_KEY,
             merriamWebsterApiKey: env.MERRIAM_WEBSTER_API_KEY,
           })
-          if (!result) {
-            return Response.json({ definitions: [], source })
-          }
-          return Response.json(result)
+          const body = result ?? { definitions: [], source }
+          const response = new Response(JSON.stringify(body), {
+            headers: {
+              'Content-Type': 'application/json',
+              'Cache-Control': 'public, max-age=2592000',
+            },
+          })
+          await cache.put(cacheKey, response.clone())
+          return response
         }
 
         const db = createDb(env.DB)
@@ -75,15 +89,22 @@ export const Route = createFileRoute('/api/definition/$word')({
 
         if (cached && Date.now() - cached.fetchedAt < THIRTY_DAYS) {
           const cachedData = JSON.parse(cached.data)
-          if (!cachedData.definitions?.[0]?.definition?.includes('not found')) {
+          const firstDef = cachedData.definitions?.[0]
+          // Skip cache for legacy inferred fallbacks and empty results
+          // (both predate the Inferred removal); re-fetch to try upstream sources again.
+          const isLegacyInferred =
+            firstDef?.source === 'inferred' ||
+            firstDef?.definition?.includes('not found')
+          const isEmpty = !firstDef
+          if (!isLegacyInferred && !isEmpty) {
             return Response.json(cachedData)
           }
         }
 
-        const result = await fetchDefinitionWithFallbacks(word, originalWord, {
+        const result = (await fetchDefinitionWithFallbacks(word, originalWord, {
           wordnikApiKey: env.WORDNIK_API_KEY,
           merriamWebsterApiKey: env.MERRIAM_WEBSTER_API_KEY,
-        })
+        })) ?? { definitions: [] }
         await db
           .insert(definitions)
           .values({

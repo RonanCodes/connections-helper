@@ -21,7 +21,6 @@ import {
   Globe,
   Search,
   MessageSquareMore,
-  HelpCircle,
   ExternalLink,
   Loader2,
 } from 'lucide-react'
@@ -162,6 +161,7 @@ type SourceInfo = {
   color: string
   url?: string
   fetchKey?: string
+  faviconDomain?: string
 }
 
 const SOURCE_INFO: Record<string, SourceInfo> = {
@@ -171,6 +171,7 @@ const SOURCE_INFO: Record<string, SourceInfo> = {
     color: 'text-blue-600',
     url: 'https://www.merriam-webster.com/dictionary/{word}',
     fetchKey: 'merriam-webster',
+    faviconDomain: 'merriam-webster.com',
   },
   wordnik: {
     Icon: BookText,
@@ -178,6 +179,7 @@ const SOURCE_INFO: Record<string, SourceInfo> = {
     color: 'text-emerald-600',
     url: 'https://www.wordnik.com/words/{word}',
     fetchKey: 'wordnik',
+    faviconDomain: 'wordnik.com',
   },
   dictionary: {
     Icon: Book,
@@ -185,12 +187,14 @@ const SOURCE_INFO: Record<string, SourceInfo> = {
     color: 'text-green-500',
     url: 'https://en.wiktionary.org/wiki/{word}',
     fetchKey: 'dictionary',
+    faviconDomain: 'wiktionary.org',
   },
   dictionarycom: {
     Icon: BookMarked,
     label: 'Dictionary.com',
     color: 'text-teal-500',
     url: 'https://www.dictionary.com/browse/{word}',
+    faviconDomain: 'dictionary.com',
   },
   datamuse: {
     Icon: Search,
@@ -198,6 +202,7 @@ const SOURCE_INFO: Record<string, SourceInfo> = {
     color: 'text-sky-500',
     url: 'https://en.wiktionary.org/wiki/{word}',
     fetchKey: 'datamuse',
+    faviconDomain: 'datamuse.com',
   },
   wikipedia: {
     Icon: Globe,
@@ -205,6 +210,7 @@ const SOURCE_INFO: Record<string, SourceInfo> = {
     color: 'text-slate-500',
     url: 'https://en.wikipedia.org/wiki/{word}',
     fetchKey: 'wikipedia',
+    faviconDomain: 'wikipedia.org',
   },
   urban: {
     Icon: MessageSquareMore,
@@ -212,13 +218,52 @@ const SOURCE_INFO: Record<string, SourceInfo> = {
     color: 'text-orange-500',
     url: 'https://www.urbandictionary.com/define.php?term={word}',
     fetchKey: 'urban',
+    faviconDomain: 'urbandictionary.com',
   },
-  inferred: { Icon: HelpCircle, label: 'Inferred', color: 'text-yellow-500' },
 }
 
+function SourceIcon({
+  info,
+  className,
+}: {
+  info: SourceInfo
+  className?: string
+}) {
+  const { Icon, faviconDomain, label } = info
+  const [errored, setErrored] = useState(false)
+  const [loaded, setLoaded] = useState(false)
+
+  if (!faviconDomain || errored) {
+    return <Icon className={className} />
+  }
+
+  return (
+    <span className={cn('relative inline-flex shrink-0', className)}>
+      <Icon
+        className={cn(
+          'absolute inset-0 w-full h-full transition-opacity',
+          loaded ? 'opacity-0' : 'opacity-100',
+        )}
+      />
+      <img
+        src={`https://icons.duckduckgo.com/ip3/${faviconDomain}.ico`}
+        alt={label}
+        loading="lazy"
+        className={cn(
+          'w-full h-full object-contain transition-opacity',
+          loaded ? 'opacity-100' : 'opacity-0',
+        )}
+        onLoad={() => setLoaded(true)}
+        onError={() => setErrored(true)}
+      />
+    </span>
+  )
+}
+
+// Wordnik is temporarily hidden until the API key is provisioned — without the
+// key, the endpoint always returns null and confuses users who click it.
 const SWAPPABLE_SOURCE_KEYS = [
   'merriam-webster',
-  'wordnik',
   'dictionary',
   'datamuse',
   'wikipedia',
@@ -335,7 +380,7 @@ function SkeletonWordCard({ index }: { index: number }) {
   return (
     <Card
       className={cn(
-        'h-full flex flex-col',
+        'h-full flex flex-col gap-2',
         'animate-in fade-in slide-in-from-bottom-2',
       )}
       style={{
@@ -343,7 +388,7 @@ function SkeletonWordCard({ index }: { index: number }) {
         animationFillMode: 'backwards',
       }}
     >
-      <CardHeader className="pb-1">
+      <CardHeader className="pb-0">
         <CardTitle className="text-lg flex items-center justify-between">
           <Skeleton className="h-6 w-28" />
           <Skeleton className="h-5 w-14 rounded-md" />
@@ -482,7 +527,7 @@ function WordCard({
       className={cn(
         'transition-shadow duration-150 md:hover:shadow-md',
         'animate-in fade-in slide-in-from-bottom-2',
-        'h-full flex flex-col',
+        'h-full flex flex-col gap-2',
         showColor && CATEGORY_COLORS[categoryIndex],
       )}
       style={{
@@ -490,7 +535,7 @@ function WordCard({
         animationFillMode: 'backwards',
       }}
     >
-      <CardHeader className="pb-1">
+      <CardHeader className="pb-0">
         <CardTitle className="text-lg flex items-center justify-between">
           {word.imageUrl ? (
             <div className="flex items-center gap-2">
@@ -550,6 +595,76 @@ function WordCard({
           </div>
         ) : (
           <div className="flex flex-col h-full gap-3">
+            {/* Source swap row — active icon expands to show label + link */}
+            <div className="flex items-center flex-wrap gap-1 text-xs">
+              {SWAPPABLE_SOURCE_KEYS.map((key) => {
+                const info = SOURCE_INFO[key]
+                const isActive = key === activeSource
+                const isLoading = sourceLoading === key
+
+                if (isActive) {
+                  const url = buildSourceUrl(key, word.word)
+                  return (
+                    <div
+                      key={key}
+                      className={cn(
+                        'inline-flex items-center h-8 rounded-md border overflow-hidden',
+                        'bg-foreground/5 border-foreground/30',
+                        info.color,
+                      )}
+                    >
+                      <span className="inline-flex items-center gap-1.5 pl-2 pr-2 h-full">
+                        <SourceIcon info={info} className="w-4 h-4" />
+                        <span className="truncate font-medium">
+                          {info.label}
+                        </span>
+                      </span>
+                      {url && (
+                        <a
+                          href={url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          aria-label={`Open ${info.label} for "${word.word}" in a new tab`}
+                          className="inline-flex items-center justify-center h-full px-1.5 border-l border-foreground/20 text-foreground/70 hover:text-foreground hover:bg-foreground/10 transition-colors"
+                        >
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      )}
+                    </div>
+                  )
+                }
+
+                return (
+                  <Tooltip key={key}>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          void switchSource(key)
+                        }}
+                        disabled={isLoading}
+                        aria-label={`Switch to ${info.label}`}
+                        className={cn(
+                          'inline-flex items-center justify-center w-8 h-8 rounded-md border transition-all',
+                          'disabled:cursor-wait',
+                          'bg-transparent border-border/40 text-muted-foreground hover:text-foreground hover:bg-muted hover:border-border',
+                        )}
+                      >
+                        {isLoading ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <SourceIcon info={info} className="w-4 h-4" />
+                        )}
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">Try {info.label}</TooltipContent>
+                  </Tooltip>
+                )
+              })}
+            </div>
+
             {/* Primary definition - grows to fill space */}
             <CardDescription
               className={cn(
@@ -563,96 +678,6 @@ function WordCard({
                 'No definition found'
               )}
             </CardDescription>
-
-            {/* Active source chip + one-tap source swap */}
-            {(() => {
-              const activeInfo =
-                SOURCE_INFO[activeSource] ?? SOURCE_INFO.inferred
-              const activeUrl = buildSourceUrl(activeSource, word.word)
-              const ActiveIcon = activeInfo.Icon
-
-              return (
-                <div className="flex flex-col gap-2 text-xs">
-                  {/* Currently selected source (prominent chip with external link) */}
-                  <div
-                    className={cn(
-                      'inline-flex items-center gap-1.5 px-2 py-1 rounded-md self-start max-w-full',
-                      'bg-muted/60 border border-border/50',
-                      activeInfo.color,
-                    )}
-                    title={`Showing definition from ${activeInfo.label}`}
-                  >
-                    <ActiveIcon className="w-3.5 h-3.5 shrink-0" />
-                    <span className="truncate font-medium text-foreground/90">
-                      {activeInfo.label}
-                    </span>
-                    {activeUrl && (
-                      <a
-                        href={activeUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={(e) => e.stopPropagation()}
-                        aria-label={`Open ${activeInfo.label} for "${word.word}" in a new tab`}
-                        className="inline-flex items-center justify-center w-5 h-5 rounded-sm text-muted-foreground hover:text-foreground hover:bg-background/80 transition-colors"
-                      >
-                        <ExternalLink className="w-3 h-3" />
-                      </a>
-                    )}
-                  </div>
-
-                  {/* Switchable source icons */}
-                  <div className="flex items-center flex-wrap gap-1">
-                    {SWAPPABLE_SOURCE_KEYS.map((key) => {
-                      const info = SOURCE_INFO[key]
-                      const Icon = info.Icon
-                      const isActive = key === activeSource
-                      const isLoading = sourceLoading === key
-                      return (
-                        <Tooltip key={key}>
-                          <TooltipTrigger asChild>
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                void switchSource(key)
-                              }}
-                              disabled={isLoading}
-                              aria-pressed={isActive}
-                              aria-label={
-                                isActive
-                                  ? `${info.label} (current source)`
-                                  : `Switch to ${info.label}`
-                              }
-                              className={cn(
-                                'inline-flex items-center justify-center w-8 h-8 rounded-md border transition-all',
-                                'disabled:cursor-wait',
-                                isActive
-                                  ? cn(
-                                      'bg-foreground/10 border-foreground/30 scale-105',
-                                      info.color,
-                                    )
-                                  : 'bg-transparent border-border/40 text-muted-foreground hover:text-foreground hover:bg-muted hover:border-border',
-                              )}
-                            >
-                              {isLoading ? (
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                              ) : (
-                                <Icon className="w-4 h-4" />
-                              )}
-                            </button>
-                          </TooltipTrigger>
-                          <TooltipContent side="top">
-                            {isActive
-                              ? `${info.label} (current)`
-                              : `Try ${info.label}`}
-                          </TooltipContent>
-                        </Tooltip>
-                      )
-                    })}
-                  </div>
-                </div>
-              )
-            })()}
 
             {/* Expandable additional definitions */}
             {hasMore && expanded && (

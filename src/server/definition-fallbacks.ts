@@ -138,22 +138,49 @@ export async function tryDatamuse(
   }
 }
 
+async function fetchWikipediaSummary(title: string) {
+  const res = await fetch(
+    `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`,
+    {
+      headers: {
+        'User-Agent':
+          'ConnectionsHelper/1.0 (https://github.com/RonanCodes/connections-helper) contact via github',
+        Accept: 'application/json',
+      },
+    },
+  )
+  if (!res.ok) return null
+  const data = await res.json()
+  if (!data.extract || data.extract.length <= 10) return null
+  return data as { extract: string; type?: string; title?: string }
+}
+
+// Wikipedia REST API is case-sensitive on the lookup title, but follows
+// redirects to the canonical article. NYT passes words ALL-CAPS, so many
+// redirects (e.g. "Dominant" → "Domination") are missed. Try title-case
+// first (matches most common nouns via redirect), then the original casing
+// (covers acronyms like "KID" that are distinct standalone articles).
 export async function tryWikipedia(
   word: string,
 ): Promise<DefinitionResult | null> {
   try {
-    const res = await fetch(
-      `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(word)}`,
-    )
-    if (!res.ok) return null
-    const data = await res.json()
-    if (!data.extract || data.extract.length <= 10) return null
+    const titleCase = word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+    const candidates = titleCase === word ? [word] : [titleCase, word]
+
+    let data: Awaited<ReturnType<typeof fetchWikipediaSummary>> = null
+    for (const candidate of candidates) {
+      data = await fetchWikipediaSummary(candidate)
+      if (data) break
+    }
+    if (!data) return null
+
     const extract = data.extract.split('. ').slice(0, 2).join('. ') + '.'
     return {
       definitions: [
         {
           definition: extract,
-          partOfSpeech: 'proper noun',
+          partOfSpeech:
+            data.type === 'disambiguation' ? 'disambiguation' : 'proper noun',
           source: 'wikipedia',
         },
       ],
@@ -189,44 +216,6 @@ export async function tryUrbanDictionary(
   }
 }
 
-export function generateFallback(word: string): DefinitionResult {
-  if (!word || word.trim().length === 0) {
-    return {
-      definitions: [
-        { definition: 'Unknown word or term.', source: 'inferred' },
-      ],
-      source: 'inferred',
-    }
-  }
-  const original = word
-  const w = word.toLowerCase()
-
-  const mk = (def: string): DefinitionResult => ({
-    definitions: [{ definition: def, source: 'inferred' }],
-    source: 'inferred',
-  })
-
-  if (w.endsWith('er'))
-    return mk(
-      `One who ${w.slice(0, -2)}s or something that ${w.slice(0, -2)}s.`,
-    )
-  if (w.endsWith('ing'))
-    return mk(
-      `The act of ${w.slice(0, -3)}ing; present participle of ${w.slice(0, -3)}.`,
-    )
-  if (w.endsWith('tion') || w.endsWith('sion'))
-    return mk('A state, action, or process.')
-  if (w.endsWith('ness'))
-    return mk(`The quality or state of being ${w.slice(0, -4)}.`)
-  if (w.endsWith('ly')) return mk(`In a ${w.slice(0, -2)} manner; adverb form.`)
-  if (original[0] === original[0].toUpperCase()) {
-    return mk(
-      'Proper noun - may refer to a person, place, brand, or cultural reference.',
-    )
-  }
-  return mk('Word or term - context needed for specific meaning.')
-}
-
 export interface FetchOptions {
   wordnikApiKey?: string
   merriamWebsterApiKey?: string
@@ -236,7 +225,7 @@ export async function fetchDefinitionWithFallbacks(
   word: string,
   originalWord: string,
   opts: FetchOptions = {},
-): Promise<DefinitionResult> {
+): Promise<DefinitionResult | null> {
   return (
     (await tryMerriamWebster(word, opts.merriamWebsterApiKey)) ??
     (await tryWordnik(word, opts.wordnikApiKey)) ??
@@ -244,6 +233,6 @@ export async function fetchDefinitionWithFallbacks(
     (await tryDatamuse(word)) ??
     (await tryWikipedia(originalWord)) ??
     (await tryUrbanDictionary(word)) ??
-    generateFallback(originalWord)
+    null
   )
 }

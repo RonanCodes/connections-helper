@@ -37,17 +37,6 @@ const SOURCES: SourceEntry[] = [
   },
   {
     order: 2,
-    icon: '📗',
-    name: 'Wordnik',
-    url: 'https://developer.wordnik.com',
-    role: 'Fallback',
-    description:
-      'Aggregates definitions from multiple dictionaries (American Heritage, Wiktionary, GCIDE). Catches entries others miss.',
-    coverage: 'Broad coverage; aggregates ~10 sources',
-    keyRequired: true,
-  },
-  {
-    order: 3,
     icon: '📖',
     name: 'Free Dictionary API',
     url: 'https://dictionaryapi.dev',
@@ -57,7 +46,7 @@ const SOURCES: SourceEntry[] = [
     coverage: 'Good for common words; thin for niche vocabulary',
   },
   {
-    order: 4,
+    order: 3,
     icon: '🔤',
     name: 'Datamuse',
     url: 'https://www.datamuse.com/api/',
@@ -67,7 +56,7 @@ const SOURCES: SourceEntry[] = [
     coverage: 'Compound words, rare terms',
   },
   {
-    order: 5,
+    order: 4,
     icon: '🌐',
     name: 'Wikipedia',
     url: 'https://en.wikipedia.org/api/rest_v1/',
@@ -77,7 +66,7 @@ const SOURCES: SourceEntry[] = [
     coverage: 'Proper nouns, brands, people, places',
   },
   {
-    order: 6,
+    order: 5,
     icon: '🏙️',
     name: 'Urban Dictionary',
     url: 'https://api.urbandictionary.com/v0/define',
@@ -85,15 +74,6 @@ const SOURCES: SourceEntry[] = [
     description:
       'Top community definitions sorted by upvotes. Catches slang, memes, and neologisms.',
     coverage: 'Slang, idioms, internet culture',
-  },
-  {
-    order: 7,
-    icon: '🤔',
-    name: 'Inferred',
-    role: 'Last resort',
-    description:
-      'Heuristic fallback based on word shape (suffixes like -er, -ing, -tion). Used only when every other source returns nothing.',
-    coverage: 'Generic guesses; always treat as approximate',
   },
 ]
 
