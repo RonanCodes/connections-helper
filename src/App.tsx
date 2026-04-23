@@ -688,8 +688,7 @@ function WordCard({
                     }}
                     aria-pressed={showColor}
                     className={cn(
-                      showColor &&
-                        'bg-foreground/10 hover:bg-foreground/15',
+                      showColor && 'bg-foreground/10 hover:bg-foreground/15',
                     )}
                   >
                     {showColor ? (
@@ -1417,18 +1416,18 @@ export default function App() {
 
           {/* Date Navigation */}
           <Card className="mb-4 py-2">
-            <CardContent>
+            <CardContent className="px-2">
               <div className="flex items-center justify-between gap-2 sm:gap-4">
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
                       variant="secondary"
                       size="icon-lg"
-                      className="flex-shrink-0 h-16 w-16"
+                      className="flex-shrink-0 h-12 w-12"
                       onClick={goToPreviousDay}
                       disabled={isFirstDay || loadingPuzzle}
                     >
-                      <ChevronLeft className="!size-12" strokeWidth={2.5} />
+                      <ChevronLeft className="!size-7" strokeWidth={2.5} />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>Previous day</TooltipContent>
@@ -1467,11 +1466,11 @@ export default function App() {
                     <Button
                       variant="secondary"
                       size="icon-lg"
-                      className="flex-shrink-0 h-16 w-16"
+                      className="flex-shrink-0 h-12 w-12"
                       onClick={goToNextDay}
                       disabled={isToday || loadingPuzzle}
                     >
-                      <ChevronRight className="!size-12" strokeWidth={2.5} />
+                      <ChevronRight className="!size-7" strokeWidth={2.5} />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>Next day</TooltipContent>
