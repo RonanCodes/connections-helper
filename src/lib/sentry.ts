@@ -1,4 +1,3 @@
-import * as Sentry from '@sentry/react'
 import { getRuntimeConfig } from './runtime-config'
 
 let initialised = false
@@ -17,6 +16,7 @@ export function initSentry(): Promise<boolean> {
         )
         return false
       }
+      const Sentry = await import('@sentry/react')
       Sentry.init({
         dsn: sentryDsn,
         tracesSampleRate: 0.1,
@@ -41,15 +41,3 @@ export function initSentry(): Promise<boolean> {
 export function isSentryReady() {
   return initialised
 }
-
-if (typeof window !== 'undefined') {
-  initSentry()
-  window.addEventListener('error', (e) => {
-    console.error('[sentry] window.error', e.message, e.error)
-  })
-  window.addEventListener('unhandledrejection', (e) => {
-    console.error('[sentry] unhandledrejection', e.reason)
-  })
-}
-
-export { Sentry }

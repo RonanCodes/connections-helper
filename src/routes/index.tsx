@@ -1,6 +1,6 @@
 import { createFileRoute, ClientOnly } from '@tanstack/react-router'
 import App from '../App'
-import { Sentry } from '../lib/sentry'
+import { ErrorBoundary } from '../lib/error-boundary'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -85,14 +85,14 @@ function LoadingFallback() {
 function Home() {
   return (
     <ClientOnly fallback={<LoadingFallback />}>
-      <Sentry.ErrorBoundary
+      <ErrorBoundary
         fallback={({ error }) => <ErrorFallback error={error} />}
         onError={(error) => {
           console.error('[sentry] ErrorBoundary caught', error)
         }}
       >
         <App />
-      </Sentry.ErrorBoundary>
+      </ErrorBoundary>
     </ClientOnly>
   )
 }

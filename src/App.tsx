@@ -28,10 +28,7 @@ import {
   Settings,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
-import confetti from 'canvas-confetti'
 import { initTheme } from '@/lib/themes'
-import { initPostHog } from '@/lib/posthog'
-import { initSentry } from '@/lib/sentry'
 import { EnvironmentBadge } from '@/lib/env-badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -117,10 +114,12 @@ const WIGGLE_CSS = `
 }
 `
 
-function fireConfetti() {
+async function fireConfetti() {
   const theme = (document.documentElement.getAttribute('data-theme') ??
     'nyt') as Theme
   const colors = THEME_CONFETTI[theme]
+
+  const { default: confetti } = await import('canvas-confetti')
 
   confetti({ particleCount: 150, spread: 100, origin: { y: 0.3 }, colors })
   setTimeout(() => {
@@ -1262,9 +1261,19 @@ export default function App() {
       localStorage.setItem('sl-theme', 'nyt')
     }
     initTheme()
-    initSentry()
-    initPostHog()
     loadPuzzle(puzzleDate)
+
+    // Defer analytics until the browser is idle so they don't block
+    // the critical render path or the initial puzzle fetch.
+    const scheduleAnalytics = () => {
+      void import('@/lib/sentry').then((m) => m.initSentry())
+      void import('@/lib/posthog').then((m) => m.initPostHog())
+    }
+    if ('requestIdleCallback' in window) {
+      window.requestIdleCallback(scheduleAnalytics, { timeout: 3000 })
+    } else {
+      setTimeout(scheduleAnalytics, 1500)
+    }
   }, [])
 
   const loadPuzzle = async (date: string) => {
