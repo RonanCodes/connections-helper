@@ -9,6 +9,8 @@ import {
   Calendar,
   Sparkles,
   Puzzle,
+  Gamepad2,
+  Newspaper,
   Share2,
   Copy,
   Check,
@@ -1493,6 +1495,38 @@ export default function App() {
               <span />
             )}
             <div className="flex items-center gap-2">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="outline" size="icon" asChild>
+                    <a
+                      href="https://www.nytimes.com/games/connections"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label="Play today's puzzle on NYT"
+                    >
+                      <Gamepad2 className="w-4 h-4" />
+                    </a>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Play on NYT</TooltipContent>
+              </Tooltip>
+              {puzzleId && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="outline" size="icon" asChild>
+                      <a
+                        href={getCompanionUrl(puzzleDate, puzzleId)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={`Read NYT's Connections Companion for #${puzzleId}`}
+                      >
+                        <Newspaper className="w-4 h-4" />
+                      </a>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Companion for #{puzzleId}</TooltipContent>
+                </Tooltip>
+              )}
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
