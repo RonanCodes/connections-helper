@@ -52,10 +52,10 @@ export function setMode(mode: Mode): void {
  */
 export function getThemeConfig(): ThemeConfig {
   if (typeof document === 'undefined') {
-    return { theme: 'default', mode: 'system' }
+    return { theme: 'nyt', mode: 'system' }
   }
 
-  const theme = (localStorage.getItem('sl-theme') ?? 'default') as Theme
+  const theme = (localStorage.getItem('sl-theme') ?? 'nyt') as Theme
   const mode = (localStorage.getItem('sl-mode') ?? 'system') as Mode
   return { theme, mode }
 }
@@ -84,7 +84,7 @@ export function toggleMode(): Mode {
  * Cycle through available themes
  */
 export function cycleTheme(): Theme {
-  const current = (localStorage.getItem('sl-theme') ?? 'default') as Theme
+  const current = (localStorage.getItem('sl-theme') ?? 'nyt') as Theme
   const currentIndex = THEMES.indexOf(current)
   const nextIndex = (currentIndex + 1) % THEMES.length
   const next = THEMES[nextIndex]

@@ -119,7 +119,7 @@ const WIGGLE_CSS = `
 
 function fireConfetti() {
   const theme = (document.documentElement.getAttribute('data-theme') ??
-    'light') as Theme
+    'nyt') as Theme
   const colors = THEME_CONFETTI[theme]
 
   confetti({ particleCount: 150, spread: 100, origin: { y: 0.3 }, colors })
