@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
@@ -16,6 +17,8 @@ import {
   setPreferredSource,
 } from '@/lib/user-prefs'
 import { SOURCE_DESCRIPTIONS } from '@/lib/source-descriptions'
+import { THEMES, THEME_META, getThemeConfig, setTheme } from '@/lib/themes'
+import type { Theme } from '@/lib/themes'
 
 type SourceOption = {
   key: string
@@ -41,13 +44,23 @@ export function SettingsDialog({
   const [draftEnabled, setDraftEnabled] = useState<Set<string>>(
     new Set(allKeys),
   )
+  const [draftTheme, setDraftTheme] = useState<Theme>('nyt')
+  const originalThemeRef = useRef<Theme>('nyt')
 
   useEffect(() => {
     if (open) {
       setDraftPreferred(getPreferredSource())
       setDraftEnabled(getEnabledSources(allKeys))
+      const current = getThemeConfig().theme
+      originalThemeRef.current = current
+      setDraftTheme(current)
     }
   }, [open])
+
+  function chooseTheme(next: Theme) {
+    setDraftTheme(next)
+    setTheme(next)
+  }
 
   function choosePreferred(key: string) {
     setDraftPreferred(key)
@@ -73,10 +86,14 @@ export function SettingsDialog({
   function handleSave() {
     setEnabledSources(Array.from(draftEnabled), allKeys)
     setPreferredSource(draftPreferred)
+    setTheme(draftTheme)
     onOpenChange(false)
   }
 
   function handleCancel() {
+    if (draftTheme !== originalThemeRef.current) {
+      setTheme(originalThemeRef.current)
+    }
     onOpenChange(false)
   }
 
@@ -87,8 +104,8 @@ export function SettingsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
+      <DialogContent className="max-w-lg max-h-[90vh] p-0 gap-0 overflow-hidden flex flex-col">
+        <DialogHeader className="px-6 pt-6 pb-4 border-b border-[var(--color-border,#e5e5e5)]">
           <DialogTitle>Settings</DialogTitle>
           <DialogDescription>
             Pick the source you&apos;d like shown first, and toggle which
@@ -96,7 +113,45 @@ export function SettingsDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-5">
+        <div className="flex-1 overflow-y-auto px-6 py-5 space-y-5">
+          <section className="space-y-2">
+            <h3 className="text-sm font-semibold">Theme</h3>
+            <p className="text-xs text-muted-foreground">
+              Changes preview instantly. Save to keep, Cancel to revert.
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              {THEMES.map((t) => {
+                const meta = THEME_META[t]
+                const isActive = draftTheme === t
+                return (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => chooseTheme(t)}
+                    className={cn(
+                      'flex items-start gap-2 px-3 py-2.5 rounded-md border text-left transition-colors',
+                      isActive
+                        ? 'border-foreground bg-muted'
+                        : 'border-border hover:bg-muted/50',
+                    )}
+                  >
+                    <span className="text-lg leading-none mt-0.5" aria-hidden>
+                      {meta.emoji}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-sm font-medium truncate">
+                        {meta.name}
+                      </span>
+                      <span className="block text-[11px] text-muted-foreground leading-snug">
+                        {meta.description}
+                      </span>
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+          </section>
+
           <section className="space-y-2">
             <h3 className="text-sm font-semibold">Preferred source</h3>
             <p className="text-xs text-muted-foreground">
@@ -214,12 +269,12 @@ export function SettingsDialog({
           </section>
         </div>
 
-        <div className="flex justify-end gap-2 pt-2 border-t border-[var(--color-border,#e5e5e5)]">
+        <DialogFooter className="px-6 py-4 border-t border-[var(--color-border,#e5e5e5)] flex-row justify-end gap-2">
           <Button variant="ghost" onClick={handleCancel}>
             Cancel
           </Button>
           <Button onClick={handleSave}>Save</Button>
-        </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   )

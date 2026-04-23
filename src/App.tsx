@@ -606,9 +606,36 @@ function WordCard({
         animationFillMode: 'backwards',
       }}
     >
-      <CardHeader className="pb-0">
-        <div className="flex items-start justify-between gap-2 flex-wrap">
-          <div className="min-w-0 flex-1 flex flex-col items-start text-left">
+      <CardHeader className="pb-0 relative">
+        {showHints && word.categoryIndex !== undefined && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              setShowColor(!showColor)
+            }}
+            className={cn(
+              'absolute top-0 right-6 p-1.5 rounded-md transition-all duration-300 border z-10',
+              showColor
+                ? 'bg-black/10 border-transparent scale-110'
+                : 'bg-muted/50 border-border hover:bg-muted hover:scale-105',
+            )}
+            title={showColor ? 'Hide color' : 'Reveal category color'}
+          >
+            {showColor ? (
+              <div
+                className={cn(
+                  'w-4 h-4 rounded-sm transition-all duration-500',
+                  CATEGORY_COLORS[categoryIndex].split(' ')[0],
+                  'animate-in zoom-in-50',
+                )}
+              />
+            ) : (
+              <Palette className="w-4 h-4 text-muted-foreground" />
+            )}
+          </button>
+        )}
+        <div className="flex flex-col gap-2">
+          <div className="min-w-0 flex flex-col items-start text-left pr-10">
             {word.imageUrl ? (
               <CardTitle className="text-lg flex items-center gap-2">
                 <img
@@ -628,109 +655,91 @@ function WordCard({
             {primaryDef?.partOfSpeech && !word.loading && (
               <Badge
                 variant="secondary"
-                className="text-xs font-normal mt-1 lowercase"
+                className="text-xs font-normal mt-1 lowercase pl-0"
               >
                 {primaryDef.partOfSpeech}
               </Badge>
             )}
           </div>
-          <div className="flex items-center gap-1.5 flex-wrap justify-end">
+          <div className="flex items-center gap-1.5 flex-wrap">
             {!word.loading &&
               SWAPPABLE_SOURCE_KEYS.filter(
                 (k) => enabledSources.has(k) || k === activeSource,
-              ).map((key) => {
-                const info = SOURCE_INFO[key]
-                const isActive = key === activeSource
-                const isLoading = sourceLoading === key
+              )
+                .sort((a, b) => {
+                  if (a === preferredSource) return -1
+                  if (b === preferredSource) return 1
+                  return 0
+                })
+                .map((key) => {
+                  const info = SOURCE_INFO[key]
+                  const isActive = key === activeSource
+                  const isLoading = sourceLoading === key
 
-                if (isActive) {
-                  const url = buildSourceUrl(key, word.word)
+                  if (isActive) {
+                    const url = buildSourceUrl(key, word.word)
+                    return (
+                      <Tooltip key={key}>
+                        <TooltipTrigger asChild>
+                          <div
+                            className={cn(
+                              'inline-flex items-center h-10 rounded-md border overflow-hidden text-xs',
+                              'bg-foreground/5 border-foreground/30',
+                              info.color,
+                            )}
+                          >
+                            <span className="inline-flex items-center justify-center px-2.5 h-full">
+                              <SourceIcon info={info} className="w-5 h-5" />
+                            </span>
+                            {url && (
+                              <a
+                                href={url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                aria-label={`Open ${info.label} for "${word.word}" in a new tab`}
+                                className="inline-flex items-center justify-center h-full px-2 border-l border-foreground/20 text-foreground/70 hover:text-foreground hover:bg-foreground/10 transition-colors"
+                              >
+                                <ExternalLink className="w-4 h-4" />
+                              </a>
+                            )}
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent side="top">{info.label}</TooltipContent>
+                      </Tooltip>
+                    )
+                  }
+
                   return (
-                    <div
-                      key={key}
-                      className={cn(
-                        'inline-flex items-center h-10 rounded-md border overflow-hidden text-xs',
-                        'bg-foreground/5 border-foreground/30',
-                        info.color,
-                      )}
-                    >
-                      <span className="inline-flex items-center gap-1.5 pl-2 pr-2 h-full">
-                        <SourceIcon info={info} className="w-5 h-5" />
-                        <span className="truncate font-medium hidden sm:inline">
-                          {info.label}
-                        </span>
-                      </span>
-                      {url && (
-                        <a
-                          href={url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={(e) => e.stopPropagation()}
-                          aria-label={`Open ${info.label} for "${word.word}" in a new tab`}
-                          className="inline-flex items-center justify-center h-full px-2 border-l border-foreground/20 text-foreground/70 hover:text-foreground hover:bg-foreground/10 transition-colors"
+                    <Tooltip key={key}>
+                      <TooltipTrigger asChild>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            void switchSource(key)
+                          }}
+                          disabled={isLoading}
+                          aria-label={`Switch to ${info.label}`}
+                          className={cn(
+                            'inline-flex items-center justify-center w-10 h-10 rounded-md border transition-all',
+                            'disabled:cursor-wait',
+                            'bg-transparent border-border/40 text-muted-foreground hover:text-foreground hover:bg-muted hover:border-border',
+                          )}
                         >
-                          <ExternalLink className="w-4 h-4" />
-                        </a>
-                      )}
-                    </div>
+                          {isLoading ? (
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                          ) : (
+                            <SourceIcon info={info} className="w-5 h-5" />
+                          )}
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="top">
+                        Try {info.label}
+                      </TooltipContent>
+                    </Tooltip>
                   )
-                }
-
-                return (
-                  <Tooltip key={key}>
-                    <TooltipTrigger asChild>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          void switchSource(key)
-                        }}
-                        disabled={isLoading}
-                        aria-label={`Switch to ${info.label}`}
-                        className={cn(
-                          'inline-flex items-center justify-center w-10 h-10 rounded-md border transition-all',
-                          'disabled:cursor-wait',
-                          'bg-transparent border-border/40 text-muted-foreground hover:text-foreground hover:bg-muted hover:border-border',
-                        )}
-                      >
-                        {isLoading ? (
-                          <Loader2 className="w-5 h-5 animate-spin" />
-                        ) : (
-                          <SourceIcon info={info} className="w-5 h-5" />
-                        )}
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent side="top">Try {info.label}</TooltipContent>
-                  </Tooltip>
-                )
-              })}
-            {showHints && word.categoryIndex !== undefined && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  setShowColor(!showColor)
-                }}
-                className={cn(
-                  'p-1.5 rounded-md transition-all duration-300 border',
-                  showColor
-                    ? 'bg-black/10 border-transparent scale-110'
-                    : 'bg-muted/50 border-border hover:bg-muted hover:scale-105',
-                )}
-                title={showColor ? 'Hide color' : 'Reveal category color'}
-              >
-                {showColor ? (
-                  <div
-                    className={cn(
-                      'w-4 h-4 rounded-sm transition-all duration-500',
-                      CATEGORY_COLORS[categoryIndex].split(' ')[0],
-                      'animate-in zoom-in-50',
-                    )}
-                  />
-                ) : (
-                  <Palette className="w-4 h-4 text-muted-foreground" />
-                )}
-              </button>
-            )}
+                })}
           </div>
         </div>
       </CardHeader>
