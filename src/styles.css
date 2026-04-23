@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import './lib/themes/css/themes.css';
 
 /* Bridge theme CSS vars to Tailwind v4 utilities.
    Each per-theme file sets --background / --card / --border etc.

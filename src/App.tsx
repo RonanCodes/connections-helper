@@ -55,7 +55,6 @@ import {
   getEnabledSources,
   getPreferredSource,
 } from '@/lib/user-prefs'
-import '@/lib/themes/css/themes.css'
 
 // Easter egg utilities
 type Theme =

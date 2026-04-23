@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { ArrowLeft, Check, Info, Loader2, Plus, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -29,6 +29,13 @@ import type { Theme } from '@/lib/themes'
 
 export const Route = createFileRoute('/design-system')({
   component: DesignSystemShowcase,
+  validateSearch: (search: Record<string, unknown>) => {
+    const raw = typeof search.theme === 'string' ? search.theme : undefined
+    const theme = (THEMES as readonly string[]).includes(raw ?? '')
+      ? (raw as Theme)
+      : undefined
+    return { theme }
+  },
 })
 
 // Semantic colour tokens bridged by @theme inline in styles.css. Each pair
@@ -81,16 +88,21 @@ const TYPOGRAPHY_KEYS = [
 ] as const
 
 function DesignSystemShowcase() {
+  const search = Route.useSearch()
+  const navigate = useNavigate({ from: '/design-system' })
   const [theme, setActiveTheme] = useState<Theme>('nyt')
   const [pressed, setPressed] = useState(false)
 
   useEffect(() => {
-    setActiveTheme(getThemeConfig().theme)
-  }, [])
+    const initial = search.theme ?? getThemeConfig().theme
+    if (search.theme) setTheme(search.theme)
+    setActiveTheme(initial)
+  }, [search.theme])
 
   function pickTheme(next: Theme) {
     setTheme(next)
     setActiveTheme(next)
+    navigate({ search: { theme: next }, replace: true })
   }
 
   return (
