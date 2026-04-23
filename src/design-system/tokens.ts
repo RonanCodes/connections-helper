@@ -24,6 +24,8 @@ export const TYPOGRAPHY = {
   caption: 'text-xs text-muted-foreground',
   label: 'text-sm font-medium',
   mono: 'font-mono text-xs',
+  // Below the text-xs floor. Reserve for UPPERCASE metadata/stamps only.
+  tiny: 'text-[10px] uppercase tracking-wide font-semibold',
 } as const
 
 export type TypographyToken = keyof typeof TYPOGRAPHY

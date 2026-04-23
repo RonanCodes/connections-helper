@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { TYPOGRAPHY } from '@/design-system/tokens'
 import { cn } from '@/lib/utils'
 import {
   MAX_ENABLED_SOURCES,
@@ -207,12 +208,14 @@ function SettingsPage() {
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-sm font-medium">{opt.label}</span>
                       {isPreferred && (
-                        <span className="text-[10px] uppercase tracking-wide font-semibold text-[var(--color-primary,#2563eb)]">
+                        <span className={cn(TYPOGRAPHY.tiny, 'text-primary')}>
                           Preferred
                         </span>
                       )}
                       {capReached && (
-                        <span className="text-[10px] uppercase tracking-wide font-semibold text-muted-foreground">
+                        <span
+                          className={cn(TYPOGRAPHY.tiny, 'text-muted-foreground')}
+                        >
                           Cap reached
                         </span>
                       )}
