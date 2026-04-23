@@ -613,11 +613,14 @@ function WordCard({
               e.stopPropagation()
               setShowColor(!showColor)
             }}
+            aria-pressed={showColor}
             className={cn(
-              'absolute top-0 right-6 p-1.5 rounded-md transition-all duration-300 border z-10',
+              'absolute top-0 right-6 p-1.5 rounded-md border z-10',
+              'transition-colors duration-150 active:translate-y-px',
+              'outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50',
               showColor
-                ? 'bg-black/10 border-transparent scale-110'
-                : 'bg-muted/50 border-border hover:bg-muted hover:scale-105',
+                ? 'bg-foreground/10 border-foreground/30 hover:bg-foreground/15 active:bg-foreground/20'
+                : 'bg-muted/50 border-border hover:bg-muted active:bg-muted/80',
             )}
             title={showColor ? 'Hide color' : 'Reveal category color'}
           >
@@ -1018,11 +1021,14 @@ function CategoryHints({ hints, show }: { hints: string[]; show: boolean }) {
                   </span>
                   <button
                     onClick={(e) => toggleColor(i, e)}
+                    aria-pressed={showColors[i]}
                     className={cn(
-                      'flex-shrink-0 p-1.5 rounded-md transition-all duration-300 border',
+                      'flex-shrink-0 p-1.5 rounded-md border',
+                      'transition-colors duration-150 active:translate-y-px',
+                      'outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50',
                       showColors[i]
-                        ? 'bg-black/10 border-transparent scale-110'
-                        : 'bg-muted/50 border-border hover:bg-muted hover:scale-105',
+                        ? 'bg-foreground/10 border-foreground/30 hover:bg-foreground/15 active:bg-foreground/20'
+                        : 'bg-muted/50 border-border hover:bg-muted active:bg-muted/80',
                     )}
                     title={showColors[i] ? 'Hide color' : 'Reveal color hint'}
                   >
