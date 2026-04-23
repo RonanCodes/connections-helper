@@ -97,8 +97,51 @@
   letter-spacing: -0.015em;
 }
 
-/* Primary buttons in NYT theme get the pill shape seen in game dialogs */
-[data-theme='nyt'] button[data-variant='default'],
+/* NYT primary buttons match nytimes.com/games/connections "Shuffle / Submit":
+ * outlined pill on white, dark border, dark text, 48px tall, 16px / 600.
+ * This inverts the usual "filled dark = primary" pattern. The filled-dark pill
+ * pattern is reserved for modal CTAs; if you need it in NYT theme, use
+ * variant="secondary" with className="!bg-foreground !text-background". */
+[data-theme='nyt'] button[data-variant='default'] {
+  border-radius: 9999px;
+  background-color: var(--background);
+  color: var(--foreground);
+  border: 1px solid var(--foreground);
+  font-weight: 600;
+}
+
+[data-theme='nyt'] button[data-variant='default']:hover:not(:disabled) {
+  background-color: var(--muted);
+  color: var(--foreground);
+}
+
+[data-theme='nyt'] button[data-variant='default']:active:not(:disabled) {
+  background-color: var(--accent);
+}
+
+[data-theme='nyt'] button[data-variant='default']:disabled {
+  color: var(--muted-foreground);
+  border-color: var(--border);
+  opacity: 1;
+}
+
+/* Size-up the default size to match NYT Games bottom-row (48px / 16px).
+ * Other sizes keep their natural proportions. */
+[data-theme='nyt'] button[data-variant='default'][data-size='default'] {
+  height: 3rem;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+  font-size: 1rem;
+}
+
+[data-theme='nyt'] button[data-variant='default'][data-size='lg'] {
+  height: 3.25rem;
+  padding-left: 1.75rem;
+  padding-right: 1.75rem;
+  font-size: 1rem;
+}
+
+/* Legacy .btn-primary (non-variant users) keeps the old pill radius */
 [data-theme='nyt'] .btn-primary {
   border-radius: 9999px;
 }
