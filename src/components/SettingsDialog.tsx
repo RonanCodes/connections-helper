@@ -272,7 +272,7 @@ export function SettingsDialog({
         </div>
 
         <DialogFooter className="px-6 py-4 border-t border-border flex-row justify-end gap-2">
-          <Button variant="ghost" onClick={handleCancel}>
+          <Button variant="secondary" onClick={handleCancel}>
             Cancel
           </Button>
           <Button onClick={handleSave}>Save</Button>

@@ -129,47 +129,52 @@
   letter-spacing: -0.015em;
 }
 
-/* NYT primary buttons match nytimes.com/games/connections "Shuffle / Submit":
- * outlined pill on white, dark border, dark text, 48px tall, 16px / 600.
- * This inverts the usual "filled dark = primary" pattern. The filled-dark pill
- * pattern is reserved for modal CTAs; if you need it in NYT theme, use
- * variant="secondary" with className="!bg-foreground !text-background". */
-[data-theme='nyt'] button[data-variant='default'] {
+/* NYT primary = filled-black pill, matches the "Play" CTA on the Connections
+ * splash and the in-modal subscribe/continue CTAs. Selector uses data-slot so
+ * `<Button asChild><a/></Button>` (renders as <a data-slot="button" ...>)
+ * still picks up the NYT override. */
+[data-theme='nyt'] [data-slot='button'][data-variant='default'] {
   border-radius: 9999px;
-  background-color: var(--background);
-  color: var(--foreground);
+  background-color: var(--foreground);
+  color: var(--primary-foreground);
   border: 1px solid var(--foreground);
   font-weight: 600;
 }
 
-[data-theme='nyt'] button[data-variant='default']:hover:not(:disabled) {
-  background-color: var(--muted);
-  color: var(--foreground);
+[data-theme='nyt']
+  [data-slot='button'][data-variant='default']:hover:not(:disabled) {
+  background-color: #333333;
+  border-color: #333333;
 }
 
-[data-theme='nyt'] button[data-variant='default']:active:not(:disabled) {
-  background-color: var(--accent);
+[data-theme='nyt']
+  [data-slot='button'][data-variant='default']:active:not(:disabled) {
+  background-color: #000000;
+  border-color: #000000;
 }
 
-/* Disabled primary: NYT Submit uses specific mid-greys for text + border
- * (measured: text #8b8b8b, border #979797). These aren't in the semantic
- * palette because they only exist as a disabled-state pair. */
-[data-theme='nyt'] button[data-variant='default']:disabled {
+/* Disabled primary: NYT uses a washed-out filled pill for disabled CTAs
+ * (warm tile-grey surface + mid-grey text). Measured from an inactive "Play"
+ * state on nytimes.com/games/connections. */
+[data-theme='nyt'] [data-slot='button'][data-variant='default']:disabled {
+  background-color: #efefe6;
   color: #8b8b8b;
-  border-color: #979797;
+  border-color: #d9d9d9;
   opacity: 1;
 }
 
 /* Size-up the default size to match NYT Games bottom-row (48px / 16px).
  * Other sizes keep their natural proportions. */
-[data-theme='nyt'] button[data-variant='default'][data-size='default'] {
+[data-theme='nyt']
+  [data-slot='button'][data-variant='default'][data-size='default'] {
   height: 3rem;
   padding-left: 1.5rem;
   padding-right: 1.5rem;
   font-size: 1rem;
 }
 
-[data-theme='nyt'] button[data-variant='default'][data-size='lg'] {
+[data-theme='nyt']
+  [data-slot='button'][data-variant='default'][data-size='lg'] {
   height: 3.25rem;
   padding-left: 1.75rem;
   padding-right: 1.75rem;
@@ -179,6 +184,51 @@
 /* Legacy .btn-primary (non-variant users) keeps the old pill radius */
 [data-theme='nyt'] .btn-primary {
   border-radius: 9999px;
+}
+
+/* NYT secondary = dark-outlined pill, matches "Log in" / "75% off" below the
+ * filled "Play" CTA on the splash. Dark border + dark text (not the muted
+ * grey used for disabled states), so it reads as interactive peer-of-primary
+ * rather than inactive. Same pill shape + 48px height as primary. */
+[data-theme='nyt'] [data-slot='button'][data-variant='secondary'] {
+  border-radius: 9999px;
+  background-color: var(--background);
+  color: var(--foreground);
+  border: 1px solid var(--foreground);
+  font-weight: 600;
+  box-shadow: none;
+}
+
+[data-theme='nyt']
+  [data-slot='button'][data-variant='secondary']:hover:not(:disabled) {
+  background-color: var(--muted);
+}
+
+[data-theme='nyt']
+  [data-slot='button'][data-variant='secondary']:active:not(:disabled) {
+  background-color: var(--accent);
+}
+
+[data-theme='nyt'] [data-slot='button'][data-variant='secondary']:disabled {
+  color: #8b8b8b;
+  border-color: #979797;
+  opacity: 1;
+}
+
+[data-theme='nyt']
+  [data-slot='button'][data-variant='secondary'][data-size='default'] {
+  height: 3rem;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+  font-size: 1rem;
+}
+
+[data-theme='nyt']
+  [data-slot='button'][data-variant='secondary'][data-size='lg'] {
+  height: 3.25rem;
+  padding-left: 1.75rem;
+  padding-right: 1.75rem;
+  font-size: 1rem;
 }
 
 /* Card chrome: 6px radius matches real tile corners on nytimes.com,
