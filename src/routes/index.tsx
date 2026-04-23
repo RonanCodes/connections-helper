@@ -1,6 +1,7 @@
 import { createFileRoute, ClientOnly } from '@tanstack/react-router'
 import App from '../App'
 import { Sentry } from '../lib/sentry'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 
@@ -14,12 +15,9 @@ function ErrorFallback({ error }: { error: unknown }) {
         <div className="text-4xl">🧩💥</div>
         <h1 className="text-xl font-semibold">Something went wrong</h1>
         <p className="text-sm text-muted-foreground break-words">{message}</p>
-        <button
-          className="px-4 py-2 rounded-md border text-sm"
-          onClick={() => window.location.reload()}
-        >
+        <Button variant="outline" onClick={() => window.location.reload()}>
           Reload
-        </button>
+        </Button>
       </div>
     </div>
   )
