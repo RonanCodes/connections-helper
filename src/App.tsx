@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Link } from '@tanstack/react-router'
+import { Link, useNavigate } from '@tanstack/react-router'
 import {
   ChevronLeft,
   ChevronRight,
@@ -23,6 +23,7 @@ import {
   MessageSquareMore,
   ExternalLink,
   Loader2,
+  Settings,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import confetti from 'canvas-confetti'
@@ -48,6 +49,12 @@ import {
 } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 import { DatePicker } from './components/DatePicker'
+import { SettingsDialog } from './components/SettingsDialog'
+import {
+  PREFERRED_SOURCE_AUTO,
+  getEnabledSources,
+  getPreferredSource,
+} from '@/lib/user-prefs'
 import '@/lib/themes/css/themes.css'
 
 // Easter egg utilities
@@ -200,7 +207,6 @@ const SOURCE_INFO: Record<string, SourceInfo> = {
     Icon: Search,
     label: 'Datamuse',
     color: 'text-sky-500',
-    url: 'https://en.wiktionary.org/wiki/{word}',
     fetchKey: 'datamuse',
     faviconDomain: 'datamuse.com',
   },
@@ -476,13 +482,77 @@ function WordCard({
     Record<string, SingleDefinition[]>
   >({ [originalSource]: originalDefinitions })
   const [sourceLoading, setSourceLoading] = useState<string | null>(null)
+  const [manualSwap, setManualSwap] = useState(false)
+  const [preferredSource, setPreferredSourceState] = useState<string>(() =>
+    getPreferredSource(),
+  )
+  const [enabledSources, setEnabledSourcesState] = useState<Set<string>>(() =>
+    getEnabledSources(SWAPPABLE_SOURCE_KEYS),
+  )
 
   useEffect(() => {
     setActiveSource(originalSource)
     setSourceCache({ [originalSource]: originalDefinitions })
     setExpanded(false)
     setSourceLoading(null)
+    setManualSwap(false)
   }, [originalSource, originalDefinitions])
+
+  useEffect(() => {
+    const onPref = () => setPreferredSourceState(getPreferredSource())
+    const onEnabled = () =>
+      setEnabledSourcesState(getEnabledSources(SWAPPABLE_SOURCE_KEYS))
+    window.addEventListener('ch-preferred-source-change', onPref)
+    window.addEventListener('ch-enabled-sources-change', onEnabled)
+    return () => {
+      window.removeEventListener('ch-preferred-source-change', onPref)
+      window.removeEventListener('ch-enabled-sources-change', onEnabled)
+    }
+  }, [])
+
+  // Auto-swap to the user's preferred primary source when it differs from the
+  // current active source. Skipped if the user has manually picked a source on
+  // this card — their choice wins. Only commits the swap if the preferred
+  // source actually returned definitions.
+  useEffect(() => {
+    const cancelled = { current: false }
+    if (manualSwap || word.loading) return
+    if (
+      preferredSource === PREFERRED_SOURCE_AUTO ||
+      preferredSource === activeSource
+    ) {
+      return
+    }
+    if (!(preferredSource in SOURCE_INFO)) return
+    const pref = preferredSource
+    if (pref in sourceCache) {
+      setActiveSource(pref)
+      return
+    }
+    ;(async () => {
+      try {
+        const res = await fetch(
+          `/api/definition/${encodeURIComponent(word.word)}?source=${encodeURIComponent(pref)}`,
+        )
+        if (!res.ok || cancelled.current) return
+        const data = await res.json()
+        if (!data.definitions || data.definitions.length === 0) return
+        const defs: SingleDefinition[] = data.definitions.map((d) => ({
+          ...d,
+          source: pref,
+        }))
+        // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- set by cleanup lambda; flow analysis misses it
+        if (cancelled.current) return
+        setSourceCache((prev) => ({ ...prev, [pref]: defs }))
+        setActiveSource(pref)
+      } catch {
+        // Preferred source failed — silently fall back to current result.
+      }
+    })()
+    return () => {
+      cancelled.current = true
+    }
+  }, [word.word, word.loading, preferredSource, manualSwap, activeSource])
 
   const activeDefinitions: SingleDefinition[] =
     sourceCache[activeSource] ?? originalDefinitions
@@ -491,6 +561,7 @@ function WordCard({
 
   async function switchSource(sourceKey: string) {
     if (sourceKey === activeSource) return
+    setManualSwap(true)
     if (sourceKey in sourceCache) {
       setActiveSource(sourceKey)
       setExpanded(false)
@@ -536,27 +607,103 @@ function WordCard({
       }}
     >
       <CardHeader className="pb-0">
-        <CardTitle className="text-lg flex items-center justify-between">
-          {word.imageUrl ? (
-            <div className="flex items-center gap-2">
-              <img
-                src={word.imageUrl}
-                alt={word.imageAltText || word.word}
-                className="w-8 h-8"
-              />
-              <span className="uppercase tracking-wide text-sm">
-                {word.imageAltText || word.word}
-              </span>
-            </div>
-          ) : (
-            <span className="uppercase tracking-wide">{word.word}</span>
-          )}
-          <div className="flex items-center gap-2">
+        <div className="flex items-start justify-between gap-2 flex-wrap">
+          <div className="min-w-0 flex-1 flex flex-col items-start text-left">
+            {word.imageUrl ? (
+              <CardTitle className="text-lg flex items-center gap-2">
+                <img
+                  src={word.imageUrl}
+                  alt={word.imageAltText || word.word}
+                  className="w-8 h-8"
+                />
+                <span className="uppercase tracking-wide text-sm truncate">
+                  {word.imageAltText || word.word}
+                </span>
+              </CardTitle>
+            ) : (
+              <CardTitle className="text-lg uppercase tracking-wide truncate">
+                {word.word}
+              </CardTitle>
+            )}
             {primaryDef?.partOfSpeech && !word.loading && (
-              <Badge variant="secondary" className="text-xs font-normal">
+              <Badge
+                variant="secondary"
+                className="text-xs font-normal mt-1 lowercase"
+              >
                 {primaryDef.partOfSpeech}
               </Badge>
             )}
+          </div>
+          <div className="flex items-center gap-1.5 flex-wrap justify-end">
+            {!word.loading &&
+              SWAPPABLE_SOURCE_KEYS.filter(
+                (k) => enabledSources.has(k) || k === activeSource,
+              ).map((key) => {
+                const info = SOURCE_INFO[key]
+                const isActive = key === activeSource
+                const isLoading = sourceLoading === key
+
+                if (isActive) {
+                  const url = buildSourceUrl(key, word.word)
+                  return (
+                    <div
+                      key={key}
+                      className={cn(
+                        'inline-flex items-center h-10 rounded-md border overflow-hidden text-xs',
+                        'bg-foreground/5 border-foreground/30',
+                        info.color,
+                      )}
+                    >
+                      <span className="inline-flex items-center gap-1.5 pl-2 pr-2 h-full">
+                        <SourceIcon info={info} className="w-5 h-5" />
+                        <span className="truncate font-medium hidden sm:inline">
+                          {info.label}
+                        </span>
+                      </span>
+                      {url && (
+                        <a
+                          href={url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          aria-label={`Open ${info.label} for "${word.word}" in a new tab`}
+                          className="inline-flex items-center justify-center h-full px-2 border-l border-foreground/20 text-foreground/70 hover:text-foreground hover:bg-foreground/10 transition-colors"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                        </a>
+                      )}
+                    </div>
+                  )
+                }
+
+                return (
+                  <Tooltip key={key}>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          void switchSource(key)
+                        }}
+                        disabled={isLoading}
+                        aria-label={`Switch to ${info.label}`}
+                        className={cn(
+                          'inline-flex items-center justify-center w-10 h-10 rounded-md border transition-all',
+                          'disabled:cursor-wait',
+                          'bg-transparent border-border/40 text-muted-foreground hover:text-foreground hover:bg-muted hover:border-border',
+                        )}
+                      >
+                        {isLoading ? (
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                        ) : (
+                          <SourceIcon info={info} className="w-5 h-5" />
+                        )}
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">Try {info.label}</TooltipContent>
+                  </Tooltip>
+                )
+              })}
             {showHints && word.categoryIndex !== undefined && (
               <button
                 onClick={(e) => {
@@ -585,7 +732,7 @@ function WordCard({
               </button>
             )}
           </div>
-        </CardTitle>
+        </div>
       </CardHeader>
       <CardContent className="flex flex-col flex-grow">
         {word.loading ? (
@@ -595,76 +742,6 @@ function WordCard({
           </div>
         ) : (
           <div className="flex flex-col h-full gap-3">
-            {/* Source swap row — active icon expands to show label + link */}
-            <div className="flex items-center flex-wrap gap-1 text-xs">
-              {SWAPPABLE_SOURCE_KEYS.map((key) => {
-                const info = SOURCE_INFO[key]
-                const isActive = key === activeSource
-                const isLoading = sourceLoading === key
-
-                if (isActive) {
-                  const url = buildSourceUrl(key, word.word)
-                  return (
-                    <div
-                      key={key}
-                      className={cn(
-                        'inline-flex items-center h-8 rounded-md border overflow-hidden',
-                        'bg-foreground/5 border-foreground/30',
-                        info.color,
-                      )}
-                    >
-                      <span className="inline-flex items-center gap-1.5 pl-2 pr-2 h-full">
-                        <SourceIcon info={info} className="w-4 h-4" />
-                        <span className="truncate font-medium">
-                          {info.label}
-                        </span>
-                      </span>
-                      {url && (
-                        <a
-                          href={url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={(e) => e.stopPropagation()}
-                          aria-label={`Open ${info.label} for "${word.word}" in a new tab`}
-                          className="inline-flex items-center justify-center h-full px-1.5 border-l border-foreground/20 text-foreground/70 hover:text-foreground hover:bg-foreground/10 transition-colors"
-                        >
-                          <ExternalLink className="w-3 h-3" />
-                        </a>
-                      )}
-                    </div>
-                  )
-                }
-
-                return (
-                  <Tooltip key={key}>
-                    <TooltipTrigger asChild>
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          void switchSource(key)
-                        }}
-                        disabled={isLoading}
-                        aria-label={`Switch to ${info.label}`}
-                        className={cn(
-                          'inline-flex items-center justify-center w-8 h-8 rounded-md border transition-all',
-                          'disabled:cursor-wait',
-                          'bg-transparent border-border/40 text-muted-foreground hover:text-foreground hover:bg-muted hover:border-border',
-                        )}
-                      >
-                        {isLoading ? (
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <SourceIcon info={info} className="w-4 h-4" />
-                        )}
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent side="top">Try {info.label}</TooltipContent>
-                  </Tooltip>
-                )
-              })}
-            </div>
-
             {/* Primary definition - grows to fill space */}
             <CardDescription
               className={cn(
@@ -817,9 +894,9 @@ function ShareButton({
     <div ref={menuRef} className="relative">
       <Button
         variant="outline"
-        size="sm"
-        className="w-8 px-0"
+        size="icon"
         onClick={() => setShowMenu(!showMenu)}
+        aria-label="Share"
         title="Share"
       >
         <Share2 className="w-4 h-4" />
@@ -1091,6 +1168,8 @@ export default function App() {
   const [wiggleDisabled, setWiggleDisabled] = useState(
     () => localStorage.getItem('connections-wiggle-seen') === 'true',
   )
+  const [settingsOpen, setSettingsOpen] = useState(false)
+  const navigate = useNavigate()
   const clickCountRef = useRef(0)
   const clickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const puzzleIconRef = useRef<SVGSVGElement>(null)
@@ -1254,45 +1333,47 @@ export default function App() {
   return (
     <TooltipProvider>
       <div className="min-h-screen bg-background transition-colors">
-        <div className="max-w-4xl mx-auto px-4 py-6 md:py-10">
+        <div className="fixed top-3 left-3 z-50 pointer-events-none">
+          <div className="pointer-events-auto">
+            <EnvironmentBadge showExternal={false} />
+          </div>
+        </div>
+        <div className="max-w-4xl mx-auto px-5 sm:px-6 md:px-8 py-6 md:py-10">
           {/* Header */}
-          <header className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between gap-3">
-                <h1 className="text-2xl md:text-3xl font-bold tracking-tight flex items-center gap-3">
-                  <Puzzle
-                    ref={puzzleIconRef}
-                    className={cn(
-                      'w-8 h-8 flex-shrink-0 cursor-pointer transition-all hover:scale-110 select-none',
-                      wiggleDisabled ? '' : 'wiggle-occasional',
-                      rainbowMode ? 'rainbow-icon' : 'text-green-500',
-                    )}
-                    onClick={handlePuzzleClick}
-                  />
-                  <span
-                    className={cn(
-                      'truncate',
-                      rainbowMode ? 'rainbow-text' : '',
-                    )}
-                  >
-                    Connections Helper
-                  </span>
-                </h1>
-                <ShareButton puzzleId={puzzleId} puzzleDate={puzzleDate} />
-              </div>
-              <p className="text-muted-foreground mt-1 text-sm sm:text-base">
-                Your puzzle-solving sidekick
-              </p>
-            </div>
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <EnvironmentBadge showExternal={false} />
-              {/* TODO: Restore Classic mode and ThemePicker after fixing @bendr/themes */}
-            </div>
+          <header className="mb-4">
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight flex items-center gap-3">
+              <Puzzle
+                ref={puzzleIconRef}
+                className={cn(
+                  'w-8 h-8 flex-shrink-0 cursor-pointer transition-all hover:scale-110 select-none',
+                  wiggleDisabled ? '' : 'wiggle-occasional',
+                  rainbowMode ? 'rainbow-icon' : 'text-green-500',
+                )}
+                onClick={handlePuzzleClick}
+              />
+              <span className={cn(rainbowMode ? 'rainbow-text' : '')}>
+                Connections Helper
+              </span>
+            </h1>
+            <p className="text-muted-foreground mt-1 text-sm sm:text-base">
+              Your puzzle-solving sidekick
+            </p>
           </header>
 
+          <SettingsDialog
+            open={settingsOpen}
+            onOpenChange={setSettingsOpen}
+            sources={SWAPPABLE_SOURCE_KEYS.map((key) => ({
+              key,
+              label: SOURCE_INFO[key].label,
+              description: '',
+              faviconDomain: SOURCE_INFO[key].faviconDomain,
+            }))}
+          />
+
           {/* Date Navigation */}
-          <Card className="mb-6">
-            <CardContent className="py-4">
+          <Card className="mb-4 py-2">
+            <CardContent>
               <div className="flex items-center justify-between gap-2 sm:gap-4">
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -1350,19 +1431,66 @@ export default function App() {
             </CardContent>
           </Card>
 
+          {/* Actions row: Unlock/Lock Hints on the left when a puzzle is loaded; Settings + Share on the right */}
+          <div className="flex items-center justify-between gap-2 mb-4 min-h-9">
+            {hasSearched && words.length > 0 && !loadingPuzzle ? (
+              showHints ? (
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => setShowHints(false)}
+                >
+                  <EyeOff className="w-4 h-4 mr-2" /> Lock Hints
+                </Button>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    localStorage.setItem(getUnlockKey(puzzleDate), 'true')
+                    setShowHints(true)
+                  }}
+                >
+                  <Eye className="w-4 h-4 mr-2" /> Unlock Hints
+                </Button>
+              )
+            ) : (
+              <span />
+            )}
+            <div className="flex items-center gap-2">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => {
+                      if (
+                        typeof window !== 'undefined' &&
+                        window.matchMedia('(max-width: 640px)').matches
+                      ) {
+                        void navigate({ to: '/settings' })
+                      } else {
+                        setSettingsOpen(true)
+                      }
+                    }}
+                    aria-label="Open settings"
+                  >
+                    <Settings className="w-4 h-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Settings</TooltipContent>
+              </Tooltip>
+              <ShareButton puzzleId={puzzleId} puzzleDate={puzzleDate} />
+            </div>
+          </div>
+
           {/* Loading State: skeleton grid matching the real layout */}
           {loadingPuzzle && (
-            <>
-              <div className="flex justify-between items-center mb-4 min-h-9">
-                <Skeleton className="h-4 w-32" />
-                <Skeleton className="h-9 w-28 rounded-md" />
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {Array.from({ length: 16 }).map((_, i) => (
-                  <SkeletonWordCard key={i} index={i} />
-                ))}
-              </div>
-            </>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {Array.from({ length: 16 }).map((_, i) => (
+                <SkeletonWordCard key={i} index={i} />
+              ))}
+            </div>
           )}
 
           {/* Error State */}
@@ -1382,31 +1510,6 @@ export default function App() {
           {/* Results */}
           {hasSearched && words.length > 0 && !loadingPuzzle && (
             <>
-              {/* Controls */}
-              <div className="flex justify-between items-center mb-4 min-h-9">
-                <span />
-                {showHints ? (
-                  <Button
-                    variant="default"
-                    size="sm"
-                    onClick={() => setShowHints(false)}
-                  >
-                    <EyeOff className="w-4 h-4 mr-2" /> Lock Hints
-                  </Button>
-                ) : (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      localStorage.setItem(getUnlockKey(puzzleDate), 'true')
-                      setShowHints(true)
-                    }}
-                  >
-                    <Eye className="w-4 h-4 mr-2" /> Unlock Hints
-                  </Button>
-                )}
-              </div>
-
               {/* Category Hints - only in helper mode */}
               {viewMode === 'helper' && (
                 <CategoryHints hints={categoryHints} show={showHints} />

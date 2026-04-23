@@ -9,6 +9,7 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { SOURCE_DESCRIPTIONS } from '@/lib/source-descriptions'
 
 export const Route = createFileRoute('/how-it-works')({ component: HowItWorks })
 
@@ -18,8 +19,7 @@ interface SourceEntry {
   name: string
   url?: string
   role: string
-  description: string
-  coverage: string
+  descriptionKey: keyof typeof SOURCE_DESCRIPTIONS
   keyRequired?: boolean
 }
 
@@ -30,9 +30,7 @@ const SOURCES: SourceEntry[] = [
     name: 'Merriam-Webster',
     url: 'https://dictionaryapi.com',
     role: 'Primary',
-    description:
-      'Gold-standard American English dictionary. Clear, authoritative definitions with part-of-speech tags.',
-    coverage: 'Excellent for standard English words',
+    descriptionKey: 'merriam-webster',
     keyRequired: true,
   },
   {
@@ -41,9 +39,7 @@ const SOURCES: SourceEntry[] = [
     name: 'Free Dictionary API',
     url: 'https://dictionaryapi.dev',
     role: 'Fallback',
-    description:
-      'Free, unauthenticated dictionary API backed by Wiktionary. No key required; works without setup.',
-    coverage: 'Good for common words; thin for niche vocabulary',
+    descriptionKey: 'dictionary',
   },
   {
     order: 3,
@@ -51,9 +47,7 @@ const SOURCES: SourceEntry[] = [
     name: 'Datamuse',
     url: 'https://www.datamuse.com/api/',
     role: 'Fallback',
-    description:
-      'Word-finding API with brief gloss-style definitions. Often the only source for compound words ("CROSSBODY") or informal terms.',
-    coverage: 'Compound words, rare terms',
+    descriptionKey: 'datamuse',
   },
   {
     order: 4,
@@ -61,9 +55,7 @@ const SOURCES: SourceEntry[] = [
     name: 'Wikipedia',
     url: 'https://en.wikipedia.org/api/rest_v1/',
     role: 'Fallback',
-    description:
-      'Article summaries (first two sentences). Only source that covers proper nouns, places, bands, and cultural references.',
-    coverage: 'Proper nouns, brands, people, places',
+    descriptionKey: 'wikipedia',
   },
   {
     order: 5,
@@ -71,9 +63,7 @@ const SOURCES: SourceEntry[] = [
     name: 'Urban Dictionary',
     url: 'https://api.urbandictionary.com/v0/define',
     role: 'Fallback',
-    description:
-      'Top community definitions sorted by upvotes. Catches slang, memes, and neologisms.',
-    coverage: 'Slang, idioms, internet culture',
+    descriptionKey: 'urban',
   },
 ]
 
@@ -81,12 +71,11 @@ function HowItWorks() {
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-3xl mx-auto px-4 py-6 md:py-10">
-        <Link
-          to="/"
-          className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-6"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to the puzzle
+        <Link to="/" className="inline-block mb-6">
+          <Button variant="outline" size="sm">
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to puzzle
+          </Button>
         </Link>
 
         <header className="mb-8">
@@ -121,57 +110,64 @@ function HowItWorks() {
           </p>
 
           <div className="space-y-3">
-            {SOURCES.map((source) => (
-              <Card key={source.order}>
-                <CardHeader className="pb-2">
-                  <div className="flex items-center justify-between gap-3">
-                    <CardTitle className="text-base flex items-center gap-2.5">
-                      <span className="text-xl">{source.icon}</span>
-                      <span>
-                        <span className="text-muted-foreground font-normal mr-1.5">
-                          #{source.order}
+            {SOURCES.map((source) => {
+              const desc = SOURCE_DESCRIPTIONS[source.descriptionKey]
+              return (
+                <Card key={source.order}>
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center justify-between gap-3">
+                      <CardTitle className="text-base flex items-center gap-2.5">
+                        <span className="text-xl">{source.icon}</span>
+                        <span>
+                          <span className="text-muted-foreground font-normal mr-1.5">
+                            #{source.order}
+                          </span>
+                          {source.name}
                         </span>
-                        {source.name}
-                      </span>
-                    </CardTitle>
-                    <div className="flex items-center gap-1.5 flex-shrink-0">
-                      {source.keyRequired && (
+                      </CardTitle>
+                      <div className="flex items-center gap-1.5 flex-shrink-0">
+                        {source.keyRequired && (
+                          <Badge
+                            variant="outline"
+                            className="text-[10px] font-normal"
+                          >
+                            API key
+                          </Badge>
+                        )}
                         <Badge
-                          variant="outline"
+                          variant="secondary"
                           className="text-[10px] font-normal"
                         >
-                          API key
+                          {source.role}
                         </Badge>
-                      )}
-                      <Badge
-                        variant="secondary"
-                        className="text-[10px] font-normal"
-                      >
-                        {source.role}
-                      </Badge>
+                      </div>
                     </div>
-                  </div>
-                  <CardDescription className="text-xs mt-1.5">
-                    {source.coverage}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="text-sm text-muted-foreground leading-relaxed">
-                  {source.description}
-                  {source.url && (
-                    <div className="mt-2">
-                      <a
-                        href={source.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs text-muted-foreground/80 hover:text-foreground transition-colors hover:underline"
-                      >
-                        {source.url}
-                      </a>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))}
+                    <CardDescription className="text-xs mt-1.5">
+                      Good for: {desc.goodFor}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="text-sm text-muted-foreground leading-relaxed space-y-2">
+                    <p>{desc.howItWorks}</p>
+                    <p className="text-xs text-muted-foreground/80">
+                      <span className="font-medium">Not for:</span>{' '}
+                      {desc.notFor}
+                    </p>
+                    {source.url && (
+                      <div>
+                        <a
+                          href={source.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs text-muted-foreground/80 hover:text-foreground transition-colors hover:underline"
+                        >
+                          {source.url}
+                        </a>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )
+            })}
           </div>
         </section>
 
@@ -234,15 +230,6 @@ function HowItWorks() {
             .
           </p>
         </section>
-
-        <div className="mt-12">
-          <Link to="/">
-            <Button variant="outline" className="w-full sm:w-auto">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to the puzzle
-            </Button>
-          </Link>
-        </div>
       </div>
     </div>
   )
