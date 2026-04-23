@@ -77,23 +77,16 @@
   --radius-full: 9999px;
 
   /* ---- Typography ----
-   * Body: Libre Franklin (open-source sibling of NYT-Franklin by the same
-   *   designer family; served from Google Fonts via __root.tsx).
-   * Display: Abril Fatface for h1/h2 (closest OFL analogue to Karnak
-   *   Condensed, used by real NYT for the "Connections" wordmark).
-   * NYT's own proprietary nyt-franklin / nyt-karnakcondensed are listed first
-   *   so local users who have them installed get the real thing. */
-  --font-display:
-    'nyt-karnakcondensed', 'Karnak Condensed', 'Abril Fatface', Georgia,
-    'Times New Roman', serif;
+   * Body: Libre Franklin, an open-source Franklin-family face served from
+   *   Google Fonts via __root.tsx. NYT uses proprietary nyt-franklin which we
+   *   don't license; Libre Franklin is the closest public analogue.
+   * Display: Abril Fatface for the h1 wordmark. NYT uses proprietary
+   *   nyt-karnakcondensed; Abril Fatface is the closest OFL analogue. */
+  --font-display: 'Abril Fatface', Georgia, 'Times New Roman', serif;
 
-  /* Real NYT falls straight to Arial after Franklin (measured computed
-   * font-family: "nyt-franklin, Arial"). Keep the Franklin-family analogues
-   * in between as a better-looking fallback before Arial kicks in. */
   font-family:
-    'nyt-franklin', 'Libre Franklin', 'Franklin Gothic Medium',
-    'Franklin Gothic', 'ITC Franklin Gothic', 'Helvetica Neue', Arial,
-    sans-serif;
+    'Libre Franklin', 'Franklin Gothic Medium', 'Franklin Gothic',
+    'ITC Franklin Gothic', 'Helvetica Neue', Arial, sans-serif;
   font-feature-settings: 'ss01', 'kern';
   -webkit-font-smoothing: antialiased;
 }
