@@ -128,11 +128,14 @@ export function SettingsDialog({
                     key={t}
                     type="button"
                     onClick={() => chooseTheme(t)}
+                    aria-pressed={isActive}
                     className={cn(
-                      'flex items-start gap-2 px-3 py-2.5 rounded-md border text-left transition-colors',
+                      'flex items-start gap-2 px-3 py-2.5 rounded-md border text-left',
+                      'transition-colors duration-150 active:translate-y-px',
+                      'outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50',
                       isActive
-                        ? 'border-foreground bg-muted'
-                        : 'border-border hover:bg-muted/50',
+                        ? 'border-foreground bg-muted hover:bg-muted/90 active:bg-muted/80'
+                        : 'border-border hover:bg-muted/50 active:bg-muted/70',
                     )}
                   >
                     <span className="text-lg leading-none mt-0.5" aria-hidden>

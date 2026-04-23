@@ -716,26 +716,23 @@ function WordCard({
                   return (
                     <Tooltip key={key}>
                       <TooltipTrigger asChild>
-                        <button
-                          type="button"
+                        <Button
+                          variant="outline"
+                          size="icon-lg"
                           onClick={(e) => {
                             e.stopPropagation()
                             void switchSource(key)
                           }}
                           disabled={isLoading}
                           aria-label={`Switch to ${info.label}`}
-                          className={cn(
-                            'inline-flex items-center justify-center w-10 h-10 rounded-md border transition-all',
-                            'disabled:cursor-wait',
-                            'bg-transparent border-border/40 text-muted-foreground hover:text-foreground hover:bg-muted hover:border-border',
-                          )}
+                          className="border-border/40 text-muted-foreground hover:text-foreground disabled:cursor-wait"
                         >
                           {isLoading ? (
                             <Loader2 className="w-5 h-5 animate-spin" />
                           ) : (
                             <SourceIcon info={info} className="w-5 h-5" />
                           )}
-                        </button>
+                        </Button>
                       </TooltipTrigger>
                       <TooltipContent side="top">
                         Try {info.label}
@@ -1367,6 +1364,7 @@ export default function App() {
               <Puzzle
                 ref={puzzleIconRef}
                 className={cn(
+                  // design-system:allow — easter-egg delight, not a state indicator
                   'w-8 h-8 flex-shrink-0 cursor-pointer transition-all hover:scale-110 select-none',
                   wiggleDisabled ? '' : 'wiggle-occasional',
                   rainbowMode ? 'rainbow-icon' : 'text-green-500',
