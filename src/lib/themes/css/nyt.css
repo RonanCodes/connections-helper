@@ -1,11 +1,23 @@
 /*
  * NYT Connections theme
  * Matches the actual nytimes.com/games/connections visual language:
- * - nyt-franklin / Libre Franklin font stack
+ * - nyt-karnakcondensed for the h1 wordmark (self-hosted woff2)
+ * - Libre Franklin for body (closest OFL analogue to nyt-franklin)
  * - #121212 near-black text, #efefe6 warm tile grey, white page bg
  * - Official category colours (#f9df6d yellow, #a0c35a green, #b0c4ef blue, #ba81c5 purple)
  * - 8px tile radius, pill-shaped primary buttons
  */
+
+/* Karnak Condensed is NYT's wordmark face. No free Google Fonts clone looks
+ * close enough, so we self-host the woff2 sourced from nytimes.com to keep
+ * visual parity. Only applied when [data-theme='nyt'] is active. */
+@font-face {
+  font-family: 'nyt-karnakcondensed';
+  src: url('/fonts/karnakcondensed-normal-700.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
 
 [data-theme='nyt'] {
   /* ---- Semantic surface tokens ---- */
@@ -78,11 +90,12 @@
 
   /* ---- Typography ----
    * Body: Libre Franklin, an open-source Franklin-family face served from
-   *   Google Fonts via __root.tsx. NYT uses proprietary nyt-franklin which we
-   *   don't license; Libre Franklin is the closest public analogue.
-   * Display: Abril Fatface for the h1 wordmark. NYT uses proprietary
-   *   nyt-karnakcondensed; Abril Fatface is the closest OFL analogue. */
-  --font-display: 'Abril Fatface', Georgia, 'Times New Roman', serif;
+   *   Google Fonts via __root.tsx. NYT uses proprietary nyt-franklin which
+   *   we don't license; Libre Franklin is the closest public analogue.
+   * Display: nyt-karnakcondensed, self-hosted from /public/fonts/ (see the
+   *   @font-face block at the top of this file). No free Google Fonts face
+   *   is close enough, so we mirror what NYT ship. */
+  --font-display: 'nyt-karnakcondensed', 'Rockwell', 'Arial Black', sans-serif;
 
   font-family:
     'Libre Franklin', 'Franklin Gothic Medium', 'Franklin Gothic',
