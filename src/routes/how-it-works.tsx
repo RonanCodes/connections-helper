@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
-import { ArrowLeft, Github } from 'lucide-react'
+import { ArrowLeft, ExternalLink, Github } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -212,31 +212,44 @@ function HowItWorks() {
         </section>
 
         <section className="mb-10">
+          <h2 className="text-xl font-semibold mb-3">Play the puzzle</h2>
+          <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
+            Get a feel for today's words here, then head over to the NYT to
+            play. After solving, the editors' Companion column explains the
+            categories in detail.
+          </p>
+          <div className="flex flex-wrap gap-3">
+            <Button asChild>
+              <a
+                href="https://www.nytimes.com/games/connections"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Play Connections
+                <ExternalLink className="w-4 h-4" />
+              </a>
+            </Button>
+            <Button asChild variant="secondary">
+              <a
+                href="https://www.nytimes.com/spotlight/connections-companion"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Companion column
+                <ExternalLink className="w-4 h-4" />
+              </a>
+            </Button>
+          </div>
+        </section>
+
+        <section className="mb-10">
           <h2 className="text-xl font-semibold mb-3">
             Not affiliated with NYT
           </h2>
           <p className="text-sm text-muted-foreground leading-relaxed">
             This is an unofficial helper built by a fan. The puzzle content
             belongs to the New York Times; this tool just surfaces definitions
-            for the day's words. If you don't already subscribe,{' '}
-            <a
-              href="https://www.nytimes.com/games/connections"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline hover:text-foreground transition-colors"
-            >
-              play Connections on nytimes.com
-            </a>
-            . After you've finished, the NYT editors publish a{' '}
-            <a
-              href="https://www.nytimes.com/spotlight/connections-companion"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline hover:text-foreground transition-colors"
-            >
-              Connections Companion column
-            </a>{' '}
-            with notes on the day's puzzle.
+            for the day's words.
           </p>
         </section>
       </div>
