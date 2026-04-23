@@ -913,13 +913,7 @@ function ShareButton({
       </Button>
 
       {showMenu && (
-        <div
-          className="absolute top-full right-0 mt-2 z-50 min-w-[180px] rounded-lg p-1 shadow-lg"
-          style={{
-            backgroundColor: 'var(--color-surface, #ffffff)',
-            border: '1px solid var(--color-border, #e5e5e5)',
-          }}
-        >
+        <div className="absolute top-full right-0 mt-2 z-50 min-w-[180px] rounded-lg p-1 shadow-lg bg-popover text-popover-foreground border border-border">
           {typeof navigator !== 'undefined' && 'share' in navigator && (
             <Button
               variant="ghost"

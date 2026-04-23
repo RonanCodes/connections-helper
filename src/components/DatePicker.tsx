@@ -69,14 +69,10 @@ export function DatePicker({ value, onChange, min }: DatePickerProps) {
 
       {isOpen && (
         <div
-          style={{
-            background: 'var(--color-background, #ffffff)',
-            color: 'var(--color-foreground, #121212)',
-            borderColor: 'var(--color-border, #e5e5e5)',
-          }}
           className={cn(
             'absolute top-full left-1/2 -translate-x-1/2 mt-2 z-50',
             'min-w-[300px] p-4 rounded-xl border-2 shadow-xl',
+            'bg-background text-foreground border-border',
             'animate-in fade-in slide-in-from-bottom-2',
           )}
         >

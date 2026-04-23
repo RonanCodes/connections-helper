@@ -127,10 +127,10 @@ function SettingsPage() {
                   key={opt.key}
                   className={cn(
                     'flex items-center gap-3 px-3 py-3 rounded-md border cursor-pointer transition-colors',
-                    'hover:bg-[var(--color-surface-elevated,#f5f5f5)]',
+                    'hover:bg-muted',
                     isActive
-                      ? 'border-[var(--color-primary,#2563eb)] bg-[var(--color-surface-elevated,#f5f5f5)]'
-                      : 'border-[var(--color-border,#e5e5e5)]',
+                      ? 'border-primary bg-muted'
+                      : 'border-border',
                   )}
                 >
                   <input
@@ -139,7 +139,7 @@ function SettingsPage() {
                     value={opt.key}
                     checked={isActive}
                     onChange={() => choosePreferred(opt.key)}
-                    className="w-4 h-4 accent-[var(--color-primary,#2563eb)]"
+                    className="w-4 h-4 accent-primary"
                   />
                   {opt.faviconDomain && (
                     <img
@@ -185,8 +185,8 @@ function SettingsPage() {
                     'flex items-start gap-3 px-3 py-3 rounded-md border transition-colors',
                     disabled ? 'cursor-not-allowed' : 'cursor-pointer',
                     isEnabled
-                      ? 'border-[var(--color-border,#e5e5e5)] bg-[var(--color-surface-elevated,#f5f5f5)]/50'
-                      : 'border-[var(--color-border,#e5e5e5)] opacity-60',
+                      ? 'border-border bg-muted/50'
+                      : 'border-border opacity-60',
                   )}
                 >
                   <input
@@ -194,7 +194,7 @@ function SettingsPage() {
                     checked={isEnabled}
                     disabled={disabled}
                     onChange={() => toggleEnabled(opt.key)}
-                    className="w-4 h-4 mt-1 accent-[var(--color-primary,#2563eb)]"
+                    className="w-4 h-4 mt-1 accent-primary"
                   />
                   {opt.faviconDomain && (
                     <img

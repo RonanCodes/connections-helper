@@ -106,7 +106,7 @@ export function SettingsDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[90vh] p-0 gap-0 overflow-hidden flex flex-col">
-        <DialogHeader className="px-6 pt-6 pb-4 border-b border-[var(--color-border,#e5e5e5)]">
+        <DialogHeader className="px-6 pt-6 pb-4 border-b border-border">
           <DialogTitle>Settings</DialogTitle>
           <DialogDescription>
             Pick the source you&apos;d like shown first, and toggle which
@@ -171,10 +171,10 @@ export function SettingsDialog({
                     key={opt.key}
                     className={cn(
                       'flex items-center gap-3 px-3 py-2 rounded-md border cursor-pointer transition-colors',
-                      'hover:bg-[var(--color-surface-elevated,#f5f5f5)]',
+                      'hover:bg-muted',
                       isActive
-                        ? 'border-[var(--color-primary,#2563eb)] bg-[var(--color-surface-elevated,#f5f5f5)]'
-                        : 'border-[var(--color-border,#e5e5e5)]',
+                        ? 'border-primary bg-muted'
+                        : 'border-border',
                     )}
                   >
                     <input
@@ -183,7 +183,7 @@ export function SettingsDialog({
                       value={opt.key}
                       checked={isActive}
                       onChange={() => choosePreferred(opt.key)}
-                      className="w-4 h-4 accent-[var(--color-primary,#2563eb)]"
+                      className="w-4 h-4 accent-primary"
                     />
                     {opt.faviconDomain && (
                       <img
@@ -222,8 +222,8 @@ export function SettingsDialog({
                       'flex items-start gap-3 px-3 py-2.5 rounded-md border transition-colors',
                       lockedOn ? 'cursor-not-allowed' : 'cursor-pointer',
                       enabled
-                        ? 'border-[var(--color-border,#e5e5e5)] bg-[var(--color-surface-elevated,#f5f5f5)]/50'
-                        : 'border-[var(--color-border,#e5e5e5)] opacity-60',
+                        ? 'border-border bg-muted/50'
+                        : 'border-border opacity-60',
                     )}
                   >
                     <input
@@ -231,7 +231,7 @@ export function SettingsDialog({
                       checked={enabled}
                       disabled={lockedOn}
                       onChange={() => toggleEnabled(opt.key)}
-                      className="w-4 h-4 mt-0.5 accent-[var(--color-primary,#2563eb)]"
+                      className="w-4 h-4 mt-0.5 accent-primary"
                     />
                     {opt.faviconDomain && (
                       <img
@@ -273,7 +273,7 @@ export function SettingsDialog({
           </section>
         </div>
 
-        <DialogFooter className="px-6 py-4 border-t border-[var(--color-border,#e5e5e5)] flex-row justify-end gap-2">
+        <DialogFooter className="px-6 py-4 border-t border-border flex-row justify-end gap-2">
           <Button variant="ghost" onClick={handleCancel}>
             Cancel
           </Button>
