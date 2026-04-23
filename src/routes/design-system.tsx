@@ -133,10 +133,14 @@ function DesignSystemShowcase() {
               return (
                 <Button
                   key={t}
-                  variant={isActive ? 'default' : 'outline'}
+                  variant="outline"
                   size="sm"
                   onClick={() => pickTheme(t)}
                   aria-pressed={isActive}
+                  className={cn(
+                    isActive &&
+                      'bg-primary/10 text-primary border-primary/30 hover:bg-primary/15 active:bg-primary/20',
+                  )}
                 >
                   <span aria-hidden>{meta.emoji}</span>
                   {meta.name}

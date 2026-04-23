@@ -1418,8 +1418,8 @@ export default function App() {
                   <Button
                     onClick={() => handleDateChange(getToday())}
                     size="sm"
+                    variant="outline"
                     disabled={isToday}
-                    variant={isToday ? 'outline' : 'default'}
                   >
                     <Calendar className="w-4 h-4 sm:mr-2" />
                     <span className="hidden sm:inline">Today</span>
@@ -1447,26 +1447,33 @@ export default function App() {
           {/* Actions row: Unlock/Lock Hints on the left when a puzzle is loaded; Settings + Share on the right */}
           <div className="flex items-center justify-between gap-2 mb-4 min-h-9">
             {hasSearched && words.length > 0 && !loadingPuzzle ? (
-              showHints ? (
-                <Button
-                  variant="default"
-                  size="sm"
-                  onClick={() => setShowHints(false)}
-                >
-                  <EyeOff className="w-4 h-4 mr-2" /> Lock Hints
-                </Button>
-              ) : (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
+              <Button
+                variant="outline"
+                size="sm"
+                aria-pressed={showHints}
+                onClick={() => {
+                  if (showHints) {
+                    setShowHints(false)
+                  } else {
                     localStorage.setItem(getUnlockKey(puzzleDate), 'true')
                     setShowHints(true)
-                  }}
-                >
-                  <Eye className="w-4 h-4 mr-2" /> Unlock Hints
-                </Button>
-              )
+                  }
+                }}
+                className={cn(
+                  showHints &&
+                    'bg-primary/10 text-primary border-primary/30 hover:bg-primary/15 active:bg-primary/20',
+                )}
+              >
+                {showHints ? (
+                  <>
+                    <EyeOff className="w-4 h-4 mr-2" /> Lock Hints
+                  </>
+                ) : (
+                  <>
+                    <Eye className="w-4 h-4 mr-2" /> Unlock Hints
+                  </>
+                )}
+              </Button>
             ) : (
               <span />
             )}
