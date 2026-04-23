@@ -59,7 +59,7 @@ export function DatePicker({ value, onChange, min }: DatePickerProps) {
   return (
     <div ref={containerRef} className="relative">
       <Button
-        variant="outline"
+        variant="secondary"
         onClick={() => setIsOpen(!isOpen)}
         className="min-w-[160px]"
       >
@@ -132,7 +132,11 @@ export function DatePicker({ value, onChange, min }: DatePickerProps) {
             }}
           />
           <div className="flex justify-between mt-3 pt-3 border-t border-border">
-            <Button variant="ghost" size="sm" onClick={() => setIsOpen(false)}>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setIsOpen(false)}
+            >
               Cancel
             </Button>
             <Button size="sm" onClick={() => handleSelect(new Date())}>

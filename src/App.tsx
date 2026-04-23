@@ -328,13 +328,22 @@ interface NYTPuzzle {
 const FIRST_PUZZLE_DATE = '2023-06-12'
 const getToday = () => new Date().toISOString().split('T')[0]
 
-// NYT's "Connections Companion" column URL format:
-//   /YYYY/MM/DD/crosswords/connections-companion-{puzzleId}.html
-// Works from ~puzzle #60 onwards (column started late 2023). Older puzzles
-// 404 on this path; users can fall back to /spotlight/connections-companion.
-function getCompanionUrl(date: string, puzzleId: number): string {
-  const [y, m, d] = date.split('-')
-  return `https://www.nytimes.com/${y}/${m}/${d}/crosswords/connections-companion-${puzzleId}.html`
+const COMPANION_INDEX_URL =
+  'https://www.nytimes.com/spotlight/connections-companion'
+
+// The companion column uses its own numbering and publishes on the evening
+// BEFORE the puzzle (URL date = puzzle date - 1). Both drift from the puzzle
+// ID, so we ask the server to resolve the puzzle date → companion URL by
+// scraping + caching the spotlight index. Falls back to the index on miss.
+async function fetchCompanionUrl(puzzleDate: string): Promise<string> {
+  try {
+    const res = await fetch(`/api/companion/${puzzleDate}`)
+    if (!res.ok) return COMPANION_INDEX_URL
+    const data = await res.json()
+    return data.url || COMPANION_INDEX_URL
+  } catch {
+    return COMPANION_INDEX_URL
+  }
 }
 
 // NYT category colors
@@ -617,140 +626,142 @@ function WordCard({
       }}
     >
       <CardHeader className="pb-0 relative">
-        {showHints && word.categoryIndex !== undefined && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation()
-              setShowColor(!showColor)
-            }}
-            aria-pressed={showColor}
-            className={cn(
-              'absolute top-0 right-6 p-1.5 rounded-md border z-10',
-              'transition-colors duration-150 active:translate-y-px',
-              'outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50',
-              showColor
-                ? 'bg-foreground/10 border-foreground/30 hover:bg-foreground/15 active:bg-foreground/20'
-                : 'bg-muted/50 border-border hover:bg-muted active:bg-muted/80',
+        {!word.loading && (
+          <div className="absolute top-0 right-4 z-10 flex items-start gap-1 flex-wrap justify-end">
+            {SWAPPABLE_SOURCE_KEYS.filter(
+              (k) => enabledSources.has(k) || k === activeSource,
+            )
+              .sort((a, b) => {
+                if (a === preferredSource) return -1
+                if (b === preferredSource) return 1
+                if (a === activeSource) return -1
+                if (b === activeSource) return 1
+                return 0
+              })
+              .slice(0, 3)
+              .map((key) => {
+                const info = SOURCE_INFO[key]
+                const isActive = key === activeSource
+                const isLoading = sourceLoading === key
+                return (
+                  <Tooltip key={key}>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          if (!isActive) void switchSource(key)
+                        }}
+                        disabled={isLoading}
+                        aria-label={
+                          isActive ? info.label : `Switch to ${info.label}`
+                        }
+                        aria-pressed={isActive}
+                        aria-busy={isLoading}
+                        className={cn(
+                          'disabled:cursor-wait',
+                          isActive
+                            ? 'bg-accent border-2 border-foreground text-foreground hover:bg-accent'
+                            : 'border-border/40 text-muted-foreground hover:text-foreground',
+                          isLoading && 'animate-pulse opacity-70',
+                        )}
+                      >
+                        <SourceIcon info={info} className="w-5 h-5" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="top">
+                      {isActive ? info.label : `Try ${info.label}`}
+                    </TooltipContent>
+                  </Tooltip>
+                )
+              })}
+            {showHints && word.categoryIndex !== undefined && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setShowColor(!showColor)
+                    }}
+                    aria-pressed={showColor}
+                    className={cn(
+                      showColor &&
+                        'bg-foreground/10 hover:bg-foreground/15',
+                    )}
+                  >
+                    {showColor ? (
+                      <div
+                        className={cn(
+                          'w-4 h-4 rounded-sm animate-in zoom-in-50',
+                          CATEGORY_COLORS[categoryIndex].split(' ')[0],
+                        )}
+                      />
+                    ) : (
+                      <Palette className="w-4 h-4 text-muted-foreground" />
+                    )}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="top">
+                  {showColor ? 'Hide color' : 'Reveal category color'}
+                </TooltipContent>
+              </Tooltip>
             )}
-            title={showColor ? 'Hide color' : 'Reveal category color'}
-          >
-            {showColor ? (
-              <div
-                className={cn(
-                  'w-4 h-4 rounded-sm transition-all duration-500',
-                  CATEGORY_COLORS[categoryIndex].split(' ')[0],
-                  'animate-in zoom-in-50',
-                )}
-              />
-            ) : (
-              <Palette className="w-4 h-4 text-muted-foreground" />
-            )}
-          </button>
-        )}
-        <div className="flex flex-col gap-2">
-          <div className="min-w-0 flex flex-col items-start text-left pr-10">
-            {word.imageUrl ? (
-              <CardTitle className="text-lg flex items-center gap-2">
-                <img
-                  src={word.imageUrl}
-                  alt={word.imageAltText || word.word}
-                  className="w-8 h-8"
-                />
-                <span className="uppercase tracking-wide text-sm truncate">
-                  {word.imageAltText || word.word}
-                </span>
-              </CardTitle>
-            ) : (
-              <CardTitle className="text-lg uppercase tracking-wide truncate">
-                {word.word}
-              </CardTitle>
-            )}
-            {primaryDef?.partOfSpeech && !word.loading && (
-              <Badge
-                variant="secondary"
-                className="text-xs font-normal mt-1 lowercase pl-0"
-              >
-                {primaryDef.partOfSpeech}
-              </Badge>
-            )}
-          </div>
-          <div className="flex items-center gap-1.5 flex-wrap">
-            {!word.loading &&
-              SWAPPABLE_SOURCE_KEYS.filter(
-                (k) => enabledSources.has(k) || k === activeSource,
+            {(() => {
+              const url = buildSourceUrl(activeSource, word.word)
+              if (!url) return null
+              return (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      asChild
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <a
+                        href={url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        aria-label={`Open ${SOURCE_INFO[activeSource].label} for "${word.word}" in a new tab`}
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                      </a>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">Open in new tab</TooltipContent>
+                </Tooltip>
               )
-                .sort((a, b) => {
-                  if (a === preferredSource) return -1
-                  if (b === preferredSource) return 1
-                  return 0
-                })
-                .map((key) => {
-                  const info = SOURCE_INFO[key]
-                  const isActive = key === activeSource
-                  const isLoading = sourceLoading === key
-
-                  if (isActive) {
-                    const url = buildSourceUrl(key, word.word)
-                    return (
-                      <Tooltip key={key}>
-                        <TooltipTrigger asChild>
-                          <div
-                            className={cn(
-                              'inline-flex items-center h-10 rounded-md border overflow-hidden text-xs',
-                              'bg-foreground/5 border-foreground/30',
-                              info.color,
-                            )}
-                          >
-                            <span className="inline-flex items-center justify-center px-2.5 h-full">
-                              <SourceIcon info={info} className="w-5 h-5" />
-                            </span>
-                            {url && (
-                              <a
-                                href={url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                onClick={(e) => e.stopPropagation()}
-                                aria-label={`Open ${info.label} for "${word.word}" in a new tab`}
-                                className="inline-flex items-center justify-center h-full px-2 border-l border-foreground/20 text-foreground/70 hover:text-foreground hover:bg-foreground/10 transition-colors"
-                              >
-                                <ExternalLink className="w-4 h-4" />
-                              </a>
-                            )}
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent side="top">{info.label}</TooltipContent>
-                      </Tooltip>
-                    )
-                  }
-
-                  return (
-                    <Tooltip key={key}>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="icon-lg"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            void switchSource(key)
-                          }}
-                          disabled={isLoading}
-                          aria-label={`Switch to ${info.label}`}
-                          className="border-border/40 text-muted-foreground hover:text-foreground disabled:cursor-wait"
-                        >
-                          {isLoading ? (
-                            <Loader2 className="w-5 h-5 animate-spin" />
-                          ) : (
-                            <SourceIcon info={info} className="w-5 h-5" />
-                          )}
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="top">
-                        Try {info.label}
-                      </TooltipContent>
-                    </Tooltip>
-                  )
-                })}
+            })()}
           </div>
+        )}
+        <div className="min-w-0 flex flex-col items-start text-left pr-[13rem]">
+          {word.imageUrl ? (
+            <CardTitle className="text-lg flex items-center gap-2">
+              <img
+                src={word.imageUrl}
+                alt={word.imageAltText || word.word}
+                className="w-8 h-8"
+              />
+              <span className="uppercase tracking-wide text-sm truncate">
+                {word.imageAltText || word.word}
+              </span>
+            </CardTitle>
+          ) : (
+            <CardTitle className="text-lg uppercase tracking-wide truncate">
+              {word.word}
+            </CardTitle>
+          )}
+          {primaryDef?.partOfSpeech && !word.loading && (
+            <Badge
+              variant="secondary"
+              className="text-xs font-normal mt-1 lowercase pl-0"
+            >
+              {primaryDef.partOfSpeech}
+            </Badge>
+          )}
         </div>
       </CardHeader>
       <CardContent className="flex flex-col flex-grow">
@@ -761,10 +772,12 @@ function WordCard({
           </div>
         ) : (
           <div className="flex flex-col h-full gap-3">
-            {/* Primary definition - grows to fill space */}
+            {/* Primary definition - natural height so the scroll area
+                sits directly beneath it; the "more" button uses mt-auto
+                to still pin to the card bottom for grid-row alignment. */}
             <CardDescription
               className={cn(
-                'text-sm leading-relaxed flex-grow',
+                'text-sm leading-relaxed',
                 showColor && 'text-current opacity-90',
               )}
             >
@@ -777,7 +790,7 @@ function WordCard({
 
             {/* Expandable additional definitions */}
             {hasMore && expanded && (
-              <div className="space-y-2 pt-2 border-t border-border/50 animate-in slide-in-from-top-2 max-h-48 overflow-y-auto">
+              <div className="space-y-2 pt-2 border-t border-border/50 animate-in slide-in-from-top-2 flex-grow min-h-0 overflow-y-auto">
                 {activeDefinitions.slice(1).map((def, i) => (
                   <div key={i} className="text-sm">
                     <CardDescription
@@ -805,7 +818,7 @@ function WordCard({
             {/* More definitions button - always at bottom */}
             {hasMore && (
               <Button
-                variant="outline"
+                variant="secondary"
                 size="sm"
                 onClick={() => setExpanded(!expanded)}
                 aria-pressed={expanded}
@@ -913,7 +926,7 @@ function ShareButton({
   return (
     <div ref={menuRef} className="relative">
       <Button
-        variant="outline"
+        variant="ghost"
         size="icon"
         onClick={() => setShowMenu(!showMenu)}
         aria-label="Share"
@@ -1000,63 +1013,67 @@ function CategoryHints({ hints, show }: { hints: string[]; show: boolean }) {
 
   return (
     <Card className="mb-6 overflow-hidden">
-      <CardContent className="p-3">
+      <CardContent className="px-3 pt-2.5 pb-3">
         <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1.5">
           <Sparkles className="w-3 h-3" />
           Tap cards to reveal categories
         </p>
         <div className="grid grid-cols-2 gap-1.5">
-          {hints.map((hint, i) => (
-            <div
-              key={i}
-              onClick={() => toggleCard(i)}
-              className={cn(
-                'relative cursor-pointer select-none px-2 py-2 rounded-lg font-semibold text-center text-[10px] border-2 transition-all duration-300 min-h-[52px] overflow-hidden',
-                revealedCards[i]
-                  ? showColors[i]
+          {hints.map((hint, i) => {
+            if (!revealedCards[i]) {
+              return (
+                <Button
+                  key={i}
+                  variant="secondary"
+                  onClick={() => toggleCard(i)}
+                  className="h-auto min-h-[52px] px-2 py-2 text-lg font-semibold text-muted-foreground"
+                >
+                  ?
+                </Button>
+              )
+            }
+            return (
+              <div
+                key={i}
+                onClick={() => toggleCard(i)}
+                className={cn(
+                  'relative cursor-pointer select-none rounded-md font-semibold text-center text-[10px] border transition-all duration-300 min-h-[52px] overflow-hidden flex items-center px-2 py-2 gap-1',
+                  showColors[i]
                     ? CATEGORY_COLORS[i]
-                    : 'bg-card text-foreground border-border'
-                  : 'bg-muted border-border text-muted-foreground hover:bg-muted/80',
-              )}
-            >
-              {revealedCards[i] ? (
-                <div className="flex items-center justify-center gap-1 h-full">
-                  <span
-                    className="flex-1 leading-tight break-words hyphens-auto"
-                    style={{ wordBreak: 'break-word' }}
-                  >
-                    {hint}
-                  </span>
-                  <button
-                    onClick={(e) => toggleColor(i, e)}
-                    aria-pressed={showColors[i]}
-                    className={cn(
-                      'flex-shrink-0 p-1.5 rounded-md border',
-                      'transition-colors duration-150 active:translate-y-px',
-                      'outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50',
-                      showColors[i]
-                        ? 'bg-foreground/10 border-foreground/30 hover:bg-foreground/15 active:bg-foreground/20'
-                        : 'bg-muted/50 border-border hover:bg-muted active:bg-muted/80',
-                    )}
-                    title={showColors[i] ? 'Hide color' : 'Reveal color hint'}
-                  >
-                    {showColors[i] ? (
-                      <div
-                        className={cn(
-                          'w-4 h-4 rounded-sm',
-                          CATEGORY_COLORS[i].split(' ')[0],
-                        )}
-                      />
-                    ) : (
-                      <Palette className="w-4 h-4 text-muted-foreground" />
-                    )}
-                  </button>
-                </div>
-              ) : (
-                <span className="text-lg">?</span>
-              )}
-            </div>
-          ))}
+                    : 'bg-background text-foreground border-border hover:border-foreground/40',
+                )}
+              >
+                <span
+                  className="flex-1 leading-tight break-words hyphens-auto"
+                  style={{ wordBreak: 'break-word' }}
+                >
+                  {hint}
+                </span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={(e) => toggleColor(i, e)}
+                  aria-pressed={showColors[i]}
+                  className={cn(
+                    'h-7 w-7 flex-shrink-0',
+                    showColors[i] && 'bg-foreground/10 hover:bg-foreground/15',
+                  )}
+                  title={showColors[i] ? 'Hide color' : 'Reveal color hint'}
+                >
+                  {showColors[i] ? (
+                    <div
+                      className={cn(
+                        'w-4 h-4 rounded-sm',
+                        CATEGORY_COLORS[i].split(' ')[0],
+                      )}
+                    />
+                  ) : (
+                    <Palette className="w-4 h-4 text-muted-foreground" />
+                  )}
+                </Button>
+              </div>
+            )
+          })}
         </div>
       </CardContent>
     </Card>
@@ -1183,6 +1200,7 @@ export default function App() {
     getSavedDate() || getToday(),
   )
   const [puzzleId, setPuzzleId] = useState<number | null>(null)
+  const [companionUrl, setCompanionUrl] = useState<string>(COMPANION_INDEX_URL)
   const [showHints, setShowHints] = useState(false)
   // TODO: Restore view mode toggle after fixing @bendr/themes
   const [viewMode] = useState<'helper' | 'classic'>('helper')
@@ -1263,6 +1281,8 @@ export default function App() {
     if (puzzle) {
       setPuzzleDate(puzzle.print_date)
       setPuzzleId(puzzle.id)
+      setCompanionUrl(COMPANION_INDEX_URL)
+      void fetchCompanionUrl(puzzle.print_date).then(setCompanionUrl)
 
       const allWords: WordDefinition[] = []
       const hints: string[] = []
@@ -1402,13 +1422,13 @@ export default function App() {
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
-                      variant="outline"
-                      size="icon"
-                      className="flex-shrink-0"
+                      variant="secondary"
+                      size="icon-lg"
+                      className="flex-shrink-0 h-16 w-16"
                       onClick={goToPreviousDay}
                       disabled={isFirstDay || loadingPuzzle}
                     >
-                      <ChevronLeft className="w-5 h-5" />
+                      <ChevronLeft className="!size-12" strokeWidth={2.5} />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>Previous day</TooltipContent>
@@ -1423,7 +1443,7 @@ export default function App() {
                   />
                   {puzzleId && (
                     <a
-                      href={getCompanionUrl(puzzleDate, puzzleId)}
+                      href={companionUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       title="Read NYT's Connections Companion for this puzzle"
@@ -1435,24 +1455,23 @@ export default function App() {
                   <Button
                     onClick={() => handleDateChange(getToday())}
                     size="sm"
-                    variant="outline"
+                    variant="secondary"
                     disabled={isToday}
                   >
-                    <Calendar className="w-4 h-4 sm:mr-2" />
-                    <span className="hidden sm:inline">Today</span>
+                    Today
                   </Button>
                 </div>
 
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
-                      variant="outline"
-                      size="icon"
-                      className="flex-shrink-0"
+                      variant="secondary"
+                      size="icon-lg"
+                      className="flex-shrink-0 h-16 w-16"
                       onClick={goToNextDay}
                       disabled={isToday || loadingPuzzle}
                     >
-                      <ChevronRight className="w-5 h-5" />
+                      <ChevronRight className="!size-12" strokeWidth={2.5} />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>Next day</TooltipContent>
@@ -1465,7 +1484,7 @@ export default function App() {
           <div className="flex items-center justify-between gap-2 mb-4 min-h-9">
             {hasSearched && words.length > 0 && !loadingPuzzle ? (
               <Button
-                variant="outline"
+                variant="secondary"
                 size="sm"
                 aria-pressed={showHints}
                 onClick={() => {
@@ -1497,7 +1516,7 @@ export default function App() {
             <div className="flex items-center gap-2">
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button variant="outline" size="icon" asChild>
+                  <Button variant="ghost" size="icon" asChild>
                     <a
                       href="https://www.nytimes.com/games/connections"
                       target="_blank"
@@ -1513,9 +1532,9 @@ export default function App() {
               {puzzleId && (
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button variant="outline" size="icon" asChild>
+                    <Button variant="ghost" size="icon" asChild>
                       <a
-                        href={getCompanionUrl(puzzleDate, puzzleId)}
+                        href={companionUrl}
                         target="_blank"
                         rel="noopener noreferrer"
                         aria-label={`Read NYT's Connections Companion for #${puzzleId}`}
@@ -1530,7 +1549,7 @@ export default function App() {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     size="icon"
                     onClick={() => {
                       if (
@@ -1604,19 +1623,23 @@ export default function App() {
             </>
           )}
 
-          {/* Footer */}
-          <footer className="mt-12 text-center space-y-3">
-            <p className="text-xs text-muted-foreground">
-              Made by{' '}
-              <a
-                href="https://ronanconnolly.dev"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline hover:text-foreground transition-colors"
-              >
-                Ronan Connolly
-              </a>{' '}
-              •{' '}
+          {/* Footer — flex row with items-center keeps the GitHub icon
+              vertically aligned with adjacent text instead of floating at
+              the icon's inline-flex centre (which sits above the baseline). */}
+          <footer className="mt-12 space-y-3">
+            <div className="text-xs text-muted-foreground flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
+              <span>
+                Made by{' '}
+                <a
+                  href="https://ronanconnolly.dev"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline hover:text-foreground transition-colors"
+                >
+                  Ronan Connolly
+                </a>
+              </span>
+              <span aria-hidden>•</span>
               <a
                 href="https://github.com/RonanCodes/connections-helper"
                 target="_blank"
@@ -1625,16 +1648,17 @@ export default function App() {
               >
                 <Github className="w-3 h-3" />
                 Source
-              </a>{' '}
-              •{' '}
+              </a>
+              <span aria-hidden>•</span>
               <Link
                 to="/how-it-works"
                 className="underline hover:text-foreground transition-colors"
               >
                 How it works
-              </Link>{' '}
-              • Not affiliated with NYT
-            </p>
+              </Link>
+              <span aria-hidden>•</span>
+              <span>Not affiliated with NYT</span>
+            </div>
           </footer>
         </div>
       </div>

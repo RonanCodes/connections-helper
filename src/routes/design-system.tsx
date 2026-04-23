@@ -140,7 +140,7 @@ function DesignSystemShowcase() {
       <div className="max-w-5xl mx-auto px-5 sm:px-6 md:px-8 py-6 md:py-10 space-y-10">
         <header className="space-y-4">
           <Link to="/" className="inline-block">
-            <Button variant="outline" size="sm">
+            <Button variant="secondary" size="sm">
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to puzzle
             </Button>

@@ -72,7 +72,7 @@ function HowItWorks() {
     <div className="min-h-screen bg-background">
       <div className="max-w-3xl mx-auto px-4 py-6 md:py-10">
         <Link to="/" className="inline-block mb-6">
-          <Button variant="outline" size="sm">
+          <Button variant="secondary" size="sm">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to puzzle
           </Button>
