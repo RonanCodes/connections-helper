@@ -227,7 +227,16 @@ function HowItWorks() {
             >
               play Connections on nytimes.com
             </a>
-            .
+            . After you've finished, the NYT editors publish a{' '}
+            <a
+              href="https://www.nytimes.com/spotlight/connections-companion"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-foreground transition-colors"
+            >
+              Connections Companion column
+            </a>{' '}
+            with notes on the day's puzzle.
           </p>
         </section>
       </div>

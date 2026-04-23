@@ -326,6 +326,15 @@ interface NYTPuzzle {
 const FIRST_PUZZLE_DATE = '2023-06-12'
 const getToday = () => new Date().toISOString().split('T')[0]
 
+// NYT's "Connections Companion" column URL format:
+//   /YYYY/MM/DD/crosswords/connections-companion-{puzzleId}.html
+// Works from ~puzzle #60 onwards (column started late 2023). Older puzzles
+// 404 on this path; users can fall back to /spotlight/connections-companion.
+function getCompanionUrl(date: string, puzzleId: number): string {
+  const [y, m, d] = date.split('-')
+  return `https://www.nytimes.com/${y}/${m}/${d}/crosswords/connections-companion-${puzzleId}.html`
+}
+
 // NYT category colors
 const CATEGORY_COLORS = [
   'bg-yellow-400 text-yellow-950 border-yellow-500',
@@ -1411,9 +1420,15 @@ export default function App() {
                     max={getToday()}
                   />
                   {puzzleId && (
-                    <span className="text-sm text-muted-foreground hidden sm:inline">
+                    <a
+                      href={getCompanionUrl(puzzleDate, puzzleId)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title="Read NYT's Connections Companion for this puzzle"
+                      className="text-sm text-muted-foreground hover:text-foreground underline-offset-4 hover:underline transition-colors hidden sm:inline"
+                    >
                       #{puzzleId}
-                    </span>
+                    </a>
                   )}
                   <Button
                     onClick={() => handleDateChange(getToday())}
