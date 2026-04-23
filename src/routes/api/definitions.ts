@@ -5,6 +5,7 @@ import { createDb } from '../../db'
 import { definitions } from '../../db/schema'
 import { fetchDefinitionWithFallbacks } from '../../server/definition-fallbacks'
 import type { DefinitionResult } from '../../server/definition-fallbacks'
+import { rateLimitByIp } from '../../server/rate-limit'
 
 const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000
 
@@ -12,6 +13,9 @@ export const Route = createFileRoute('/api/definitions')({
   server: {
     handlers: {
       POST: async ({ request }) => {
+        const limited = await rateLimitByIp(request, 'definitions')
+        if (limited) return limited
+
         let body: { words?: Array<string> }
         try {
           body = await request.json()

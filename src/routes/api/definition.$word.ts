@@ -12,6 +12,7 @@ import {
   tryWikipedia,
   tryUrbanDictionary,
 } from '../../server/definition-fallbacks'
+import { rateLimitByIp } from '../../server/rate-limit'
 
 const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000
 
@@ -44,6 +45,9 @@ export const Route = createFileRoute('/api/definition/$word')({
             { status: 400 },
           )
         }
+
+        const limited = await rateLimitByIp(request, 'definition')
+        if (limited) return limited
 
         const url = new URL(request.url)
         const source = url.searchParams.get('source')
