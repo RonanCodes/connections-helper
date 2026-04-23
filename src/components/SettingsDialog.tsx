@@ -172,9 +172,7 @@ export function SettingsDialog({
                     className={cn(
                       'flex items-center gap-3 px-3 py-2 rounded-md border cursor-pointer transition-colors',
                       'hover:bg-muted',
-                      isActive
-                        ? 'border-primary bg-muted'
-                        : 'border-border',
+                      isActive ? 'border-primary bg-muted' : 'border-border',
                     )}
                   >
                     <input

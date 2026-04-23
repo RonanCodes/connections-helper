@@ -19,12 +19,7 @@ import {
   TYPOGRAPHY,
   Z,
 } from '@/design-system/tokens'
-import {
-  THEMES,
-  THEME_META,
-  getThemeConfig,
-  setTheme,
-} from '@/lib/themes'
+import { THEMES, THEME_META, getThemeConfig, setTheme } from '@/lib/themes'
 import type { Theme } from '@/lib/themes'
 
 export const Route = createFileRoute('/design-system')({
@@ -46,14 +41,54 @@ const COLOUR_PAIRS: Array<{
   fg: string
   note: string
 }> = [
-  { name: 'background / foreground', bg: 'bg-background', fg: 'text-foreground', note: 'page canvas' },
-  { name: 'card / card-foreground', bg: 'bg-card', fg: 'text-card-foreground', note: 'raised surfaces' },
-  { name: 'popover / popover-foreground', bg: 'bg-popover', fg: 'text-popover-foreground', note: 'floating menus' },
-  { name: 'muted / muted-foreground', bg: 'bg-muted', fg: 'text-muted-foreground', note: 'hover tint, secondary text' },
-  { name: 'accent / accent-foreground', bg: 'bg-accent', fg: 'text-accent-foreground', note: 'interactive hover fills' },
-  { name: 'primary / primary-foreground', bg: 'bg-primary', fg: 'text-primary-foreground', note: 'main CTA' },
-  { name: 'secondary / secondary-foreground', bg: 'bg-secondary', fg: 'text-secondary-foreground', note: 'alternative CTA' },
-  { name: 'destructive', bg: 'bg-destructive', fg: 'text-white', note: 'danger, delete' },
+  {
+    name: 'background / foreground',
+    bg: 'bg-background',
+    fg: 'text-foreground',
+    note: 'page canvas',
+  },
+  {
+    name: 'card / card-foreground',
+    bg: 'bg-card',
+    fg: 'text-card-foreground',
+    note: 'raised surfaces',
+  },
+  {
+    name: 'popover / popover-foreground',
+    bg: 'bg-popover',
+    fg: 'text-popover-foreground',
+    note: 'floating menus',
+  },
+  {
+    name: 'muted / muted-foreground',
+    bg: 'bg-muted',
+    fg: 'text-muted-foreground',
+    note: 'hover tint, secondary text',
+  },
+  {
+    name: 'accent / accent-foreground',
+    bg: 'bg-accent',
+    fg: 'text-accent-foreground',
+    note: 'interactive hover fills',
+  },
+  {
+    name: 'primary / primary-foreground',
+    bg: 'bg-primary',
+    fg: 'text-primary-foreground',
+    note: 'main CTA',
+  },
+  {
+    name: 'secondary / secondary-foreground',
+    bg: 'bg-secondary',
+    fg: 'text-secondary-foreground',
+    note: 'alternative CTA',
+  },
+  {
+    name: 'destructive',
+    bg: 'bg-destructive',
+    fg: 'text-white',
+    note: 'danger, delete',
+  },
 ]
 
 const BUTTON_VARIANTS = [
@@ -65,12 +100,7 @@ const BUTTON_VARIANTS = [
   'destructive',
 ] as const
 
-const BUTTON_SIZES = [
-  'xs',
-  'sm',
-  'default',
-  'lg',
-] as const
+const BUTTON_SIZES = ['xs', 'sm', 'default', 'lg'] as const
 
 const RADIUS_KEYS = ['none', 'sm', 'md', 'lg', 'xl', 'pill'] as const
 const ELEVATION_KEYS = ['flat', 'raised', 'floating', 'overlay'] as const
@@ -150,7 +180,10 @@ function DesignSystemShowcase() {
           </fieldset>
         </header>
 
-        <Section title="Colour tokens" description="Semantic pairs bridged from CSS vars. Never use raw hex in app code.">
+        <Section
+          title="Colour tokens"
+          description="Semantic pairs bridged from CSS vars. Never use raw hex in app code."
+        >
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {COLOUR_PAIRS.map((c) => (
               <div
@@ -173,7 +206,10 @@ function DesignSystemShowcase() {
           </div>
         </Section>
 
-        <Section title="Typography" description="Ten-step scale. Use semantic names; avoid inline text-[Npx].">
+        <Section
+          title="Typography"
+          description="Ten-step scale. Use semantic names; avoid inline text-[Npx]."
+        >
           <div className="space-y-3">
             {TYPOGRAPHY_KEYS.map((key) => (
               <div
@@ -195,23 +231,24 @@ function DesignSystemShowcase() {
           </div>
         </Section>
 
-        <Section title="Radius" description="One radius scale. Constant across states — never change radius on :active.">
+        <Section
+          title="Radius"
+          description="One radius scale. Constant across states — never change radius on :active."
+        >
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
             {RADIUS_KEYS.map((key) => (
               <div key={key} className="flex flex-col items-center gap-2">
-                <div
-                  className={cn(
-                    'w-20 h-20 bg-primary',
-                    RADIUS[key],
-                  )}
-                />
+                <div className={cn('w-20 h-20 bg-primary', RADIUS[key])} />
                 <code className="text-xs text-muted-foreground">{key}</code>
               </div>
             ))}
           </div>
         </Section>
 
-        <Section title="Elevation" description="Border-first; shadows only when the theme casts them.">
+        <Section
+          title="Elevation"
+          description="Border-first; shadows only when the theme casts them."
+        >
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {ELEVATION_KEYS.map((key) => (
               <div
@@ -231,7 +268,10 @@ function DesignSystemShowcase() {
           </div>
         </Section>
 
-        <Section title="Buttons — variants × sizes" description="Interact to see hover, active (translate-y-px), and focus ring.">
+        <Section
+          title="Buttons — variants × sizes"
+          description="Interact to see hover, active (translate-y-px), and focus ring."
+        >
           <div className="space-y-5">
             {BUTTON_VARIANTS.map((variant) => (
               <div key={variant} className="space-y-2">
@@ -257,7 +297,10 @@ function DesignSystemShowcase() {
           </div>
         </Section>
 
-        <Section title="Icon buttons" description="Square sizes for pure-icon controls.">
+        <Section
+          title="Icon buttons"
+          description="Square sizes for pure-icon controls."
+        >
           <div className="flex flex-wrap items-center gap-3">
             <Button variant="outline" size="icon-xs" aria-label="Info">
               <Info />
@@ -280,7 +323,10 @@ function DesignSystemShowcase() {
           </div>
         </Section>
 
-        <Section title="Toggle button" description="aria-pressed flips the visual. Same radius in both states — only fill and border change.">
+        <Section
+          title="Toggle button"
+          description="aria-pressed flips the visual. Same radius in both states — only fill and border change."
+        >
           <div className="flex flex-wrap items-center gap-3">
             <Button
               variant="outline"
@@ -299,7 +345,10 @@ function DesignSystemShowcase() {
           </div>
         </Section>
 
-        <Section title="Inputs" description="Same radius + focus treatment as Button.">
+        <Section
+          title="Inputs"
+          description="Same radius + focus treatment as Button."
+        >
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-xl">
             <div className="space-y-1.5">
               <label className={TYPOGRAPHY.label}>Default</label>
@@ -341,7 +390,8 @@ function DesignSystemShowcase() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="text-sm text-muted-foreground">
-                Body content sits inside CardContent and inherits card-foreground.
+                Body content sits inside CardContent and inherits
+                card-foreground.
               </CardContent>
             </Card>
             <Card>
@@ -361,26 +411,34 @@ function DesignSystemShowcase() {
           </div>
         </Section>
 
-        <Section title="Spacing scale" description="4px grid. Numbers map to Tailwind spacing units.">
+        <Section
+          title="Spacing scale"
+          description="4px grid. Numbers map to Tailwind spacing units."
+        >
           <div className="space-y-2">
-            {(Object.keys(SPACING) as Array<keyof typeof SPACING>).map((key) => (
-              <div key={key} className="flex items-center gap-4">
-                <code className="text-xs text-muted-foreground min-w-[90px]">
-                  SPACING.{key}
-                </code>
-                <div
-                  className="h-4 bg-primary rounded-sm"
-                  style={{ width: `${parseInt(SPACING[key], 10) * 4}px` }}
-                />
-                <span className="text-xs text-muted-foreground">
-                  {parseInt(SPACING[key], 10) * 4}px
-                </span>
-              </div>
-            ))}
+            {(Object.keys(SPACING) as Array<keyof typeof SPACING>).map(
+              (key) => (
+                <div key={key} className="flex items-center gap-4">
+                  <code className="text-xs text-muted-foreground min-w-[90px]">
+                    SPACING.{key}
+                  </code>
+                  <div
+                    className="h-4 bg-primary rounded-sm"
+                    style={{ width: `${parseInt(SPACING[key], 10) * 4}px` }}
+                  />
+                  <span className="text-xs text-muted-foreground">
+                    {parseInt(SPACING[key], 10) * 4}px
+                  </span>
+                </div>
+              ),
+            )}
           </div>
         </Section>
 
-        <Section title="Z-index scale" description="Numeric so arithmetic works in style objects.">
+        <Section
+          title="Z-index scale"
+          description="Numeric so arithmetic works in style objects."
+        >
           <div className="flex flex-wrap gap-2">
             {(Object.keys(Z) as Array<keyof typeof Z>).map((key) => (
               <div

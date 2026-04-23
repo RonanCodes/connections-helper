@@ -128,9 +128,7 @@ function SettingsPage() {
                   className={cn(
                     'flex items-center gap-3 px-3 py-3 rounded-md border cursor-pointer transition-colors',
                     'hover:bg-muted',
-                    isActive
-                      ? 'border-primary bg-muted'
-                      : 'border-border',
+                    isActive ? 'border-primary bg-muted' : 'border-border',
                   )}
                 >
                   <input
@@ -214,7 +212,10 @@ function SettingsPage() {
                       )}
                       {capReached && (
                         <span
-                          className={cn(TYPOGRAPHY.tiny, 'text-muted-foreground')}
+                          className={cn(
+                            TYPOGRAPHY.tiny,
+                            'text-muted-foreground',
+                          )}
                         >
                           Cap reached
                         </span>
