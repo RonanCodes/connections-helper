@@ -19,7 +19,9 @@
   --popover-foreground: #121212;
 
   --primary: #121212;
-  --primary-foreground: #ffffff;
+  /* Real NYT uses #f8f8f8 (not pure white) for text on dark primary,
+   * measured from nytimes.com/games/connections splash "Play" CTA. */
+  --primary-foreground: #f8f8f8;
 
   --secondary: #efefe6;
   --secondary-foreground: #121212;
@@ -85,6 +87,9 @@
     'nyt-karnakcondensed', 'Karnak Condensed', 'Abril Fatface', Georgia,
     'Times New Roman', serif;
 
+  /* Real NYT falls straight to Arial after Franklin (measured computed
+   * font-family: "nyt-franklin, Arial"). Keep the Franklin-family analogues
+   * in between as a better-looking fallback before Arial kicks in. */
   font-family:
     'nyt-franklin', 'Libre Franklin', 'Franklin Gothic Medium',
     'Franklin Gothic', 'ITC Franklin Gothic', 'Helvetica Neue', Arial,
@@ -140,9 +145,12 @@
   background-color: var(--accent);
 }
 
+/* Disabled primary: NYT Submit uses specific mid-greys for text + border
+ * (measured: text #8b8b8b, border #979797). These aren't in the semantic
+ * palette because they only exist as a disabled-state pair. */
 [data-theme='nyt'] button[data-variant='default']:disabled {
-  color: var(--muted-foreground);
-  border-color: var(--border);
+  color: #8b8b8b;
+  border-color: #979797;
   opacity: 1;
 }
 
