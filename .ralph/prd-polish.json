@@ -155,8 +155,8 @@
         "curl 'http://localhost:3000/api/og?date=2026-04-12' returns valid PNG (file size > 10kb)"
       ],
       "priority": 10,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "satori@0.26 + @resvg/resvg-wasm@2.6.2 installed. Route src/routes/api/og.ts uses satori/standalone (exposes init(WebAssembly.Module) so we can pre-initialize yoga without triggering workerd's 'Wasm code generation disallowed by embedder' guard). Both yoga.wasm (via satori/yoga.wasm) and resvg index_bg.wasm imported as WebAssembly.Module via vite. Inter Regular + Bold TTFs live at src/assets/fonts/ (from rsms/inter v4.1 release zip; `file` confirms real TrueType data) and are imported via `?url` then fetched once per worker lifetime against `url.origin` and cached in a module-scope variable. Params: ?date=YYYY-MM-DD (regex-validated; invalid falls through) and ?title (capped at 80 chars, default 'Connections Helper — NYT Puzzle Sidekick'). 1200x630 PNG, cache-control: 'public, max-age=86400, s-maxage=604800, immutable'. Verified locally: 4 scenarios (with-date, default, title-only, bad-date), all 200, all 100KB+ PNGs. Added src/vite-env.d.ts for *.wasm and *.ttf?url module declarations."
     },
     {
       "id": "US-011",

@@ -170,4 +170,32 @@
   - color-contrast baseline still exists — next logical step is a theme pass (US-TBD) to tighten contrast on muted text + placeholder colours. Out of scope for this story by design.
   - role="menu" + role="menuitem" on a share popup is the correct pattern when the items *perform actions* (copy, X, FB). If it contained nav links instead, it'd be role="listbox" or plain nav. Don't overthink it: axe + NVDA both accept menu/menuitem here.
 ---
+## [2026-04-24 21:55] - US-010: Dynamic OG endpoint via Satori + resvg-wasm
+- Implemented:
+  - src/routes/api/og.ts — TanStack file route returning 1200x630 PNG
+  - satori/standalone (exposes init(WebAssembly.Module)) + @resvg/resvg-wasm
+  - Module-scope caches for engine init (yoga + resvg) and font bytes — one-shot per worker lifetime
+  - Card layout: green gradient (#22c55e → #16a34a), brand mark top-left, big title + date in middle, byline + domain at bottom
+  - Params: ?date=YYYY-MM-DD (regex-validated, bad input silently falls back), ?title (80-char cap)
+  - Cache: public, max-age=86400, s-maxage=604800, immutable
+  - src/vite-env.d.ts — type declarations for *.wasm and *.ttf?url imports
+  - src/assets/fonts/Inter-{Regular,Bold}.ttf — real TTFs extracted from rsms/inter v4.1 Inter-4.1.zip
+- Validation:
+  - pnpm run lint — PASS
+  - pnpm run build — PASS (yoga.wasm + resvg.wasm + TTFs bundled into dist/server/assets)
+  - curl smoke tests — 4/4 scenarios return valid 100KB+ PNGs (with-date, default, title-only, bad-date)
+  - Cache-Control header verified with `curl -D -`
+- Files changed:
+  - src/routes/api/og.ts (new)
+  - src/vite-env.d.ts (new)
+  - src/assets/fonts/Inter-{Regular,Bold}.ttf (new)
+  - package.json (+satori, @resvg/resvg-wasm)
+  - src/routeTree.gen.ts (auto-regenerated)
+- **Learnings for future iterations:**
+  - CF workerd blocks `WebAssembly.instantiate(bytes)` (dynamic code gen) in both dev and prod. Default `satori` entry hits this path. Fix: use `satori/standalone` — it exposes `init(WebAssembly.Module)` and lets you feed a pre-compiled module (imported via vite). Same pattern applies to `@resvg/resvg-wasm`'s `initWasm()`.
+  - Fonts: `?url` imports return a URL string; fetching that URL against `url.origin` works because vite dev and the CF asset pipeline both serve bundled `/src/assets/...` paths as the binary. An alternative `?arraybuffer` import would inline the bytes but blow up the worker bundle size — better to keep the font as a separately-cacheable asset.
+  - GitHub blob URLs (github.com/.../raw/...) redirect to an HTML page when the path doesn't exist; curl follows redirects silently so you end up with a fake TTF that is actually HTML. `file` on the download is the one-second check — always run it before using a downloaded font. In this story I burned two tries (one on blob, one on raw.githubusercontent 404) before pulling the official release zip.
+  - Worker bundle grew from ~611kb (server index) + 1.5MB (router) to +2.5MB (resvg wasm) + ~600KB (fonts) + yoga wasm. CF Workers limits are 10MB compressed, so we're fine, but any further WASM additions (e.g. image resizing) need size budgeting.
+  - US-011 (wiring og:image per route) should cap query-string length to keep unfurlers happy; Twitter caches per URL so long titles will create N distinct cache keys. The 80-char cap in `parseParams` pre-empts that.
+---
 
