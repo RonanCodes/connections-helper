@@ -43,12 +43,37 @@ export function track<K extends keyof EventPayloads>(
 }
 
 export interface EventPayloads {
-  share: { channel: 'x' | 'reddit' | 'whatsapp' | 'copy' | 'native'; puzzle_id: number | null; puzzle_date: string }
-  hint_revealed: { puzzle_id: number | null; puzzle_date: string; category_index: number }
-  category_revealed: { puzzle_id: number | null; puzzle_date: string; category_index: number }
-  source_toggled: { puzzle_id: number | null; puzzle_date: string; word: string; source: string }
-  date_changed: { from: string; to: string; direction: 'prev' | 'next' | 'picker' | 'today' }
-  puzzle_loaded: { puzzle_id: number | null; puzzle_date: string; cached: boolean }
+  share: {
+    channel: 'x' | 'reddit' | 'whatsapp' | 'copy' | 'native'
+    puzzle_id: number | null
+    puzzle_date: string
+  }
+  hint_revealed: {
+    puzzle_id: number | null
+    puzzle_date: string
+    category_index: number
+  }
+  category_revealed: {
+    puzzle_id: number | null
+    puzzle_date: string
+    category_index: number
+  }
+  source_toggled: {
+    puzzle_id: number | null
+    puzzle_date: string
+    word: string
+    source: string
+  }
+  date_changed: {
+    from: string
+    to: string
+    direction: 'prev' | 'next' | 'picker' | 'today'
+  }
+  puzzle_loaded: {
+    puzzle_id: number | null
+    puzzle_date: string
+    cached: boolean
+  }
   settings_opened: undefined
   theme_changed: { theme: string }
 }

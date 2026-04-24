@@ -123,19 +123,19 @@ This project runs PostHog with the most generous data capture the SDK offers. Th
 
 **Project-level (server side, set once via management API):**
 
-| Setting | Value | Captures |
-| --- | --- | --- |
-| `session_recording_opt_in` | `true` | rrweb session replays |
-| `session_recording_sample_rate` | `1.00` | 100% of sessions |
-| `session_recording_minimum_duration_milliseconds` | `0` | even very short visits |
-| `session_recording_network_payload_capture_config.recordHeaders` | `true` | request/response headers in replays |
-| `session_recording_network_payload_capture_config.recordBody` | `true` | request/response bodies |
-| `capture_console_log_opt_in` | `true` | `console.*` in replays |
-| `capture_performance_opt_in` | `true` | Core Web Vitals |
-| `autocapture_opt_out` | `false` | clicks/inputs/submits |
-| `autocapture_exceptions_opt_in` | `true` | JS errors to Error Tracking |
-| `heatmaps_opt_in` | `true` | click/scroll heatmaps |
-| `surveys_opt_in` | `true` | in-app surveys |
+| Setting                                                          | Value   | Captures                            |
+| ---------------------------------------------------------------- | ------- | ----------------------------------- |
+| `session_recording_opt_in`                                       | `true`  | rrweb session replays               |
+| `session_recording_sample_rate`                                  | `1.00`  | 100% of sessions                    |
+| `session_recording_minimum_duration_milliseconds`                | `0`     | even very short visits              |
+| `session_recording_network_payload_capture_config.recordHeaders` | `true`  | request/response headers in replays |
+| `session_recording_network_payload_capture_config.recordBody`    | `true`  | request/response bodies             |
+| `capture_console_log_opt_in`                                     | `true`  | `console.*` in replays              |
+| `capture_performance_opt_in`                                     | `true`  | Core Web Vitals                     |
+| `autocapture_opt_out`                                            | `false` | clicks/inputs/submits               |
+| `autocapture_exceptions_opt_in`                                  | `true`  | JS errors to Error Tracking         |
+| `heatmaps_opt_in`                                                | `true`  | click/scroll heatmaps               |
+| `surveys_opt_in`                                                 | `true`  | in-app surveys                      |
 
 Flip via `PATCH /api/projects/<id>/` on `eu.posthog.com` with the personal API key. See `/ro:posthog` skill for the exact curl.
 
