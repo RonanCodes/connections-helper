@@ -9,7 +9,7 @@ const html = `<!doctype html>
   </head>
   <body>
     <script id="api-reference" data-url="/api/openapi"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference@1.52.6"></script>
   </body>
 </html>
 `
