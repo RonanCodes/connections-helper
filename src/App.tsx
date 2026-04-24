@@ -29,6 +29,7 @@ import {
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { initTheme } from '@/lib/themes'
+import { track } from '@/lib/posthog'
 import { EnvironmentBadge } from '@/lib/env-badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -887,6 +888,8 @@ function ShareButton({
     return () => document.removeEventListener('click', handleClick)
   }, [showMenu])
 
+  const sharePayload = { puzzle_id: puzzleId, puzzle_date: puzzleDate }
+
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(shareUrl)
@@ -903,6 +906,7 @@ function ShareButton({
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     }
+    track('share', { channel: 'copy', ...sharePayload })
   }
 
   const handleNativeShare = async () => {
@@ -913,6 +917,7 @@ function ShareButton({
           text: shareText,
           url: shareUrl,
         })
+        track('share', { channel: 'native', ...sharePayload })
       } catch {
         // User cancelled or error
       }
@@ -925,6 +930,7 @@ function ShareButton({
       `https://wa.me/?text=${encodeURIComponent(shareText + ' ' + shareUrl)}`,
       '_blank',
     )
+    track('share', { channel: 'whatsapp', ...sharePayload })
     setShowMenu(false)
   }
 
@@ -934,6 +940,7 @@ function ShareButton({
       '_blank',
       'noopener,noreferrer',
     )
+    track('share', { channel: 'x', ...sharePayload })
     setShowMenu(false)
   }
 
@@ -943,6 +950,7 @@ function ShareButton({
       '_blank',
       'noopener,noreferrer',
     )
+    track('share', { channel: 'reddit', ...sharePayload })
     setShowMenu(false)
   }
 
@@ -1429,6 +1437,74 @@ export default function App() {
     if (newDate <= getToday()) handleDateChange(newDate)
   }
 
+  const goToToday = () => {
+    const today = getToday()
+    if (puzzleDate !== today) handleDateChange(today)
+  }
+
+  // Keyboard shortcuts. Ignored when focus is in an editable element, when a
+  // modal/dialog is open (Radix sets aria-hidden on siblings), or when any
+  // modifier key is held (don't hijack Cmd+R, Cmd+L, etc.).
+  useEffect(() => {
+    const isEditable = (el: Element | null): boolean => {
+      if (!el) return false
+      const tag = el.tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return true
+      if ((el as HTMLElement).isContentEditable) return true
+      return false
+    }
+
+    const handler = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey) return
+      if (isEditable(document.activeElement)) return
+      if (settingsOpen) return
+
+      switch (e.key) {
+        case 'ArrowLeft':
+        case ',':
+          e.preventDefault()
+          goToPreviousDay()
+          break
+        case 'ArrowRight':
+        case '.':
+          e.preventDefault()
+          goToNextDay()
+          break
+        case 't':
+        case 'T':
+          e.preventDefault()
+          goToToday()
+          break
+        case 'h':
+        case 'H':
+          e.preventDefault()
+          setShowHints((prev) => !prev)
+          break
+        case 's':
+        case 'S':
+          e.preventDefault()
+          setSettingsOpen(true)
+          break
+        case '?':
+          e.preventDefault()
+          alert(
+            'Keyboard shortcuts\n\n' +
+              '← or ,   Previous day\n' +
+              '→ or .   Next day\n' +
+              't        Jump to today\n' +
+              'h        Toggle hints\n' +
+              's        Open settings\n' +
+              '?        Show this help',
+          )
+          break
+      }
+    }
+
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [puzzleDate, settingsOpen])
+
   const isToday = puzzleDate === getToday()
   const isFirstDay = puzzleDate <= FIRST_PUZZLE_DATE
   const loadingDefinitions = words.some((w) => w.loading)
@@ -1748,6 +1824,15 @@ export default function App() {
               >
                 How it works
               </Link>
+              <span aria-hidden>•</span>
+              <a
+                href="/api/docs"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline hover:text-foreground transition-colors"
+              >
+                API
+              </a>
               <span aria-hidden>•</span>
               <span>Not affiliated with NYT</span>
             </div>

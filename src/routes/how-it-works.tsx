@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
+import { useEffect, useState } from 'react'
 import { ArrowLeft, ExternalLink, Github } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -12,6 +13,48 @@ import { Badge } from '@/components/ui/badge'
 import { SOURCE_DESCRIPTIONS } from '@/lib/source-descriptions'
 
 export const Route = createFileRoute('/how-it-works')({ component: HowItWorks })
+
+interface Stats {
+  puzzles: number
+  definitions: number
+}
+
+function StatsBanner() {
+  const [stats, setStats] = useState<Stats | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    fetch('/api/stats')
+      .then((r) => (r.ok ? (r.json() as Promise<Stats>) : null))
+      .then((data) => {
+        if (!cancelled && data) setStats(data)
+      })
+      .catch(() => {
+        /* non-fatal — stats are cosmetic */
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  if (!stats) return null
+
+  return (
+    <div
+      className="mb-8 rounded-lg border border-border bg-card px-4 py-3 text-sm text-muted-foreground"
+      aria-live="polite"
+    >
+      <span className="font-medium text-foreground">
+        {stats.definitions.toLocaleString()}
+      </span>{' '}
+      definitions served across{' '}
+      <span className="font-medium text-foreground">
+        {stats.puzzles.toLocaleString()}
+      </span>{' '}
+      puzzles, all cached at the edge.
+    </div>
+  )
+}
 
 interface SourceEntry {
   order: number
@@ -87,6 +130,8 @@ function HowItWorks() {
             order, and what happens behind the scenes.
           </p>
         </header>
+
+        <StatsBanner />
 
         <section className="mb-10">
           <h2 className="text-xl font-semibold mb-3">Why I built this</h2>
