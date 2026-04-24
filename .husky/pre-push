@@ -1,7 +1,3 @@
-#!/bin/sh
-# Runs `pnpm quality-checks` before push. Bypass with `git push --no-verify`.
-set -e
-
 if [ -n "$SKIP_QUALITY_CHECKS" ]; then
   echo "⏭️  SKIP_QUALITY_CHECKS set, skipping quality-checks hook"
   exit 0

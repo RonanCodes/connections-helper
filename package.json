@@ -48,6 +48,7 @@
     "mock": "pnpm run openapi:dump && prism mock openapi.json --port 4010",
     "lint": "eslint",
     "format": "prettier --check .",
+    "format:write": "prettier --write .",
     "check": "prettier --write . && eslint --fix",
     "audit:deps": "pnpm audit --audit-level=high",
     "quality-checks": "pnpm run format && pnpm run lint && pnpm run build && pnpm run test && pnpm run audit:deps",
@@ -56,7 +57,10 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate:local": "wrangler d1 migrations apply connections_helper_db --local",
     "db:migrate:remote": "wrangler d1 migrations apply connections_helper_db --remote",
-    "prepare": "git config core.hooksPath .githooks 2>/dev/null || true"
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "*.{js,mjs,cjs,ts,tsx,jsx,json,jsonc,css,md,yml,yaml,html}": "prettier --write"
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "^8.5.0",
@@ -92,6 +96,7 @@
   "devDependencies": {
     "@axe-core/playwright": "^4.11.2",
     "@cloudflare/workers-types": "^4.20241218.0",
+    "@commitlint/cli": "^20.5.0",
     "@lhci/cli": "^0.15.1",
     "@playwright/test": "^1.52.0",
     "@stoplight/prism-cli": "^5.15.10",
@@ -110,8 +115,10 @@
     "axe-core": "^4.11.3",
     "drizzle-kit": "^0.31.10",
     "eslint": "10.2.1",
+    "husky": "^9.1.7",
     "jest-axe": "^10.0.0",
     "jsdom": "^28.1.0",
+    "lint-staged": "^16.4.0",
     "prettier": "^3.8.1",
     "start-server-and-test": "^3.0.2",
     "tsx": "^4.21.0",
