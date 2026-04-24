@@ -3,6 +3,7 @@ node_modules/
 dist/
 dist-ssr/
 .turbo/
+.pnpm-store/
 
 # Env (only .env.example is committed; every operator brings their own real keys)
 .env
