@@ -14,7 +14,11 @@ const html = `<!doctype html>
     <style>body { margin: 0; padding: 0; }</style>
   </head>
   <body>
-    <redoc spec-url="/api/openapi"></redoc>
+    <redoc
+      spec-url="/api/openapi"
+      schema-definitions-tag-name="Models"
+      expand-responses="200"
+    ></redoc>
     <script src="https://cdn.jsdelivr.net/npm/redoc/bundles/redoc.standalone.js"></script>
   </body>
 </html>
