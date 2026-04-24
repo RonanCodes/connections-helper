@@ -49,6 +49,7 @@ import {
 } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 import { DatePicker } from './components/DatePicker'
+import { InstallPrompt } from './components/InstallPrompt'
 import { SettingsDialog } from './components/SettingsDialog'
 import {
   PREFERRED_SOURCE_AUTO,
@@ -1847,6 +1848,7 @@ export default function App() {
             </div>
           </footer>
         </div>
+        <InstallPrompt />
       </div>
     </TooltipProvider>
   )

@@ -78,4 +78,8 @@ export interface EventPayloads {
   }
   settings_opened: undefined
   theme_changed: { theme: string }
+  cta_clicked: {
+    cta: string
+    location: string
+  }
 }

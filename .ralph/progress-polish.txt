@@ -77,6 +77,22 @@
   - Versioning via CACHE const is the deploy lever: bump to 'conn-v2' when you want to force clients to drop all old caches
   - Deliberately no offline fallback page — the cache-first HTML fallback to '/' is good enough for a utility; a dedicated /offline page can land in a later story if desired
 ---
+## [2026-04-24 21:25] - US-005: InstallPrompt with dismiss + session guard
+- Implemented:
+  - src/components/InstallPrompt.tsx — captures beforeinstallprompt, gated on sessionStorage visit-count >= 2, dismiss persisted to localStorage
+  - Rendered in App.tsx inside TooltipProvider so it sits over the page at bottom-center
+  - role='dialog' aria-label='Install this app' + focusable dismiss button
+  - track('cta_clicked', { cta: 'pwa_install', location: 'prompt:accepted' | 'prompt:dismissed' }) and cta_clicked for dismiss
+  - Added `cta_clicked: { cta: string; location: string }` to EventPayloads in src/lib/posthog.ts
+- Files changed:
+  - src/components/InstallPrompt.tsx (new)
+  - src/lib/posthog.ts
+  - src/App.tsx
+- **Learnings for future iterations:**
+  - `cta_clicked` is a generic handle we can reuse for any future CTA tracking (install prompt dismiss, stats-banner CTA clicks, etc.); keep the payload shape minimal (cta + location) so every caller can reuse it without widening the union
+  - `beforeinstallprompt` fires once per eligible session and only in Chromium browsers — nothing to test locally unless you toggle "force install prompt" in DevTools. Expect zero renders on Safari/Firefox.
+  - sessionStorage visit count resets when the tab closes, which is desirable: frequent users who already rejected get localStorage'd, casuals don't see it on first visit, and a second browsing session with open tabs nudges them.
+---
 
 
 

@@ -78,8 +78,8 @@
         "Rendered in __root.tsx layout"
       ],
       "priority": 5,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "src/components/InstallPrompt.tsx renders a role='dialog' banner when beforeinstallprompt fires AND sessionStorage visit-count >= 2. Dismiss writes localStorage flag (permanent); track() fires cta_clicked with location prompt:accepted|prompt:dismissed. Rendered in App.tsx inside TooltipProvider. Added cta_clicked to EventPayloads in src/lib/posthog.ts."
     },
     {
       "id": "US-006",
