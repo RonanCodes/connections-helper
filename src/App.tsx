@@ -332,16 +332,24 @@ const COMPANION_INDEX_URL =
 
 // The companion column uses its own numbering and publishes on the evening
 // BEFORE the puzzle (URL date = puzzle date - 1). Both drift from the puzzle
-// ID, so we ask the server to resolve the puzzle date → companion URL by
-// scraping + caching the spotlight index. Falls back to the index on miss.
-async function fetchCompanionUrl(puzzleDate: string): Promise<string> {
+// ID, so we ask the server to resolve the puzzle date → companion URL + number
+// by scraping + caching the spotlight index. Falls back to the index on miss.
+interface CompanionInfo {
+  url: string
+  number: number | null
+}
+async function fetchCompanion(puzzleDate: string): Promise<CompanionInfo> {
   try {
     const res = await fetch(`/api/companion/${puzzleDate}`)
-    if (!res.ok) return COMPANION_INDEX_URL
+    if (!res.ok) return { url: COMPANION_INDEX_URL, number: null }
     const data = await res.json()
-    return data.url || COMPANION_INDEX_URL
+    return {
+      url: data.url || COMPANION_INDEX_URL,
+      number:
+        typeof data.companionNumber === 'number' ? data.companionNumber : null,
+    }
   } catch {
-    return COMPANION_INDEX_URL
+    return { url: COMPANION_INDEX_URL, number: null }
   }
 }
 
@@ -633,8 +641,6 @@ function WordCard({
               .sort((a, b) => {
                 if (a === preferredSource) return -1
                 if (b === preferredSource) return 1
-                if (a === activeSource) return -1
-                if (b === activeSource) return 1
                 return 0
               })
               .slice(0, 3)
@@ -659,10 +665,10 @@ function WordCard({
                         aria-pressed={isActive}
                         aria-busy={isLoading}
                         className={cn(
-                          'disabled:cursor-wait',
+                          'disabled:cursor-wait transition-all',
                           isActive
-                            ? 'bg-accent border-2 border-foreground text-foreground hover:bg-accent'
-                            : 'border-border/40 text-muted-foreground hover:text-foreground',
+                            ? 'bg-foreground text-background border-2 border-foreground hover:bg-foreground/90 shadow-md scale-110 ring-2 ring-foreground/25 ring-offset-2 ring-offset-background'
+                            : 'border-border/40 text-muted-foreground opacity-60 hover:opacity-100 hover:text-foreground',
                           isLoading && 'animate-pulse opacity-70',
                         )}
                       >
@@ -1199,6 +1205,7 @@ export default function App() {
   )
   const [puzzleId, setPuzzleId] = useState<number | null>(null)
   const [companionUrl, setCompanionUrl] = useState<string>(COMPANION_INDEX_URL)
+  const [companionNumber, setCompanionNumber] = useState<number | null>(null)
   const [showHints, setShowHints] = useState(false)
   // TODO: Restore view mode toggle after fixing @bendr/themes
   const [viewMode] = useState<'helper' | 'classic'>('helper')
@@ -1290,7 +1297,11 @@ export default function App() {
       setPuzzleDate(puzzle.print_date)
       setPuzzleId(puzzle.id)
       setCompanionUrl(COMPANION_INDEX_URL)
-      void fetchCompanionUrl(puzzle.print_date).then(setCompanionUrl)
+      setCompanionNumber(null)
+      void fetchCompanion(puzzle.print_date).then((info) => {
+        setCompanionUrl(info.url)
+        setCompanionNumber(info.number)
+      })
 
       const allWords: WordDefinition[] = []
       const hints: string[] = []
@@ -1449,17 +1460,23 @@ export default function App() {
                     min={FIRST_PUZZLE_DATE}
                     max={getToday()}
                   />
-                  {puzzleId && (
-                    <a
-                      href={companionUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      title="Read NYT's Connections Companion for this puzzle"
-                      className="text-sm text-muted-foreground hover:text-foreground underline-offset-4 hover:underline transition-colors hidden sm:inline"
-                    >
-                      #{puzzleId}
-                    </a>
-                  )}
+                  <a
+                    href={puzzleId ? companionUrl : undefined}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title={
+                      companionNumber
+                        ? `Read NYT's Connections Companion No. ${companionNumber}`
+                        : "Read NYT's Connections Companion for this puzzle"
+                    }
+                    aria-hidden={!puzzleId}
+                    className={cn(
+                      'text-sm text-muted-foreground hover:text-foreground underline-offset-4 hover:underline transition-colors hidden sm:inline-block w-14 text-center',
+                      !puzzleId && 'invisible pointer-events-none',
+                    )}
+                  >
+                    #{companionNumber ?? puzzleId ?? '0000'}
+                  </a>
                   <Button
                     onClick={() => handleDateChange(getToday())}
                     size="sm"
@@ -1545,13 +1562,21 @@ export default function App() {
                         href={companionUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        aria-label={`Read NYT's Connections Companion for #${puzzleId}`}
+                        aria-label={
+                          companionNumber
+                            ? `Read NYT's Connections Companion No. ${companionNumber}`
+                            : `Read NYT's Connections Companion for puzzle #${puzzleId}`
+                        }
                       >
                         <Newspaper className="w-4 h-4" />
                       </a>
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent>Companion for #{puzzleId}</TooltipContent>
+                  <TooltipContent>
+                    {companionNumber
+                      ? `Companion No. ${companionNumber}`
+                      : `Companion for #${puzzleId}`}
+                  </TooltipContent>
                 </Tooltip>
               )}
               <Tooltip>
