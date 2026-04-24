@@ -15,7 +15,6 @@ import {
   Copy,
   Check,
   Palette,
-  Github,
   Book,
   BookOpen,
   BookText,
@@ -28,6 +27,7 @@ import {
   Settings,
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
+import { GithubLogo } from '@/components/icons/github-logo'
 import { initTheme } from '@/lib/themes'
 import { track } from '@/lib/posthog'
 import { EnvironmentBadge } from '@/lib/env-badge'
@@ -1873,7 +1873,7 @@ export default function App() {
                 rel="noopener noreferrer"
                 className="underline hover:text-foreground transition-colors inline-flex items-center gap-1"
               >
-                <Github className="w-3 h-3" />
+                <GithubLogo className="w-3 h-3" />
                 Source
               </a>
               <span aria-hidden>•</span>

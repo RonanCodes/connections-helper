@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useEffect, useState } from 'react'
-import { ArrowLeft, ExternalLink, Github } from 'lucide-react'
+import { ArrowLeft, ExternalLink } from 'lucide-react'
+import { GithubLogo } from '@/components/icons/github-logo'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -285,7 +286,7 @@ function HowItWorks() {
               rel="noopener noreferrer"
               className="underline hover:text-foreground transition-colors inline-flex items-center gap-1"
             >
-              <Github className="w-3 h-3" />
+              <GithubLogo className="w-3 h-3" />
               GitHub
             </a>
             .
