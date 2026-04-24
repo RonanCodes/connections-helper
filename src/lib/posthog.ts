@@ -34,9 +34,11 @@ export { posthog }
  * Type-safe wrapper around posthog.capture. No-op until init resolves, so
  * handlers can fire events unconditionally without null-checking.
  */
-export function track<K extends keyof EventPayloads>(
-  event: K,
-  ...props: EventPayloads[K] extends undefined ? [] : [EventPayloads[K]]
+export function track<TEvent extends keyof EventPayloads>(
+  event: TEvent,
+  ...props: EventPayloads[TEvent] extends undefined
+    ? []
+    : [EventPayloads[TEvent]]
 ): void {
   if (typeof window === 'undefined') return
   posthog.capture(event, props[0] as Record<string, unknown> | undefined)

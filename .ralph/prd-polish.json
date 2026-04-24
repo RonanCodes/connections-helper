@@ -15,8 +15,8 @@
         "Local curl of /sitemap.xml returns 200 with valid urlset XML"
       ],
       "priority": 1,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Route tree confirms /sitemap.xml registered. Build passes. 369 URLs (4 static + 365 daily puzzles)."
     },
     {
       "id": "US-002",

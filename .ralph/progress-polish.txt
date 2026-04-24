@@ -9,5 +9,25 @@
 - Existing /api/stats endpoint; /how-it-works has a StatsBanner
 - Fonts live in public/fonts/
 - No Inter font yet; the app uses whatever is in the existing CSS
+- Production origin is https://connectionshelper.app (from wrangler.jsonc custom_domain routes)
+- File-routes with literal dots use the `[.]` escape: src/routes/sitemap[.]xml.ts → /sitemap.xml
+- Route tree is auto-generated at src/routeTree.gen.ts — inspect it to confirm new routes registered
 
 ---
+## [2026-04-24 21:03] - US-001: SEO robots.txt + dynamic sitemap route
+- Implemented:
+  - public/robots.txt (User-agent: *, Disallow: /api/, Sitemap: URL)
+  - src/routes/sitemap[.]xml.ts — dynamic TanStack Start route returning urlset XML
+  - 4 static URLs (/, /how-it-works, /settings, /design-system)
+  - 365 daily puzzle URLs (/?date=YYYY-MM-DD) with lastmod per date
+  - Cache: public, max-age=3600, s-maxage=86400
+- Files changed:
+  - public/robots.txt (new)
+  - src/routes/sitemap[.]xml.ts (new)
+  - src/routeTree.gen.ts (auto-regenerated)
+- **Learnings for future iterations:**
+  - The `[.]` escape in file-routes works cleanly — produces path '/sitemap.xml' in routeTree.gen.ts
+  - Pre-existing TS errors unrelated to polish work are in: src/routes/api/definitions.ts, src/server/definition-fallbacks.ts, src/server/rate-limit.ts, vitest*.config.ts. Don't try to fix these as part of polish stories.
+  - Dynamic sitemap is a better pattern than static public/sitemap.xml because it always reflects the last 365 days from today, no deploy required
+---
+

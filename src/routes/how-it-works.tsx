@@ -25,8 +25,8 @@ function StatsBanner() {
   useEffect(() => {
     let cancelled = false
     fetch('/api/stats')
-      .then((r) => (r.ok ? (r.json() as Promise<Stats>) : null))
-      .then((data) => {
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: Stats | null) => {
         if (!cancelled && data) setStats(data)
       })
       .catch(() => {
