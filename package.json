@@ -44,6 +44,8 @@
     "test:integration": "start-server-and-test dev http://localhost:3000 'vitest run --config vitest.integration.config.ts'",
     "test:api": "start-server-and-test dev http://localhost:3000 'cd bruno && bru run . -r --env local'",
     "test:api:prod": "cd bruno && bru run . -r --env production",
+    "openapi:dump": "tsx scripts/generate-openapi.ts",
+    "mock": "pnpm run openapi:dump && prism mock openapi.json --port 4010",
     "lint": "eslint",
     "format": "prettier --check .",
     "check": "prettier --write . && eslint --fix",
@@ -92,6 +94,7 @@
     "@cloudflare/workers-types": "^4.20241218.0",
     "@lhci/cli": "^0.15.1",
     "@playwright/test": "^1.52.0",
+    "@stoplight/prism-cli": "^5.15.10",
     "@tailwindcss/typography": "^0.5.16",
     "@tanstack/devtools-vite": "latest",
     "@tanstack/eslint-config": "latest",
@@ -111,6 +114,7 @@
     "jsdom": "^28.1.0",
     "prettier": "^3.8.1",
     "start-server-and-test": "^3.0.2",
+    "tsx": "^4.21.0",
     "typescript": "~5.9.3",
     "vite": "^8.0.0",
     "vitest": "^3.0.5",
@@ -121,6 +125,9 @@
     "onlyBuiltDependencies": [
       "esbuild",
       "lightningcss"
-    ]
+    ],
+    "overrides": {
+      "lodash@<4.17.24": ">=4.17.24"
+    }
   }
 }
