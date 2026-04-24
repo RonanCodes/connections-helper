@@ -3,8 +3,6 @@ import satori, { init as initSatori } from 'satori/standalone'
 import { initWasm, Resvg } from '@resvg/resvg-wasm'
 import resvgWasmModule from '@resvg/resvg-wasm/index_bg.wasm'
 import yogaWasmModule from 'satori/yoga.wasm'
-import interRegularUrl from '../../assets/fonts/Inter-Regular.ttf?url'
-import interBoldUrl from '../../assets/fonts/Inter-Bold.ttf?url'
 
 let engineReady: Promise<void> | null = null
 function ensureEngines(): Promise<void> {
@@ -17,12 +15,22 @@ function ensureEngines(): Promise<void> {
   return engineReady
 }
 
+// Fonts live in public/fonts/ so they're deployed as client static assets at
+// stable unhashed paths. Previously imported via `?url` from src/assets, but
+// that resolved to /assets/<hash>.ttf which Vite only emitted into the server
+// bundle — the worker's own-origin fetch 404'd in prod.
 let fontCache: { regular: ArrayBuffer; bold: ArrayBuffer } | null = null
 async function loadFonts(origin: string) {
   if (fontCache) return fontCache
   const [regular, bold] = await Promise.all([
-    fetch(new URL(interRegularUrl, origin)).then((r) => r.arrayBuffer()),
-    fetch(new URL(interBoldUrl, origin)).then((r) => r.arrayBuffer()),
+    fetch(new URL('/fonts/Inter-Regular.ttf', origin)).then((r) => {
+      if (!r.ok) throw new Error(`Inter-Regular fetch ${r.status}`)
+      return r.arrayBuffer()
+    }),
+    fetch(new URL('/fonts/Inter-Bold.ttf', origin)).then((r) => {
+      if (!r.ok) throw new Error(`Inter-Bold fetch ${r.status}`)
+      return r.arrayBuffer()
+    }),
   ])
   fontCache = { regular, bold }
   return fontCache
@@ -213,8 +221,9 @@ export const Route = createFileRoute('/api/og')({
           })
         } catch (err) {
           console.error('[GET /api/og] render error', err)
+          const message = err instanceof Error ? err.message : String(err)
           return Response.json(
-            { error: 'Failed to render OG image' },
+            { error: 'Failed to render OG image', message },
             { status: 500 },
           )
         }
