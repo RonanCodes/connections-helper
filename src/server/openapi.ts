@@ -140,7 +140,9 @@ registry.registerPath({
   },
 })
 
-export function buildOpenApiDocument() {
+export function buildOpenApiDocument(
+  opts: { servers?: Array<{ url: string; description?: string }> } = {},
+) {
   const generator = new OpenApiGeneratorV31(registry.definitions)
   return generator.generateDocument({
     openapi: '3.1.0',
@@ -150,6 +152,6 @@ export function buildOpenApiDocument() {
       description:
         'Public API that powers connectionshelper.app. Provides the daily NYT Connections puzzle and multi-source word definitions.',
     },
-    servers: [{ url: 'https://connectionshelper.app' }],
+    servers: opts.servers ?? [{ url: 'https://connectionshelper.app' }],
   })
 }
