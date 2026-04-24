@@ -93,6 +93,26 @@
   - `beforeinstallprompt` fires once per eligible session and only in Chromium browsers — nothing to test locally unless you toggle "force install prompt" in DevTools. Expect zero renders on Safari/Firefox.
   - sessionStorage visit count resets when the tab closes, which is desirable: frequent users who already rejected get localStorage'd, casuals don't see it on first visit, and a second browsing session with open tabs nudges them.
 ---
+## [2026-04-24 21:30] - US-006: vitest-axe + component a11y tests
+- Implemented:
+  - pnpm add -D vitest-axe axe-core jest-axe @types/jest-axe
+  - src/test/setup.ts — expect.extend(axeMatchers); wired via vitest.config.ts setupFiles
+  - src/test/axe-helper.ts — expectNoA11yViolations(container) helper
+  - InstallPrompt.a11y.test.tsx — dispatches beforeinstallprompt, asserts zero violations on banner
+  - SettingsDialog.a11y.test.tsx — renders open dialog, asserts zero violations on baseElement (Radix portals outside container)
+  - DatePicker.a11y.test.tsx — renders trigger, asserts zero violations on container
+  - Added explicit `resolve.alias` for @/* and #/* in vitest.config.ts (tsconfigPaths: true alone did not resolve in test env)
+- Files changed:
+  - package.json (devDeps only)
+  - vitest.config.ts
+  - src/test/{setup,axe-helper}.ts (new)
+  - src/components/{InstallPrompt,SettingsDialog,DatePicker}.a11y.test.tsx (new)
+- **Learnings for future iterations:**
+  - `resolve: { tsconfigPaths: true }` is a Vite 8 flag but doesn't always resolve `@/` at test-time — had to add explicit resolve.alias. Keeps vitest decoupled from the vite.config.ts plugin chain.
+  - For Radix dialogs, use `baseElement` not `container` — content portals outside the test container.
+  - ShareButton, CategoryHints, StatsBanner are inline (not exported) components inside App.tsx and how-it-works.tsx. Extracting them just for unit axe tests adds scope; the e2e axe story (US-007) catches them at page render. Kept this story small.
+  - jsdom warns `HTMLCanvasElement.getContext() not implemented` for the lucide-react icon + confetti imports pulled in transitively — harmless, tests still pass. Would need `canvas` npm package if we ever actually care about canvas output in unit tests.
+---
 
 
 

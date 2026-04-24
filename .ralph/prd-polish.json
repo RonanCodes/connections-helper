@@ -93,8 +93,8 @@
         "Tests use expect.extend(toHaveNoViolations) setup in a global test setup file"
       ],
       "priority": 6,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "vitest-axe + axe-core + jest-axe installed. src/test/setup.ts extends expect with axe matchers. src/test/axe-helper.ts exports expectNoA11yViolations(container). Three component tests cover: InstallPrompt, SettingsDialog, DatePicker. ShareButton/CategoryHints/StatsBanner are inline (not exported) — e2e axe (US-007) covers them at page level. vitest.config.ts now has explicit alias resolution for @/* and #/* since `resolve.tsconfigPaths: true` alone didn't resolve in test environment. 9 tests passing with 0 axe violations."
     },
     {
       "id": "US-007",
