@@ -200,8 +200,8 @@
         "Uses mcr.microsoft.com/playwright container OR pnpm exec playwright install --with-deps chromium"
       ],
       "priority": 13,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": ".github/workflows/visual-regression.yml runs on pull_request + push-to-main. Installs pnpm, node 22, deps, chromium via `playwright install --with-deps`, applies D1 local migrations, then runs `pnpm test:visual`. On failure: uploads test-results/ + playwright-report/ as `visual-regression-diff` artifact with 7-day retention; uses actions/github-script@v7 to post a PR comment linking the artifact + run URL, and showing two remediation paths (regenerate locally with `pnpm test:visual:update`, OR — on first Linux run — download the -actual.png files from the artifact and commit them as *-chromium-linux.png siblings). Permissions scoped: contents:read + pull-requests:write (no wider scope needed). Supporting changes: playwright.config.js gained `testIgnore: process.env.PLAYWRIGHT_VISUAL === '1' ? undefined : ['**/visual.spec.ts']` so the existing CI e2e job (which runs `pnpm test:e2e` = `playwright test`) keeps passing on Linux without chromium-linux baselines. Added `test:visual` + `test:visual:update` scripts that set PLAYWRIGHT_VISUAL=1. Verified: `playwright test --list` excludes visual (25 tests, no visual entries); `pnpm test:visual` runs all 6 and passes; build + lint clean."
     }
   ]
 }

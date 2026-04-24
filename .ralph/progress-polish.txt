@@ -246,4 +246,29 @@
   - Masking via `mask: [locator]` is preferable to hiding content via CSS — the masked region gets overlaid with a solid color block in the snapshot, so any layout shift caused by dynamic content is still visible in the diff, just not the content itself.
   - File size of committed baselines: ~1-2MB total. Not concerning yet, but if we grow to 20+ routes, consider using LFS or delta-only CI snapshots.
 ---
+## [2026-04-24 22:20] - US-013: Visual regression GitHub Actions workflow
+- Implemented:
+  - .github/workflows/visual-regression.yml runs on pull_request + push-to-main
+  - Job steps: checkout, pnpm/action-setup@v4, setup-node@v4 (node 22, pnpm cache), install, `playwright install --with-deps chromium`, `pnpm db:migrate:local`, `pnpm test:visual`
+  - On failure, upload `test-results/` + `playwright-report/` as artifact `visual-regression-diff` with 7-day retention (if-no-files-found: ignore)
+  - On failure AND pull_request, post a PR comment via actions/github-script@v7 linking the artifact + run URL with a remediation section that covers both "intended change — regenerate baselines" and "first Linux CI run — rename and commit the -actual PNGs as -chromium-linux siblings"
+  - Scoped permissions: contents: read + pull-requests: write (no shell access, no broader scopes)
+  - playwright.config.js: `testIgnore: process.env.PLAYWRIGHT_VISUAL === '1' ? undefined : ['**/visual.spec.ts']` — keeps the existing ci.yml `e2e` job passing on Linux without needing chromium-linux baselines yet. Visual tests only run when explicitly opted in.
+  - package.json scripts: `test:visual` and `test:visual:update` both set PLAYWRIGHT_VISUAL=1 before invoking playwright
+- Validation:
+  - `pnpm exec playwright test --list` — 25 tests across 4 files, visual.spec.ts is excluded (confirmed by absence of `visual:` entries)
+  - `pnpm test:visual` — 6 passed (6.5s), baselines still match
+  - `pnpm run build` — PASS (server bundle 611kB gzip)
+  - `pnpm run lint` — PASS (no eslint errors)
+- Files changed:
+  - .github/workflows/visual-regression.yml (new)
+  - playwright.config.js (testIgnore env toggle)
+  - package.json (test:visual + test:visual:update scripts)
+- **Learnings for future iterations:**
+  - Playwright's `testIgnore` at config top-level is a clean way to carve out a subset that requires opt-in. Using `process.env.<FLAG> === '1' ? undefined : [...]` gives you a single source of truth — no duplicate projects, no filename-suffix changes to baselines, no --grep flags to remember.
+  - `actions/upload-artifact@v4` exposes `outputs.artifact-url` which is a direct download link. That's the key to making PR comments actually actionable — without it, users hunt through the Actions tab for the artifact.
+  - `actions/github-script@v7` is the cleanest way to comment on a PR from a workflow. No need for a third-party action; the `github` + `context` objects give you everything needed. `permissions: pull-requests: write` is required at the job level.
+  - First Linux CI run will fail — the commit messaging and PR comment both need to acknowledge that honestly. The alternative (run visual tests in a Docker container matching macOS) adds complexity and pins you to a specific container image; Playwright's per-platform snapshot naming is the simpler path.
+  - With this in place, the polish stack (US-001 through US-013) is complete. Everything from SEO to PWA to a11y to OG to visual regression has a CI gate. Next natural iteration would be cutting a release PR and actually deploying.
+---
 

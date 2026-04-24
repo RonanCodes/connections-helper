@@ -37,6 +37,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "test:visual": "PLAYWRIGHT_VISUAL=1 playwright test e2e/visual.spec.ts",
+    "test:visual:update": "PLAYWRIGHT_VISUAL=1 playwright test e2e/visual.spec.ts --update-snapshots",
     "test:integration": "start-server-and-test dev http://localhost:3000 'vitest run --config vitest.integration.config.ts'",
     "test:api": "start-server-and-test dev http://localhost:3000 'cd bruno && bru run . -r --env local'",
     "test:api:prod": "cd bruno && bru run . -r --env production",
