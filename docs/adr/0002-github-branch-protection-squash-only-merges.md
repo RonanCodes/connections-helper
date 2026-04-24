@@ -24,7 +24,7 @@ Four changes, one story.
 
 Applied via `PUT /repos/:owner/:repo/branches/main/protection`:
 
-- `required_status_checks.strict: true` — PR branch must be up to date with `main` before merging.
+- `required_status_checks.strict: true`. PR branch must be up to date with `main` before merging.
 - `required_status_checks.contexts`: the 8 non-deploy CI jobs:
   - Quality checks (format + lint + build + test)
   - Playwright e2e
@@ -34,10 +34,10 @@ Applied via `PUT /repos/:owner/:repo/branches/main/protection`:
   - Accessibility + performance budget
   - Secret scan (gitleaks + trufflehog)
   - Dependency audit (pnpm)
-- `enforce_admins: true` — rules apply to the repo owner too. The point of protection is to catch your own mistakes.
-- `required_linear_history: true` — no merge commits on main.
-- `allow_force_pushes: false`, `allow_deletions: false` — main can't be rewritten or deleted.
-- `required_pull_request_reviews: null` — solo repo, requiring a reviewer would break the flow.
+- `enforce_admins: true`. Rules apply to the repo owner too. The point of protection is to catch your own mistakes.
+- `required_linear_history: true`. No merge commits on main.
+- `allow_force_pushes: false`, `allow_deletions: false`. Main can't be rewritten or deleted.
+- `required_pull_request_reviews: null`. Solo repo, requiring a reviewer would break the flow.
 
 ### 2. Squash-only merges at the repo level
 
@@ -47,16 +47,16 @@ Applied via `PATCH /repos/:owner/:repo`:
 - `allow_merge_commit: false`
 - `allow_rebase_merge: false`
 - `delete_branch_on_merge: true`
-- `squash_merge_commit_title: PR_TITLE` — main's log shows the PR title verbatim.
-- `squash_merge_commit_message: PR_BODY` — PR body becomes the commit body, so context travels with the commit.
+- `squash_merge_commit_title: PR_TITLE`. Main's log shows the PR title verbatim.
+- `squash_merge_commit_message: PR_BODY`. PR body becomes the commit body, so context travels with the commit.
 
 ### 3. Commit message enforcement (commitlint)
 
 - Format: `<emoji> <type>(<scope>)?: <subject>` per `CLAUDE.md`.
 - Enforced locally via `commitlint.config.mjs` + a `commit-msg` git hook.
 - Custom parser-preset + two custom rules:
-  - `emoji-allowed` — must be one of the 10 mapped emojis.
-  - `emoji-type-matches` — emoji must match its canonical type (✨ ↔ feat, 🐛 ↔ fix, etc.).
+  - `emoji-allowed`: must be one of the 10 mapped emojis.
+  - `emoji-type-matches`: emoji must match its canonical type (✨ ↔ feat, 🐛 ↔ fix, etc.).
 - `type-enum` restricted to the 10 types in the map.
 - Ignores: merge commits, reverts, `fixup!`/`squash!` prefixes.
 
@@ -86,7 +86,7 @@ The ecosystem has converged. The only projects still using merge commits are the
 - Cleaner release notes: `git log main --oneline` reads as a changelog.
 - Stacked PR tools (Graphite, git-town, ghstack, spr) all assume this model.
 
-Trade-off: the intermediate commits on a PR branch get flattened into one. That's fine — GitHub keeps them on the PR page forever. Main doesn't need to relitigate the process.
+Trade-off: the intermediate commits on a PR branch get flattened into one. That's fine: GitHub keeps them on the PR page forever. Main doesn't need to relitigate the process.
 
 ## Stacked PRs under this model
 
@@ -99,7 +99,7 @@ git rebase origin/main
 git push --force-with-lease
 ```
 
-Git drops A's commits (same content is now in main via the squash) and replays only B's. Feature branches are still allowed to be force-pushed — protection only applies to `main`.
+Git drops A's commits (same content is now in main via the squash) and replays only B's. Feature branches are still allowed to be force-pushed. Protection only applies to `main`.
 
 Codified as the `/ro:stacked-prs` skill so the workflow is one command, not a remembered recipe.
 
@@ -140,7 +140,7 @@ Adds friction: B must rebase onto current main to merge. For a low-PR-velocity p
 - Main is a clean, single-parent log where every commit is a reviewed PR with all checks green.
 - Commits have a predictable emoji+type format so tooling (changelog generators, release-please-style automation) can parse them later.
 - Local commits that would fail CI formatting now can't happen: prettier auto-fixes staged files on commit.
-- Onboarding a future collaborator is "`git clone` + `pnpm install`" — husky's `prepare` script wires the hooks, no manual `git config` dance.
+- Onboarding a future collaborator is "`git clone` + `pnpm install`". Husky's `prepare` script wires the hooks, no manual `git config` dance.
 
 ### What this costs
 
