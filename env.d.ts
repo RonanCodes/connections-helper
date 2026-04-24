@@ -9,3 +9,10 @@ declare namespace Cloudflare {
     MERRIAM_WEBSTER_API_KEY?: string
   }
 }
+
+// `?arraybuffer` import suffix — handled by the arrayBufferLoader() plugin in
+// vite.config.ts. Inlines binary files as ArrayBuffer bytes at build time.
+declare module '*?arraybuffer' {
+  const content: ArrayBuffer
+  export default content
+}
