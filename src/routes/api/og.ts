@@ -3,6 +3,13 @@ import satori, { init as initSatori } from 'satori/standalone'
 import { initWasm, Resvg } from '@resvg/resvg-wasm'
 import resvgWasmModule from '@resvg/resvg-wasm/index_bg.wasm'
 import yogaWasmModule from 'satori/yoga.wasm'
+// Inline the TTF bytes into the server bundle at build time. Custom Vite
+// plugin (vite.config.ts → `ttfArrayBuffer()`) resolves `?arraybuffer`
+// imports to `new Uint8Array([...]).buffer`. Previously we fetched fonts
+// over HTTP from the worker's own origin, but CF Workers can't reliably
+// fetch their own domain (observed 522s in prod).
+import interRegular from '../../assets/fonts/Inter-Regular.ttf?arraybuffer'
+import interBold from '../../assets/fonts/Inter-Bold.ttf?arraybuffer'
 
 let engineReady: Promise<void> | null = null
 function ensureEngines(): Promise<void> {
@@ -13,27 +20,6 @@ function ensureEngines(): Promise<void> {
     ]).then(() => undefined)
   }
   return engineReady
-}
-
-// Fonts live in public/fonts/ so they're deployed as client static assets at
-// stable unhashed paths. Previously imported via `?url` from src/assets, but
-// that resolved to /assets/<hash>.ttf which Vite only emitted into the server
-// bundle — the worker's own-origin fetch 404'd in prod.
-let fontCache: { regular: ArrayBuffer; bold: ArrayBuffer } | null = null
-async function loadFonts(origin: string) {
-  if (fontCache) return fontCache
-  const [regular, bold] = await Promise.all([
-    fetch(new URL('/fonts/Inter-Regular.ttf', origin)).then((r) => {
-      if (!r.ok) throw new Error(`Inter-Regular fetch ${r.status}`)
-      return r.arrayBuffer()
-    }),
-    fetch(new URL('/fonts/Inter-Bold.ttf', origin)).then((r) => {
-      if (!r.ok) throw new Error(`Inter-Bold fetch ${r.status}`)
-      return r.arrayBuffer()
-    }),
-  ])
-  fontCache = { regular, bold }
-  return fontCache
 }
 
 type OgParams = { date: string | null; title: string }
@@ -188,10 +174,7 @@ export const Route = createFileRoute('/api/og')({
           const url = new URL(request.url)
           const params = parseParams(url)
 
-          const [, fonts] = await Promise.all([
-            ensureEngines(),
-            loadFonts(url.origin),
-          ])
+          await ensureEngines()
 
           const svg = await satori(buildCard(params) as never, {
             width: 1200,
@@ -199,11 +182,16 @@ export const Route = createFileRoute('/api/og')({
             fonts: [
               {
                 name: 'Inter',
-                data: fonts.regular,
+                data: interRegular,
                 weight: 400,
                 style: 'normal',
               },
-              { name: 'Inter', data: fonts.bold, weight: 700, style: 'normal' },
+              {
+                name: 'Inter',
+                data: interBold,
+                weight: 700,
+                style: 'normal',
+              },
             ],
           })
 
