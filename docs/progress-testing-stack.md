@@ -16,13 +16,14 @@ Notes:
 
 ## Task 2: Integration tests
 
-- [ ] Add `vitest.integration.config.ts` that includes only `tests/integration/**`.
-- [ ] Fix `tests/integration/api.test.ts` default port (currently 3006, should be 3000).
-- [ ] Add `pnpm test:integration` script wrapping `start-server-and-test`.
-- [ ] Add `integration` CI job.
-- [ ] Confirm locally: `pnpm test:integration` green.
+- [x] Add `vitest.integration.config.ts` (node env, 30s timeout, retry:1, scoped to `tests/integration/**`).
+- [x] Fix `tests/integration/api.test.ts` default port (3006 → 3000).
+- [x] Add `start-server-and-test` dev dep + `pnpm test:integration` script.
+- [x] Add `integration` CI job (needs `test`, gates `deploy`).
+- [x] Confirm locally: `pnpm test:integration` green (7/7).
 
 Notes:
+- Two SCARRY/GOREY assertions were hard-coded to `source === 'urban'`. After the Merriam-Webster key was added, MW answers both, so these now assert only that some source responds. Source-selection logic belongs in unit tests, not live integration tests.
 
 ## Task 3: Bruno collection
 

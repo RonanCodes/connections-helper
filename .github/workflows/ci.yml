@@ -53,9 +53,28 @@ jobs:
           path: playwright-report/
           retention-days: 14
 
+  integration:
+    name: Integration tests (real external APIs)
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Apply D1 migrations locally
+        run: pnpm db:migrate:local
+      - name: Run integration tests
+        run: pnpm test:integration
+
   deploy:
     name: Deploy to Cloudflare Workers
-    needs: [test, e2e]
+    needs: [test, e2e, integration]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
     environment: production
