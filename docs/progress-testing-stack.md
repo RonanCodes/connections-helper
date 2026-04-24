@@ -27,6 +27,7 @@ Notes:
 Notes:
 
 - Two SCARRY/GOREY assertions were hard-coded to `source === 'urban'`. After the Merriam-Webster key was added, MW answers both, so these now assert only that some source responds. Source-selection logic belongs in unit tests, not live integration tests.
+- **Follow-up done:** `src/server/definition-fallbacks.test.ts` adds 6 unit tests covering the chain order (MW → Wordnik → Dictionary → Datamuse → Wikipedia → Urban), short-circuit on first hit, key-absence skipping for MW/Wordnik, all-miss returning null, and empty-array handling from Urban Dictionary. Uses `vi.stubGlobal('fetch', ...)` to keep the real composition under test.
 
 ## Task 3: Bruno collection
 

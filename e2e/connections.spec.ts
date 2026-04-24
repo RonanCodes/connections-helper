@@ -41,9 +41,7 @@ test.describe('Connections Helper UI', () => {
     await expect(unlock).toBeVisible()
     await unlock.click()
 
-    await expect(
-      page.getByRole('button', { name: 'Lock Hints' }),
-    ).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Lock Hints' })).toBeVisible()
   })
 
   test('surfaces the settings button', async ({ page }) => {
