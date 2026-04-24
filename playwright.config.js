@@ -4,7 +4,8 @@ export default defineConfig({
   testDir: './e2e',
   // Visual tests live in their own workflow (.github/workflows/visual-regression.yml)
   // because baselines are platform-scoped. Opt in via PLAYWRIGHT_VISUAL=1.
-  testIgnore: process.env.PLAYWRIGHT_VISUAL === '1' ? undefined : ['**/visual.spec.ts'],
+  testIgnore:
+    process.env.PLAYWRIGHT_VISUAL === '1' ? undefined : ['**/visual.spec.ts'],
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
