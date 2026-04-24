@@ -7,7 +7,7 @@
 
 import { describe, test, expect } from 'vitest'
 
-const API_BASE = process.env.API_URL || 'http://localhost:3006'
+const API_BASE = process.env.API_URL || 'http://localhost:3000'
 
 describe('Integration Tests (Real External APIs)', () => {
   describe('NYT Puzzle API', () => {
@@ -53,8 +53,8 @@ describe('Integration Tests (Real External APIs)', () => {
       expect(data.source).not.toBe('urban')
     })
 
-    test('falls back to Urban Dictionary for slang/proper nouns', async () => {
-      // "SCARRY" is a proper noun (Richard Scarry) - not in regular dictionary
+    test('returns a definition for proper-noun words (SCARRY)', async () => {
+      // Whichever upstream responds first (MW, Wordnik, Wikipedia, UD) is fine.
       const res = await fetch(`${API_BASE}/api/definition/scarry`)
 
       expect(res.ok).toBe(true)
@@ -62,12 +62,10 @@ describe('Integration Tests (Real External APIs)', () => {
 
       expect(data.definitions).toBeDefined()
       expect(data.definitions.length).toBeGreaterThan(0)
-      expect(data.source).toBe('urban')
-      expect(data.definitions[0].partOfSpeech).toBe('slang')
+      expect(typeof data.source).toBe('string')
     })
 
-    test('Urban Dictionary fallback for GOREY', async () => {
-      // "GOREY" is another proper noun from today's puzzle
+    test('returns a definition for proper-noun words (GOREY)', async () => {
       const res = await fetch(`${API_BASE}/api/definition/gorey`)
 
       expect(res.ok).toBe(true)
@@ -75,8 +73,7 @@ describe('Integration Tests (Real External APIs)', () => {
 
       expect(data.definitions).toBeDefined()
       expect(data.definitions.length).toBeGreaterThan(0)
-      // Should come from Urban Dictionary
-      expect(data.source).toBe('urban')
+      expect(typeof data.source).toBe('string')
     })
   })
 

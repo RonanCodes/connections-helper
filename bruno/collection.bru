@@ -1,0 +1,31 @@
+docs {
+  # Connections Helper API
+
+  Live collection for the public API powering **connectionshelper.app**.
+
+  ## Before you run anything
+
+  Pick an environment in the top-right dropdown:
+
+  - **local**: points at `http://localhost:3000`. Start the server with `pnpm dev` at the repo root, then run requests.
+  - **production**: points at `https://connectionshelper.app`. Safe to hit directly; read-only for a human clicking around.
+
+  Bruno does not yet support committing a default environment (tracked in usebruno/bruno#303), so this step is manual on first open.
+
+  ## CLI
+
+  From the repo root:
+
+  - `pnpm test:api` runs the whole collection against a fresh `pnpm dev` (local).
+  - `pnpm test:api:prod` runs the same collection against the live site.
+
+  Both use `@usebruno/cli` and exit non-zero on any failed assertion, so they double as contract checks in CI.
+
+  ## Folders
+
+  - `stats/`: row counts
+  - `puzzle/`: NYT puzzle by date (valid / malformed / not-found)
+  - `definition/`: single-word lookup, including `?source=` variants
+  - `definitions/`: batch lookup
+  - `config/`: public observability keys
+}

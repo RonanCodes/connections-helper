@@ -1,0 +1,16 @@
+meta {
+  name: GET /api/puzzle/:date (malformed)
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/puzzle/not-a-date
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 400
+  res.body.error: contains Invalid date format
+}

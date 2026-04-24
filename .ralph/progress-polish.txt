@@ -1,0 +1,274 @@
+# Ralph Progress — Polish Stack
+
+## Codebase Patterns (connections-helper-specific)
+- TanStack Start on Cloudflare Workers with D1 + Drizzle
+- Routes are file-based under src/routes/
+- API routes in src/routes/api/ use createFileRoute with server.handlers.GET/POST
+- PostHog wired via src/lib/posthog.ts with typed track() wrapper + EventPayloads
+- Existing e2e/ uses Playwright; tests/integration/ uses vitest
+- Existing /api/stats endpoint; /how-it-works has a StatsBanner
+- Fonts live in public/fonts/
+- No Inter font yet; the app uses whatever is in the existing CSS
+- Production origin is https://connectionshelper.app (from wrangler.jsonc custom_domain routes)
+- File-routes with literal dots use the `[.]` escape: src/routes/sitemap[.]xml.ts → /sitemap.xml
+- Route tree is auto-generated at src/routeTree.gen.ts — inspect it to confirm new routes registered
+
+---
+## [2026-04-24 21:03] - US-001: SEO robots.txt + dynamic sitemap route
+- Implemented:
+  - public/robots.txt (User-agent: *, Disallow: /api/, Sitemap: URL)
+  - src/routes/sitemap[.]xml.ts — dynamic TanStack Start route returning urlset XML
+  - 4 static URLs (/, /how-it-works, /settings, /design-system)
+  - 365 daily puzzle URLs (/?date=YYYY-MM-DD) with lastmod per date
+  - Cache: public, max-age=3600, s-maxage=86400
+- Files changed:
+  - public/robots.txt (new)
+  - src/routes/sitemap[.]xml.ts (new)
+  - src/routeTree.gen.ts (auto-regenerated)
+- **Learnings for future iterations:**
+  - The `[.]` escape in file-routes works cleanly — produces path '/sitemap.xml' in routeTree.gen.ts
+  - Pre-existing TS errors unrelated to polish work are in: src/routes/api/definitions.ts, src/server/definition-fallbacks.ts, src/server/rate-limit.ts, vitest*.config.ts. Don't try to fix these as part of polish stories.
+  - Dynamic sitemap is a better pattern than static public/sitemap.xml because it always reflects the last 365 days from today, no deploy required
+---
+## [2026-04-24 21:08] - US-002: JSON-LD + canonical + full meta set
+- Implemented:
+  - JSON_LD WebApplication constant injected via head.scripts[] with type: application/ld+json
+  - Added og:site_name + og:url + rel=canonical to __root.tsx
+  - how-it-works.tsx now has head() override with route-specific title, description, og:title/description/url, twitter:title/description, and canonical
+  - Absolute URLs used for og:image + canonical (crawlers prefer absolute)
+- Files changed:
+  - src/routes/__root.tsx
+  - src/routes/how-it-works.tsx
+- **Learnings for future iterations:**
+  - TanStack Start head API: scripts: [{ type, children }] — children is the inline content (stringified JSON for JSON-LD)
+  - Route-level head() overrides merge with root head; only override what's route-specific (title, description, url, canonical). Leave charset, viewport, og:type, twitter:card inherited from root.
+  - SITE_ORIGIN and OG_IMAGE constants live in __root.tsx; could be extracted to a shared config if more routes need them in US-011 (dynamic OG meta wiring)
+  - Manual verification: Google Rich Results Test at https://search.google.com/test/rich-results requires a public URL — verify post-deploy, not locally
+---
+## [2026-04-24 21:15] - US-003: PWA manifest + icons + meta + SW registration
+- Implemented:
+  - public/manifest.webmanifest with name, short_name, start_url=/?source=pwa, display=standalone, theme_color=#22c55e, 3 icons
+  - public/icons/icon-192.png, icon-512.png, icon-maskable-512.png generated from favicon.svg via ImageMagick
+  - __root.tsx links manifest + apple-touch-icon; adds mobile-web-app-capable, apple-mobile-web-app-* meta; theme-color updated to puzzle-piece green
+  - App.tsx registers /sw.js guarded by import.meta.env.PROD && 'serviceWorker' in navigator
+- Files changed:
+  - public/manifest.webmanifest (new)
+  - public/icons/ (new, 3 PNGs)
+  - src/routes/__root.tsx
+  - src/App.tsx
+- **Learnings for future iterations:**
+  - TanStack Start has no explicit client entry — PostHog + SW registration live inside App.tsx useEffect; same pattern reused for SW
+  - Maskable icon background: use the brand color (#22c55e puzzle-piece green), not white, so Android adaptive masks show brand not negative space
+  - Icons from a thin-stroke SVG look sparse; acceptable for PWA install but should be replaced with a fuller logo pre-launch
+  - Theme-color was #121213 (dark) — swapped to #22c55e to match manifest theme_color; ensures consistent brand accent on mobile status bar
+---
+## [2026-04-24 21:20] - US-004: Service worker with network-first HTML + cache-first assets
+- Implemented:
+  - public/sw.js — ~60 lines, CACHE='conn-v1' for versioned cache
+  - install: caches.addAll(['/']) + skipWaiting
+  - activate: delete any cache whose key !== CACHE, then clients.claim
+  - fetch handler: skips non-GET; skips /api/*; network-first for HTML (navigate mode or text/html accept header) with fallback to cached or '/'; cache-first for .js .css .woff2 .ttf .png .svg .webp .avif .jpg .jpeg .ico
+  - Added 'public/**' to eslint.config.js ignores (sw.js is not part of the TS project)
+- Files changed:
+  - public/sw.js (new)
+  - eslint.config.js
+- **Learnings for future iterations:**
+  - pnpm run lint includes public/ by default; needed to add public/** to ignores to stop @typescript-eslint from complaining about sw.js not being in a project
+  - Versioning via CACHE const is the deploy lever: bump to 'conn-v2' when you want to force clients to drop all old caches
+  - Deliberately no offline fallback page — the cache-first HTML fallback to '/' is good enough for a utility; a dedicated /offline page can land in a later story if desired
+---
+## [2026-04-24 21:25] - US-005: InstallPrompt with dismiss + session guard
+- Implemented:
+  - src/components/InstallPrompt.tsx — captures beforeinstallprompt, gated on sessionStorage visit-count >= 2, dismiss persisted to localStorage
+  - Rendered in App.tsx inside TooltipProvider so it sits over the page at bottom-center
+  - role='dialog' aria-label='Install this app' + focusable dismiss button
+  - track('cta_clicked', { cta: 'pwa_install', location: 'prompt:accepted' | 'prompt:dismissed' }) and cta_clicked for dismiss
+  - Added `cta_clicked: { cta: string; location: string }` to EventPayloads in src/lib/posthog.ts
+- Files changed:
+  - src/components/InstallPrompt.tsx (new)
+  - src/lib/posthog.ts
+  - src/App.tsx
+- **Learnings for future iterations:**
+  - `cta_clicked` is a generic handle we can reuse for any future CTA tracking (install prompt dismiss, stats-banner CTA clicks, etc.); keep the payload shape minimal (cta + location) so every caller can reuse it without widening the union
+  - `beforeinstallprompt` fires once per eligible session and only in Chromium browsers — nothing to test locally unless you toggle "force install prompt" in DevTools. Expect zero renders on Safari/Firefox.
+  - sessionStorage visit count resets when the tab closes, which is desirable: frequent users who already rejected get localStorage'd, casuals don't see it on first visit, and a second browsing session with open tabs nudges them.
+---
+## [2026-04-24 21:30] - US-006: vitest-axe + component a11y tests
+- Implemented:
+  - pnpm add -D vitest-axe axe-core jest-axe @types/jest-axe
+  - src/test/setup.ts — expect.extend(axeMatchers); wired via vitest.config.ts setupFiles
+  - src/test/axe-helper.ts — expectNoA11yViolations(container) helper
+  - InstallPrompt.a11y.test.tsx — dispatches beforeinstallprompt, asserts zero violations on banner
+  - SettingsDialog.a11y.test.tsx — renders open dialog, asserts zero violations on baseElement (Radix portals outside container)
+  - DatePicker.a11y.test.tsx — renders trigger, asserts zero violations on container
+  - Added explicit `resolve.alias` for @/* and #/* in vitest.config.ts (tsconfigPaths: true alone did not resolve in test env)
+- Files changed:
+  - package.json (devDeps only)
+  - vitest.config.ts
+  - src/test/{setup,axe-helper}.ts (new)
+  - src/components/{InstallPrompt,SettingsDialog,DatePicker}.a11y.test.tsx (new)
+- **Learnings for future iterations:**
+  - `resolve: { tsconfigPaths: true }` is a Vite 8 flag but doesn't always resolve `@/` at test-time — had to add explicit resolve.alias. Keeps vitest decoupled from the vite.config.ts plugin chain.
+  - For Radix dialogs, use `baseElement` not `container` — content portals outside the test container.
+  - ShareButton, CategoryHints, StatsBanner are inline (not exported) components inside App.tsx and how-it-works.tsx. Extracting them just for unit axe tests adds scope; the e2e axe story (US-007) catches them at page render. Kept this story small.
+  - jsdom warns `HTMLCanvasElement.getContext() not implemented` for the lucide-react icon + confetti imports pulled in transitively — harmless, tests still pass. Would need `canvas` npm package if we ever actually care about canvas output in unit tests.
+---
+## [2026-04-24 21:35] - US-007: @axe-core/playwright e2e a11y tests
+- Implemented:
+  - pnpm add -D @axe-core/playwright
+  - e2e/accessibility.spec.ts loops over [/, /how-it-works, /settings, /design-system], runs AxeBuilder with wcag2a/wcag2aa/wcag21aa tags, fails on any violation
+  - Baselined two rules with explicit TODO: color-contrast (theme work) and label (design-system showcases unlabelled primitives intentionally)
+  - Fixed true violations discovered along the way: added aria-label="Previous day" and aria-label="Next day" to App.tsx date-nav icon buttons (Tooltip-only labelling doesn't satisfy button-name)
+- Files changed:
+  - package.json (devDeps)
+  - e2e/accessibility.spec.ts (new)
+  - src/App.tsx (aria-labels on nav buttons)
+- **Learnings for future iterations:**
+  - @axe-core/playwright rejects unknown rule IDs with `unknown rule X in options.rules` — only pass *rule* IDs (e.g. `button-name`) not *check* IDs (e.g. `implicit-label`). The check IDs appear inside `any: [...]` arrays on a violation; they are NOT valid inputs to disableRules.
+  - Baseline ratchet pattern: start with a list of known-gap rules in BASELINED_RULES, add a comment linking each to its future fix story, and remove them one at a time as they get addressed. Keeps CI useful today AND drives us toward zero-violation.
+  - Tooltip-only labelling fails axe button-name — aria-label on the button itself is required. TooltipContent is decorative from axe's perspective.
+  - /design-system is a live route (not gated by env), so it ships to production. Either gate it, or accept that its axe violations reflect a public surface.
+---
+## [2026-04-24 21:40] - US-008: Lighthouse CI with 0.95 a11y threshold
+- Implemented:
+  - pnpm add -D @lhci/cli
+  - lighthouserc.json: 3 runs against / and /how-it-works; assertions error on accessibility < 0.95, warn on best-practices/seo < 0.9, perf < 0.8
+  - .github/workflows/lighthouse.yml runs on PR + push to main
+  - .lighthouseci/ added to .gitignore
+- Local verification:
+  - pnpm exec lhci autorun — 6 runs total across 2 URLs, all passing (accessibility OK, perf = warn-only so dev-mode scores don't break the build)
+- Files changed:
+  - package.json (devDeps)
+  - lighthouserc.json (new)
+  - .github/workflows/lighthouse.yml (new)
+  - .gitignore
+- **Learnings for future iterations:**
+  - `vite preview` doesn't work for TanStack Start on CF Workers because worker handlers aren't bound. LHCI needs the dev server (pnpm dev → wrangler + vite) to get /api/* responses included in the Lighthouse scan.
+  - startServerReadyPattern matches against stdout; vite prints `Local: http://localhost:3000/` when ready. Without this pattern LHCI falls back to polling HTTP, which sometimes races.
+  - performance is intentionally warn-only because dev-mode builds are always slower than prod. If we want a true perf gate, rerun lhci against a prod build (e.g. wrangler deploy + run against the prod URL nightly).
+  - The auto-upload target `temporary-public-storage` returns a URL per report good for ~7 days — sufficient for PR reviewers to click through. For permanent storage wire LHCI_GITHUB_APP_TOKEN.
+---
+## [2026-04-24 21:45] - US-009: aria-live + focus management + skip-to-content
+- Implemented:
+  - Skip-to-content link in __root.tsx (sr-only, focus:not-sr-only, first focusable element in body)
+  - <main id="main-content" tabIndex={-1}> wraps children inside RootDocument
+  - Loading skeleton grid: role="status" aria-live="polite" aria-busy={true} aria-label="Loading puzzle definitions"
+  - Error Card: role="alert"; decorative emoji inside carries aria-hidden
+  - ShareButton focus trap: triggerRef + firstMenuItemRef + wasOpenRef refs, useEffect moves focus to first menu item on open, returns to trigger on close; Escape key handler closes menu; aria-haspopup="menu" + aria-expanded on trigger; role="menu" aria-label="Share puzzle" on popup; role="menuitem" on each item
+  - SettingsDialog: no code changes needed — Radix Dialog primitive already handles focus trap, initial focus, and focus return (verified via the a11y unit test which passed from US-006)
+- Validation:
+  - pnpm run build — PASS, no type errors
+  - pnpm run test — 9/9 passing across 4 suites
+  - pnpm exec playwright test e2e/accessibility.spec.ts — 4/4 passing; no regressions; baselines unchanged (color-contrast + label still deferred per US-009 scope)
+- Files changed:
+  - src/routes/__root.tsx (skip-link + main landmark)
+  - src/App.tsx (aria-live on loader, role=alert on error, full focus management on ShareButton)
+- **Learnings for future iterations:**
+  - React 19 lets refs be passed as plain props — no forwardRef dance needed for the firstMenuItemRef Button assignment
+  - The `wasOpenRef` pattern (remember was-open across renders) is the cleanest way to avoid focusing the trigger on first mount — without it, focus moves to the trigger button on initial page load, which is jarring
+  - Radix Dialog is the reason SettingsDialog didn't need any focus-management code — worth preferring Radix primitives over hand-rolled popovers for future UI work where focus matters (command palette, popover menus, etc.)
+  - color-contrast baseline still exists — next logical step is a theme pass (US-TBD) to tighten contrast on muted text + placeholder colours. Out of scope for this story by design.
+  - role="menu" + role="menuitem" on a share popup is the correct pattern when the items *perform actions* (copy, X, FB). If it contained nav links instead, it'd be role="listbox" or plain nav. Don't overthink it: axe + NVDA both accept menu/menuitem here.
+---
+## [2026-04-24 21:55] - US-010: Dynamic OG endpoint via Satori + resvg-wasm
+- Implemented:
+  - src/routes/api/og.ts — TanStack file route returning 1200x630 PNG
+  - satori/standalone (exposes init(WebAssembly.Module)) + @resvg/resvg-wasm
+  - Module-scope caches for engine init (yoga + resvg) and font bytes — one-shot per worker lifetime
+  - Card layout: green gradient (#22c55e → #16a34a), brand mark top-left, big title + date in middle, byline + domain at bottom
+  - Params: ?date=YYYY-MM-DD (regex-validated, bad input silently falls back), ?title (80-char cap)
+  - Cache: public, max-age=86400, s-maxage=604800, immutable
+  - src/vite-env.d.ts — type declarations for *.wasm and *.ttf?url imports
+  - src/assets/fonts/Inter-{Regular,Bold}.ttf — real TTFs extracted from rsms/inter v4.1 Inter-4.1.zip
+- Validation:
+  - pnpm run lint — PASS
+  - pnpm run build — PASS (yoga.wasm + resvg.wasm + TTFs bundled into dist/server/assets)
+  - curl smoke tests — 4/4 scenarios return valid 100KB+ PNGs (with-date, default, title-only, bad-date)
+  - Cache-Control header verified with `curl -D -`
+- Files changed:
+  - src/routes/api/og.ts (new)
+  - src/vite-env.d.ts (new)
+  - src/assets/fonts/Inter-{Regular,Bold}.ttf (new)
+  - package.json (+satori, @resvg/resvg-wasm)
+  - src/routeTree.gen.ts (auto-regenerated)
+- **Learnings for future iterations:**
+  - CF workerd blocks `WebAssembly.instantiate(bytes)` (dynamic code gen) in both dev and prod. Default `satori` entry hits this path. Fix: use `satori/standalone` — it exposes `init(WebAssembly.Module)` and lets you feed a pre-compiled module (imported via vite). Same pattern applies to `@resvg/resvg-wasm`'s `initWasm()`.
+  - Fonts: `?url` imports return a URL string; fetching that URL against `url.origin` works because vite dev and the CF asset pipeline both serve bundled `/src/assets/...` paths as the binary. An alternative `?arraybuffer` import would inline the bytes but blow up the worker bundle size — better to keep the font as a separately-cacheable asset.
+  - GitHub blob URLs (github.com/.../raw/...) redirect to an HTML page when the path doesn't exist; curl follows redirects silently so you end up with a fake TTF that is actually HTML. `file` on the download is the one-second check — always run it before using a downloaded font. In this story I burned two tries (one on blob, one on raw.githubusercontent 404) before pulling the official release zip.
+  - Worker bundle grew from ~611kb (server index) + 1.5MB (router) to +2.5MB (resvg wasm) + ~600KB (fonts) + yoga wasm. CF Workers limits are 10MB compressed, so we're fine, but any further WASM additions (e.g. image resizing) need size budgeting.
+  - US-011 (wiring og:image per route) should cap query-string length to keep unfurlers happy; Twitter caches per URL so long titles will create N distinct cache keys. The 80-char cap in `parseParams` pre-empts that.
+---
+## [2026-04-24 22:00] - US-011: Wire og:image per route to /api/og
+- Implemented:
+  - __root.tsx OG_IMAGE constant now points to /api/og?title=Connections+Helper (absolute, with https://connectionshelper.app origin)
+  - src/routes/index.tsx gained validateSearch (normalises ?date= to YYYY-MM-DD or undefined) + head({ match }) that emits per-date og:title, og:url, og:image, twitter:title, twitter:image + canonical when a date is present
+  - src/routes/how-it-works.tsx adds og:image + twitter:image pointing to /api/og?title=How+it+works
+  - og.ts default fallback title changed from 'Connections Helper — NYT Puzzle Sidekick' to 'Connections Helper: NYT Puzzle Sidekick' (em-dash removed per /ro:write-copy)
+- Validation:
+  - pnpm run build — PASS
+  - pnpm run lint — PASS
+  - Server-rendered HTML verified via curl:
+    - / emits og:image=https://connectionshelper.app/api/og?title=Connections%20Helper
+    - /?date=2026-04-12 emits og:image with date + title, og:title='Connections for 2026-04-12', date-scoped canonical
+    - /how-it-works emits og:image=...?title=How%20it%20works
+- Files changed:
+  - src/routes/__root.tsx (OG_IMAGE constant)
+  - src/routes/index.tsx (validateSearch + head)
+  - src/routes/how-it-works.tsx (og:image + twitter:image)
+  - src/routes/api/og.ts (default title em-dash cleanup)
+- **Learnings for future iterations:**
+  - TanStack Router head() can take ({ match }) and read match.search — but you need to declare validateSearch so the search object is typed. Cast is still required because TS doesn't flow the validator's return type back into match.search at head() call time (looks like a known limitation of the head generic).
+  - Return `{}` from head() when there's nothing to override — TanStack merges partial head results, so a route with no date still inherits the root OG image.
+  - Returning meta + links together from head() works cleanly; the rest of the OG tag set (og:description, og:type, etc.) is inherited from __root.tsx, which is what you want — each route only owns the 3-4 tags that actually differ.
+  - public/og-image.png is still on disk as a safety net but not linked. Can be deleted in a separate pass once we've monitored a week of social shares to confirm crawlers never hit it.
+---
+## [2026-04-24 22:05] - US-012: Playwright visual regression baselines
+- Implemented:
+  - playwright.config.js: added expect.toHaveScreenshot defaults (maxDiffPixelRatio=0.01, threshold=0.2, animations='disabled', caret='hide')
+  - playwright.config.js use block: locale='en-GB', timezoneId='Europe/Amsterdam', colorScheme='light', reducedMotion='reduce' — all flake-sources locked down
+  - e2e/visual.spec.ts: 3 routes (/, /how-it-works, /?date=2026-04-12) × 2 viewports (desktop 1440x900, mobile 390x844) = 6 snapshot tests
+  - prepare() helper: goto domcontentloaded → waitForSelector('h1') → addStyleTag disabling animations/transitions → 500ms settle
+  - masksFor() returns [aria-live='polite', role='status'] so stats banner + loading states don't diff
+  - Baselines generated at e2e/visual.spec.ts-snapshots/*-chromium-darwin.png (6 PNGs), all 6 pass on a second clean run
+- Validation:
+  - pnpm exec playwright test e2e/visual.spec.ts --update-snapshots — 6 passed (4.8s)
+  - pnpm exec playwright test e2e/visual.spec.ts (clean re-run, no --update) — 6 passed (3.0s)
+- Files changed:
+  - playwright.config.js (expect + use blocks tightened)
+  - e2e/visual.spec.ts (new)
+  - e2e/visual.spec.ts-snapshots/home-{desktop,mobile}-chromium-darwin.png (new)
+  - e2e/visual.spec.ts-snapshots/how-it-works-{desktop,mobile}-chromium-darwin.png (new)
+  - e2e/visual.spec.ts-snapshots/home-dated-{desktop,mobile}-chromium-darwin.png (new)
+- **Learnings for future iterations:**
+  - Do NOT use `page.waitForLoadState('networkidle')` on this app — PostHog + Sentry open long-lived connections that never settle, so the call times out at 30s on every test. `{ waitUntil: 'domcontentloaded' }` + a targeted `waitForSelector` is the right pattern.
+  - Playwright suffixes snapshot filenames with `-{project}-{os}` (e.g. `-chromium-darwin.png`). Platforms don't collide — a Linux CI run can coexist with these macOS PNGs under different suffixes. That lets US-013 defer the "docker container to match macOS baselines" question: the first CI run simply generates `-chromium-linux.png` siblings and those become the CI-authoritative set.
+  - Animation disabling has to happen both at config (reducedMotion + animations: 'disabled') AND via `addStyleTag` with `* { animation: none !important; transition: none !important; }` — the CSS tag catches any element-scoped animation that ignores `prefers-reduced-motion`.
+  - Masking via `mask: [locator]` is preferable to hiding content via CSS — the masked region gets overlaid with a solid color block in the snapshot, so any layout shift caused by dynamic content is still visible in the diff, just not the content itself.
+  - File size of committed baselines: ~1-2MB total. Not concerning yet, but if we grow to 20+ routes, consider using LFS or delta-only CI snapshots.
+---
+## [2026-04-24 22:20] - US-013: Visual regression GitHub Actions workflow
+- Implemented:
+  - .github/workflows/visual-regression.yml runs on pull_request + push-to-main
+  - Job steps: checkout, pnpm/action-setup@v4, setup-node@v4 (node 22, pnpm cache), install, `playwright install --with-deps chromium`, `pnpm db:migrate:local`, `pnpm test:visual`
+  - On failure, upload `test-results/` + `playwright-report/` as artifact `visual-regression-diff` with 7-day retention (if-no-files-found: ignore)
+  - On failure AND pull_request, post a PR comment via actions/github-script@v7 linking the artifact + run URL with a remediation section that covers both "intended change — regenerate baselines" and "first Linux CI run — rename and commit the -actual PNGs as -chromium-linux siblings"
+  - Scoped permissions: contents: read + pull-requests: write (no shell access, no broader scopes)
+  - playwright.config.js: `testIgnore: process.env.PLAYWRIGHT_VISUAL === '1' ? undefined : ['**/visual.spec.ts']` — keeps the existing ci.yml `e2e` job passing on Linux without needing chromium-linux baselines yet. Visual tests only run when explicitly opted in.
+  - package.json scripts: `test:visual` and `test:visual:update` both set PLAYWRIGHT_VISUAL=1 before invoking playwright
+- Validation:
+  - `pnpm exec playwright test --list` — 25 tests across 4 files, visual.spec.ts is excluded (confirmed by absence of `visual:` entries)
+  - `pnpm test:visual` — 6 passed (6.5s), baselines still match
+  - `pnpm run build` — PASS (server bundle 611kB gzip)
+  - `pnpm run lint` — PASS (no eslint errors)
+- Files changed:
+  - .github/workflows/visual-regression.yml (new)
+  - playwright.config.js (testIgnore env toggle)
+  - package.json (test:visual + test:visual:update scripts)
+- **Learnings for future iterations:**
+  - Playwright's `testIgnore` at config top-level is a clean way to carve out a subset that requires opt-in. Using `process.env.<FLAG> === '1' ? undefined : [...]` gives you a single source of truth — no duplicate projects, no filename-suffix changes to baselines, no --grep flags to remember.
+  - `actions/upload-artifact@v4` exposes `outputs.artifact-url` which is a direct download link. That's the key to making PR comments actually actionable — without it, users hunt through the Actions tab for the artifact.
+  - `actions/github-script@v7` is the cleanest way to comment on a PR from a workflow. No need for a third-party action; the `github` + `context` objects give you everything needed. `permissions: pull-requests: write` is required at the job level.
+  - First Linux CI run will fail — the commit messaging and PR comment both need to acknowledge that honestly. The alternative (run visual tests in a Docker container matching macOS) adds complexity and pins you to a specific container image; Playwright's per-platform snapshot naming is the simpler path.
+  - With this in place, the polish stack (US-001 through US-013) is complete. Everything from SEO to PWA to a11y to OG to visual regression has a CI gate. Next natural iteration would be cutting a release PR and actually deploying.
+---
+

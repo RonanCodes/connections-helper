@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
+import { useEffect, useState } from 'react'
 import { ArrowLeft, ExternalLink, Github } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -11,7 +12,72 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { SOURCE_DESCRIPTIONS } from '@/lib/source-descriptions'
 
-export const Route = createFileRoute('/how-it-works')({ component: HowItWorks })
+const SITE_ORIGIN = 'https://connectionshelper.app'
+const HOW_IT_WORKS_TITLE = 'How it works — Connections Helper'
+const HOW_IT_WORKS_DESCRIPTION =
+  'Every dictionary, Wiktionary, and thesaurus source Connections Helper pulls from, in priority order, with the rationale for each.'
+const HOW_IT_WORKS_URL = `${SITE_ORIGIN}/how-it-works`
+const HOW_IT_WORKS_OG_IMAGE = `${SITE_ORIGIN}/api/og?title=${encodeURIComponent('How it works')}`
+
+export const Route = createFileRoute('/how-it-works')({
+  component: HowItWorks,
+  head: () => ({
+    meta: [
+      { title: HOW_IT_WORKS_TITLE },
+      { name: 'description', content: HOW_IT_WORKS_DESCRIPTION },
+      { property: 'og:title', content: HOW_IT_WORKS_TITLE },
+      { property: 'og:description', content: HOW_IT_WORKS_DESCRIPTION },
+      { property: 'og:url', content: HOW_IT_WORKS_URL },
+      { property: 'og:image', content: HOW_IT_WORKS_OG_IMAGE },
+      { name: 'twitter:title', content: HOW_IT_WORKS_TITLE },
+      { name: 'twitter:description', content: HOW_IT_WORKS_DESCRIPTION },
+      { name: 'twitter:image', content: HOW_IT_WORKS_OG_IMAGE },
+    ],
+    links: [{ rel: 'canonical', href: HOW_IT_WORKS_URL }],
+  }),
+})
+
+interface Stats {
+  puzzles: number
+  definitions: number
+}
+
+function StatsBanner() {
+  const [stats, setStats] = useState<Stats | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    fetch('/api/stats')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: Stats | null) => {
+        if (!cancelled && data) setStats(data)
+      })
+      .catch(() => {
+        /* non-fatal — stats are cosmetic */
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  if (!stats) return null
+
+  return (
+    <div
+      className="mb-8 rounded-lg border border-border bg-card px-4 py-3 text-sm text-muted-foreground"
+      aria-live="polite"
+    >
+      <span className="font-medium text-foreground">
+        {stats.definitions.toLocaleString()}
+      </span>{' '}
+      definitions served across{' '}
+      <span className="font-medium text-foreground">
+        {stats.puzzles.toLocaleString()}
+      </span>{' '}
+      puzzles, all cached at the edge.
+    </div>
+  )
+}
 
 interface SourceEntry {
   order: number
@@ -87,6 +153,8 @@ function HowItWorks() {
             order, and what happens behind the scenes.
           </p>
         </header>
+
+        <StatsBanner />
 
         <section className="mb-10">
           <h2 className="text-xl font-semibold mb-3">Why I built this</h2>

@@ -1,0 +1,20 @@
+meta {
+  name: GET /api/definition/:word?source=dictionary
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/definition/apple?source=dictionary
+  body: none
+  auth: none
+}
+
+params:query {
+  source: dictionary
+}
+
+assert {
+  res.status: eq 200
+  res.body.definitions: isArray
+}

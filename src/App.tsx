@@ -29,6 +29,7 @@ import {
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { initTheme } from '@/lib/themes'
+import { track } from '@/lib/posthog'
 import { EnvironmentBadge } from '@/lib/env-badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -48,6 +49,7 @@ import {
 } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 import { DatePicker } from './components/DatePicker'
+import { InstallPrompt } from './components/InstallPrompt'
 import { SettingsDialog } from './components/SettingsDialog'
 import {
   PREFERRED_SOURCE_AUTO,
@@ -865,14 +867,18 @@ function ShareButton({
   const [copied, setCopied] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
+  const triggerRef = useRef<HTMLButtonElement>(null)
+  const firstMenuItemRef = useRef<HTMLButtonElement>(null)
+  const wasOpenRef = useRef(false)
 
   const shareUrl =
     typeof window !== 'undefined'
       ? `${window.location.origin}?date=${puzzleDate}`
       : ''
-  const shareText = puzzleId
-    ? `Check out NYT Connections #${puzzleId} - can you solve it?`
-    : `Check out today's NYT Connections puzzle!`
+  const shareTitle = puzzleId
+    ? `NYT Connections #${puzzleId}: stuck? Look up any word without spoilers`
+    : `Today's NYT Connections: stuck? Look up any word without spoilers`
+  const shareText = shareTitle
 
   // Close menu on outside click
   useEffect(() => {
@@ -885,6 +891,30 @@ function ShareButton({
     setTimeout(() => document.addEventListener('click', handleClick), 0)
     return () => document.removeEventListener('click', handleClick)
   }, [showMenu])
+
+  // Focus management: move focus into the menu on open, back to the
+  // trigger on close. Keyboard users land exactly where they expect.
+  useEffect(() => {
+    if (showMenu) {
+      wasOpenRef.current = true
+      firstMenuItemRef.current?.focus()
+    } else if (wasOpenRef.current) {
+      wasOpenRef.current = false
+      triggerRef.current?.focus()
+    }
+  }, [showMenu])
+
+  // Escape closes the menu (parity with dialog semantics).
+  useEffect(() => {
+    if (!showMenu) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowMenu(false)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [showMenu])
+
+  const sharePayload = { puzzle_id: puzzleId, puzzle_date: puzzleDate }
 
   const handleCopy = async () => {
     try {
@@ -902,6 +932,7 @@ function ShareButton({
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     }
+    track('share', { channel: 'copy', ...sharePayload })
   }
 
   const handleNativeShare = async () => {
@@ -912,6 +943,7 @@ function ShareButton({
           text: shareText,
           url: shareUrl,
         })
+        track('share', { channel: 'native', ...sharePayload })
       } catch {
         // User cancelled or error
       }
@@ -924,25 +956,58 @@ function ShareButton({
       `https://wa.me/?text=${encodeURIComponent(shareText + ' ' + shareUrl)}`,
       '_blank',
     )
+    track('share', { channel: 'whatsapp', ...sharePayload })
     setShowMenu(false)
   }
+
+  const handleX = () => {
+    window.open(
+      `https://x.com/intent/post?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`,
+      '_blank',
+      'noopener,noreferrer',
+    )
+    track('share', { channel: 'x', ...sharePayload })
+    setShowMenu(false)
+  }
+
+  const handleReddit = () => {
+    window.open(
+      `https://www.reddit.com/r/NYTConnections/submit?url=${encodeURIComponent(shareUrl)}&title=${encodeURIComponent(shareTitle)}`,
+      '_blank',
+      'noopener,noreferrer',
+    )
+    track('share', { channel: 'reddit', ...sharePayload })
+    setShowMenu(false)
+  }
+
+  const hasNativeShare =
+    typeof navigator !== 'undefined' && 'share' in navigator
 
   return (
     <div ref={menuRef} className="relative">
       <Button
+        ref={triggerRef}
         variant="ghost"
         size="icon"
         onClick={() => setShowMenu(!showMenu)}
         aria-label="Share"
+        aria-haspopup="menu"
+        aria-expanded={showMenu}
         title="Share"
       >
         <Share2 className="w-4 h-4" />
       </Button>
 
       {showMenu && (
-        <div className="absolute top-full right-0 mt-2 z-50 min-w-[180px] rounded-lg p-1 shadow-lg bg-popover text-popover-foreground border border-border">
-          {typeof navigator !== 'undefined' && 'share' in navigator && (
+        <div
+          role="menu"
+          aria-label="Share puzzle"
+          className="absolute top-full right-0 mt-2 z-50 min-w-[180px] rounded-lg p-1 shadow-lg bg-popover text-popover-foreground border border-border"
+        >
+          {hasNativeShare && (
             <Button
+              ref={firstMenuItemRef}
+              role="menuitem"
               variant="ghost"
               size="sm"
               onClick={handleNativeShare}
@@ -952,6 +1017,30 @@ function ShareButton({
               Share...
             </Button>
           )}
+          <Button
+            ref={hasNativeShare ? undefined : firstMenuItemRef}
+            role="menuitem"
+            variant="ghost"
+            size="sm"
+            onClick={handleX}
+            className="w-full justify-start"
+          >
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+            </svg>
+            X (Twitter)
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleReddit}
+            className="w-full justify-start"
+          >
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0zm5.01 4.744c.688 0 1.25.561 1.25 1.249a1.25 1.25 0 0 1-2.498.056l-2.597-.547-.8 3.747c1.824.07 3.48.632 4.674 1.488.308-.309.73-.491 1.207-.491.968 0 1.754.786 1.754 1.754 0 .716-.435 1.333-1.01 1.614a3.111 3.111 0 0 1 .042.52c0 2.694-3.13 4.87-7.004 4.87-3.874 0-7.004-2.176-7.004-4.87 0-.183.015-.366.043-.534A1.748 1.748 0 0 1 4.028 12.32c0-.968.786-1.754 1.754-1.754.463 0 .898.196 1.207.49 1.207-.883 2.878-1.43 4.744-1.487l.885-4.182a.342.342 0 0 1 .14-.197.35.35 0 0 1 .238-.042l2.906.617a1.214 1.214 0 0 1 1.108-.701zM9.25 12C8.561 12 8 12.562 8 13.25c0 .687.561 1.248 1.25 1.248.687 0 1.248-.561 1.248-1.249 0-.688-.561-1.249-1.249-1.249zm5.5 0c-.687 0-1.248.561-1.248 1.25 0 .687.561 1.248 1.249 1.248.688 0 1.249-.561 1.249-1.249 0-.687-.562-1.249-1.25-1.249zm-5.466 3.99a.327.327 0 0 0-.231.094.33.33 0 0 0 0 .463c.842.842 2.484.913 2.961.913.477 0 2.12-.07 2.961-.913a.33.33 0 0 0 .029-.463.33.33 0 0 0-.464 0c-.533.533-1.67.723-2.526.723-.855 0-1.993-.19-2.525-.723a.336.336 0 0 0-.232-.095z" />
+            </svg>
+            Reddit
+          </Button>
           <Button
             variant="ghost"
             size="sm"
@@ -1281,6 +1370,16 @@ export default function App() {
     } else {
       setTimeout(scheduleAnalytics, 1500)
     }
+
+    if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        void navigator.serviceWorker
+          .register('/sw.js')
+          .catch((err: unknown) => {
+            console.warn('SW registration failed:', err)
+          })
+      })
+    }
   }, [])
 
   const loadPuzzle = async (date: string) => {
@@ -1388,6 +1487,73 @@ export default function App() {
     if (newDate <= getToday()) handleDateChange(newDate)
   }
 
+  const goToToday = () => {
+    const today = getToday()
+    if (puzzleDate !== today) handleDateChange(today)
+  }
+
+  // Keyboard shortcuts. Ignored when focus is in an editable element, when a
+  // modal/dialog is open (Radix sets aria-hidden on siblings), or when any
+  // modifier key is held (don't hijack Cmd+R, Cmd+L, etc.).
+  useEffect(() => {
+    const isEditable = (el: Element | null): boolean => {
+      if (!el) return false
+      const tag = el.tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return true
+      if ((el as HTMLElement).isContentEditable) return true
+      return false
+    }
+
+    const handler = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey) return
+      if (isEditable(document.activeElement)) return
+      if (settingsOpen) return
+
+      switch (e.key) {
+        case 'ArrowLeft':
+        case ',':
+          e.preventDefault()
+          goToPreviousDay()
+          break
+        case 'ArrowRight':
+        case '.':
+          e.preventDefault()
+          goToNextDay()
+          break
+        case 't':
+        case 'T':
+          e.preventDefault()
+          goToToday()
+          break
+        case 'h':
+        case 'H':
+          e.preventDefault()
+          setShowHints((prev) => !prev)
+          break
+        case 's':
+        case 'S':
+          e.preventDefault()
+          setSettingsOpen(true)
+          break
+        case '?':
+          e.preventDefault()
+          alert(
+            'Keyboard shortcuts\n\n' +
+              '← or ,   Previous day\n' +
+              '→ or .   Next day\n' +
+              't        Jump to today\n' +
+              'h        Toggle hints\n' +
+              's        Open settings\n' +
+              '?        Show this help',
+          )
+          break
+      }
+    }
+
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [puzzleDate, settingsOpen])
+
   const isToday = puzzleDate === getToday()
   const isFirstDay = puzzleDate <= FIRST_PUZZLE_DATE
   const loadingDefinitions = words.some((w) => w.loading)
@@ -1446,6 +1612,7 @@ export default function App() {
                       className="flex-shrink-0 h-12 w-12"
                       onClick={goToPreviousDay}
                       disabled={isFirstDay || loadingPuzzle}
+                      aria-label="Previous day"
                     >
                       <ChevronLeft className="!size-7" strokeWidth={2.5} />
                     </Button>
@@ -1495,6 +1662,7 @@ export default function App() {
                       className="flex-shrink-0 h-12 w-12"
                       onClick={goToNextDay}
                       disabled={isToday || loadingPuzzle}
+                      aria-label="Next day"
                     >
                       <ChevronRight className="!size-7" strokeWidth={2.5} />
                     </Button>
@@ -1607,7 +1775,13 @@ export default function App() {
 
           {/* Loading State: skeleton grid matching the real layout */}
           {loadingPuzzle && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div
+              role="status"
+              aria-live="polite"
+              aria-busy={true}
+              aria-label="Loading puzzle definitions"
+              className="grid grid-cols-1 sm:grid-cols-2 gap-4"
+            >
               {Array.from({ length: 16 }).map((_, i) => (
                 <SkeletonWordCard key={i} index={i} />
               ))}
@@ -1616,9 +1790,11 @@ export default function App() {
 
           {/* Error State */}
           {error && !loadingPuzzle && (
-            <Card className="text-center py-16">
+            <Card className="text-center py-16" role="alert">
               <CardContent>
-                <div className="text-6xl mb-4">😕</div>
+                <div className="text-6xl mb-4" aria-hidden>
+                  😕
+                </div>
                 <p className="text-muted-foreground mb-6">{error}</p>
                 <Button onClick={() => handleDateChange(getToday())}>
                   <RefreshCw className="w-4 h-4 mr-2" />
@@ -1674,6 +1850,24 @@ export default function App() {
               </span>
               <span aria-hidden>•</span>
               <a
+                href="https://x.com/ronancodes"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline hover:text-foreground transition-colors inline-flex items-center gap-1"
+                aria-label="Follow @ronancodes on X"
+              >
+                <svg
+                  className="w-3 h-3"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                </svg>
+                @ronancodes
+              </a>
+              <span aria-hidden>•</span>
+              <a
                 href="https://github.com/RonanCodes/connections-helper"
                 target="_blank"
                 rel="noopener noreferrer"
@@ -1690,10 +1884,20 @@ export default function App() {
                 How it works
               </Link>
               <span aria-hidden>•</span>
+              <a
+                href="/api/docs"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline hover:text-foreground transition-colors"
+              >
+                API
+              </a>
+              <span aria-hidden>•</span>
               <span>Not affiliated with NYT</span>
             </div>
           </footer>
         </div>
+        <InstallPrompt />
       </div>
     </TooltipProvider>
   )

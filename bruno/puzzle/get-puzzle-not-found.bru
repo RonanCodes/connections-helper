@@ -1,0 +1,16 @@
+meta {
+  name: GET /api/puzzle/:date (not found)
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/puzzle/1999-01-01
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 404
+  res.body.error: isString
+}

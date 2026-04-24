@@ -21,6 +21,7 @@ export default [
       'playwright.config.js',
       'e2e/**',
       'tests/**',
+      'public/**',
       'worker-configuration.d.ts',
     ],
   },

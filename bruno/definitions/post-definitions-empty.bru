@@ -1,0 +1,34 @@
+meta {
+  name: POST /api/definitions (empty array)
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/definitions
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "words": []
+  }
+}
+
+assert {
+  res.status: eq 200
+}
+
+tests {
+  test("definitions is an object", () => {
+    expect(res.body.definitions).to.be.an("object")
+  })
+  test("definitions is empty", () => {
+    expect(Object.keys(res.body.definitions).length).to.equal(0)
+  })
+}

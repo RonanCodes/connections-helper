@@ -1,0 +1,29 @@
+meta {
+  name: GET /api/puzzle/:date (valid)
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/puzzle/{{validPuzzleDate}}
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 200
+  res.body.id: isNumber
+  res.body.print_date: eq {{validPuzzleDate}}
+  res.body.categories: isArray
+}
+
+tests {
+  test("categories has 4 entries", () => {
+    expect(res.body.categories.length).to.equal(4)
+  })
+  test("each category has 4 cards", () => {
+    res.body.categories.forEach((c) => {
+      expect(c.cards.length).to.equal(4)
+    })
+  })
+}

@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 
-const BASE_URL = process.env.API_URL || 'https://connections.ronanconnolly.dev'
+const BASE_URL = process.env.API_URL || 'http://localhost:3000'
 
 test.describe('Feb 7th 2026 Special Edition - Shapes Puzzle', () => {
   test('API returns image-based puzzle data for 2026-02-07', async ({
@@ -75,19 +75,22 @@ test.describe('Feb 7th 2026 Special Edition - Shapes Puzzle', () => {
     // Should not crash - definitions might be empty or fallback but shouldn't error
   })
 
-  test('definitions API handles empty/null words gracefully', async ({
+  test('definitions API rejects non-string items with 400', async ({
     request,
   }) => {
-    // Edge case: null/empty words should not crash the server
-    const response = await request.post(`${BASE_URL}/api/definitions`, {
-      data: { words: [null, undefined, '', 'HELLO'] },
+    // Zod validation rejects null/undefined entries. Clients must send
+    // a clean string array; empties are tolerated and filtered.
+    const bad = await request.post(`${BASE_URL}/api/definitions`, {
+      data: { words: [null, 'HELLO'] },
     })
+    expect(bad.status()).toBe(400)
 
-    expect(response.ok()).toBeTruthy()
-    const data = await response.json()
-    expect(data.definitions).toBeDefined()
-    // Should have definition for HELLO at minimum
-    expect(data.definitions['hello']).toBeDefined()
+    const ok = await request.post(`${BASE_URL}/api/definitions`, {
+      data: { words: ['', 'HELLO'] },
+    })
+    expect(ok.ok()).toBeTruthy()
+    const data = await ok.json()
+    expect(data.definitions.hello).toBeDefined()
   })
 
   test('Feb 7th puzzle loads without errors via full flow', async ({

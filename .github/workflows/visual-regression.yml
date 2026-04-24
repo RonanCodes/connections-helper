@@ -1,0 +1,91 @@
+name: Visual regression
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: visual-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  visual:
+    name: Playwright visual diff
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Apply D1 migrations locally
+        run: pnpm db:migrate:local
+
+      - name: Run visual regression tests
+        id: visual
+        run: pnpm test:visual
+
+      - name: Upload diff artifact
+        if: failure() && steps.visual.conclusion == 'failure'
+        id: artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: visual-regression-diff
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Comment on PR with diff link
+        if: failure() && steps.visual.conclusion == 'failure' && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const artifactUrl = '${{ steps.artifact.outputs.artifact-url }}';
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const body = [
+              '## Visual regression failed',
+              '',
+              `The **visual-regression** workflow detected pixel differences. Download the diff artifact to inspect:`,
+              '',
+              artifactUrl ? `- Diff artifact: ${artifactUrl}` : `- Diff artifact: see the [run summary](${runUrl})`,
+              `- Full run: ${runUrl}`,
+              '',
+              '### If the visual change is intentional',
+              '',
+              'Regenerate both baseline sets and commit them. Baselines are platform-scoped,',
+              'so a macOS developer needs the macOS set AND the Linux set (used by CI):',
+              '',
+              '```bash',
+              '# On macOS (native):',
+              'pnpm test:visual:update',
+              '',
+              '# For Linux CI (requires Docker Desktop running):',
+              'pnpm test:visual:update:linux',
+              '',
+              'git add e2e/visual.spec.ts-snapshots/',
+              'git commit -m "test: refresh visual baselines"',
+              '```',
+            ].join('\n');
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body,
+            });
