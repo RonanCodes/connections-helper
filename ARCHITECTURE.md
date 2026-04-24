@@ -114,8 +114,40 @@ flowchart LR
 ```
 
 - **Sentry:** unhandled errors + 10% trace sampling, full replay on error.
-- **PostHog:** autocapture + pageviews, `person_profiles: 'identified_only'`.
+- **PostHog:** max-data config (see below).
 - **UptimeRobot:** 5-minute probe of `/api/stats` (which touches D1); alerts on failure.
+
+### PostHog configuration
+
+This project runs PostHog with the most generous data capture the SDK offers. There's no auth and no PII on the page, so everything visible to a visitor is already public. Two sides to the config:
+
+**Project-level (server side, set once via management API):**
+
+| Setting | Value | Captures |
+| --- | --- | --- |
+| `session_recording_opt_in` | `true` | rrweb session replays |
+| `session_recording_sample_rate` | `1.00` | 100% of sessions |
+| `session_recording_minimum_duration_milliseconds` | `0` | even very short visits |
+| `session_recording_network_payload_capture_config.recordHeaders` | `true` | request/response headers in replays |
+| `session_recording_network_payload_capture_config.recordBody` | `true` | request/response bodies |
+| `capture_console_log_opt_in` | `true` | `console.*` in replays |
+| `capture_performance_opt_in` | `true` | Core Web Vitals |
+| `autocapture_opt_out` | `false` | clicks/inputs/submits |
+| `autocapture_exceptions_opt_in` | `true` | JS errors to Error Tracking |
+| `heatmaps_opt_in` | `true` | click/scroll heatmaps |
+| `surveys_opt_in` | `true` | in-app surveys |
+
+Flip via `PATCH /api/projects/<id>/` on `eu.posthog.com` with the personal API key. See `/ro:posthog` skill for the exact curl.
+
+**Client-level (SDK init, `src/lib/posthog.ts`):**
+
+Key options: `autocapture: true`, `capture_pageview`, `capture_pageleave`, `enable_heatmaps`, `capture_performance`, `capture_exceptions`, `session_recording.maskAllInputs: false`, `session_recording.recordCrossOriginIframes: true`. See the file for the full block.
+
+**When to tone it down:**
+
+- Add auth → re-enable `maskAllInputs: true` (covers password fields etc.).
+- Add payment → strip `recordBody` and mask any DOM node containing PAN/CVC (`ph-mask-sensitive` class + `maskTextSelector`).
+- High traffic → drop `session_recording_sample_rate` to `0.10` to keep costs in check.
 
 ## Project layout
 
