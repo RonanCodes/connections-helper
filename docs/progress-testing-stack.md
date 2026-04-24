@@ -13,6 +13,7 @@ Track per-task status and notes. Update after each commit.
 Notes:
 
 - Trimmed 5 stale UI tests in `e2e/connections.spec.ts` that were written against the pre-redesign UI (selectors like `input[type="date"]` and "Reveal Answers" no longer match). Kept 3 stable specs. Follow-up task: rewrite UI coverage against current selectors.
+- **Follow-up done:** UI coverage rewritten against current selectors. New specs cover title, date-picker popover open, `Unlock Hints` ↔ `Lock Hints` toggle, settings button, definition rendering, and localStorage persistence after picking a date. 21/21 full e2e green.
 - One API test (`handles unknown words gracefully`) was relaxed: the former "Inferred" fallback was removed from `definition.$word.ts` but the test still expected a fallback definition. Now it only asserts the response shape, not presence of a fallback.
 
 ## Task 2: Integration tests
