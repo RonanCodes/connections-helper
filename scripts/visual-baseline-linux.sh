@@ -26,10 +26,15 @@ PW_VERSION=$(node -p "require('./node_modules/@playwright/test/package.json').ve
 IMAGE="mcr.microsoft.com/playwright:v${PW_VERSION}-noble"
 
 echo "==> Using Playwright image: ${IMAGE}"
-echo "==> Regenerating Linux baselines (this mounts the repo read-write)..."
+echo "==> Regenerating Linux baselines..."
+echo "    - repo mounted read-write at /work"
+echo "    - /work/node_modules is a named volume (host node_modules untouched)"
+echo "    - /work/.wrangler is a tmpfs overlay (host .wrangler untouched, container sees empty D1 so state matches CI)"
 
 docker run --rm \
   -v "${PWD}":/work \
+  -v playwright-baseline-node-modules:/work/node_modules \
+  --mount type=tmpfs,destination=/work/.wrangler \
   -w /work \
   --ipc=host \
   -e CI=1 \
