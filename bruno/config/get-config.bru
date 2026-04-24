@@ -1,0 +1,23 @@
+meta {
+  name: GET /api/config
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/config
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 200
+}
+
+tests {
+  test("exposes observability keys (may be empty strings)", () => {
+    expect(res.body).to.have.property("sentryDsn")
+    expect(res.body).to.have.property("posthogKey")
+    expect(res.body).to.have.property("posthogHost")
+  })
+}

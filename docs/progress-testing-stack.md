@@ -27,15 +27,18 @@ Notes:
 
 ## Task 3: Bruno collection
 
-- [ ] Install `@usebruno/cli` as a dev dep.
-- [ ] Create `bruno/` collection with requests for every in-scope route.
-- [ ] Commit `bruno.json`, environment files (`local`, `ci`, `production`).
-- [ ] Add assertions on status + response shape for each request.
-- [ ] Add `pnpm test:api` script using `start-server-and-test` + `bru run`.
-- [ ] Add `api-contract` CI job.
-- [ ] Confirm locally: `pnpm test:api` green.
+- [x] Install `@usebruno/cli` as a dev dep.
+- [x] Create `bruno/` collection covering stats, puzzle (valid / malformed / not-found), definition (happy / by-source / unknown-source), definitions batch (valid / empty / invalid), config.
+- [x] Commit `bruno.json` + `environments/local.bru` + `environments/production.bru`.
+- [x] Add assertions on status + body shape + domain-specific tests (e.g. 4 categories × 4 cards).
+- [x] Add `pnpm test:api` + `pnpm test:api:prod` scripts. Local variant uses `start-server-and-test`.
+- [x] Add `api-contract` CI job (needs `test`, gates `deploy`).
+- [x] Confirm locally: `pnpm test:api` green (11/11 requests, 9/9 tests, 22/22 assertions).
 
 Notes:
+- Bruno's built-in assertion set does not include `isObject`; used chai `to.be.an("object")` in `tests { }` blocks instead.
+- `bru run` must execute from the collection root, so the script does `cd bruno && bru run . -r`.
+- `test:api:prod` runs the same collection against `connectionshelper.app` for post-deploy smoke verification.
 
 ## Task 4: Zod + OpenAPI + Scalar
 

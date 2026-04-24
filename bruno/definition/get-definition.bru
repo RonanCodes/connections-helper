@@ -1,0 +1,25 @@
+meta {
+  name: GET /api/definition/:word
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/definition/apple
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 200
+  res.body.definitions: isArray
+}
+
+tests {
+  test("returns at least one definition", () => {
+    expect(res.body.definitions.length).to.be.greaterThan(0)
+  })
+  test("first definition has a 'definition' string", () => {
+    expect(res.body.definitions[0].definition).to.be.a("string")
+  })
+}

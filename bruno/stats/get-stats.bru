@@ -1,0 +1,17 @@
+meta {
+  name: GET /api/stats
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/stats
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 200
+  res.body.puzzles: isNumber
+  res.body.definitions: isNumber
+}
