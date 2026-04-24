@@ -149,8 +149,16 @@ export function buildOpenApiDocument(
     info: {
       title: 'Connections Helper API',
       version: '2.0.0',
-      description:
-        'Public API that powers connectionshelper.app. Provides the daily NYT Connections puzzle and multi-source word definitions.',
+      description: [
+        'Public API that powers connectionshelper.app.',
+        'Provides the daily NYT Connections puzzle and multi-source word definitions.',
+        '',
+        '**Docs UIs:**',
+        '- [/api/docs](/api/docs): Scalar (modern, with built-in Try-It-Out)',
+        '- [/api/docs/redoc](/api/docs/redoc): Redoc (classic three-column with clickable schema refs)',
+        '',
+        'The raw spec lives at [/api/openapi](/api/openapi).',
+      ].join('\n'),
     },
     servers: opts.servers ?? [{ url: 'https://connectionshelper.app' }],
   })
