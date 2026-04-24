@@ -108,8 +108,8 @@
         "pnpm exec playwright test e2e/accessibility.spec.ts passes locally"
       ],
       "priority": 7,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "e2e/accessibility.spec.ts runs AxeBuilder with wcag2a/wcag2aa/wcag21aa tags against /, /how-it-works, /settings, /design-system. 4/4 tests passing. Two rules baselined today: color-contrast (theme work, US-009) and label (design-system renders unstyled form primitives as a showcase). Added aria-label to prev/next-day nav buttons in App.tsx along the way (true discoverable violations, not ignorable). When US-009 tightens aria-live + focus management, the baselined rules will be removed one-by-one."
     },
     {
       "id": "US-008",

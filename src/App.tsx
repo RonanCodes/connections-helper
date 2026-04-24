@@ -1573,6 +1573,7 @@ export default function App() {
                       className="flex-shrink-0 h-12 w-12"
                       onClick={goToPreviousDay}
                       disabled={isFirstDay || loadingPuzzle}
+                      aria-label="Previous day"
                     >
                       <ChevronLeft className="!size-7" strokeWidth={2.5} />
                     </Button>
@@ -1622,6 +1623,7 @@ export default function App() {
                       className="flex-shrink-0 h-12 w-12"
                       onClick={goToNextDay}
                       disabled={isToday || loadingPuzzle}
+                      aria-label="Next day"
                     >
                       <ChevronRight className="!size-7" strokeWidth={2.5} />
                     </Button>
