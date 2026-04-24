@@ -124,6 +124,9 @@
     "onlyBuiltDependencies": [
       "esbuild",
       "lightningcss"
-    ]
+    ],
+    "overrides": {
+      "lodash@<4.17.24": ">=4.17.24"
+    }
   }
 }
