@@ -1,0 +1,13 @@
+# Ralph Progress — Polish Stack
+
+## Codebase Patterns (connections-helper-specific)
+- TanStack Start on Cloudflare Workers with D1 + Drizzle
+- Routes are file-based under src/routes/
+- API routes in src/routes/api/ use createFileRoute with server.handlers.GET/POST
+- PostHog wired via src/lib/posthog.ts with typed track() wrapper + EventPayloads
+- Existing e2e/ uses Playwright; tests/integration/ uses vitest
+- Existing /api/stats endpoint; /how-it-works has a StatsBanner
+- Fonts live in public/fonts/
+- No Inter font yet; the app uses whatever is in the existing CSS
+
+---

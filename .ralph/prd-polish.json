@@ -1,0 +1,207 @@
+{
+  "project": "connections-helper",
+  "branchName": "feat/production-grade-testing",
+  "description": "Launch-ready polish stack for connections-helper. Implements items #4, #5, #6, #8, #9 from the /ro:app-polish checklist: dynamic OG images, PWA install, SEO (sitemap + JSON-LD), accessibility CI, and visual regression. Each story is runnable in one ralph iteration. Reference skills: /ro:og-image-dynamic, /ro:pwa-install, /ro:seo-launch-ready, /ro:accessibility-ci, /ro:visual-regression.",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "SEO: robots.txt + dynamic sitemap route",
+      "description": "As a search engine crawler, I want a robots.txt that points to a sitemap, and a sitemap that lists the homepage, /how-it-works, and the last 365 puzzle dates, so I can index the app thoroughly.",
+      "acceptanceCriteria": [
+        "public/robots.txt exists with Sitemap: line pointing to the production URL",
+        "src/routes/sitemap[.]xml.ts exists and returns valid XML",
+        "Sitemap includes homepage, /how-it-works, and the last 365 puzzle dates as /?date=YYYY-MM-DD",
+        "Response has Content-Type: application/xml and 1-day edge cache",
+        "Local curl of /sitemap.xml returns 200 with valid urlset XML"
+      ],
+      "priority": 1,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-002",
+      "title": "SEO: JSON-LD WebApplication schema + canonical + full meta set",
+      "description": "As a social crawler (Twitter, LinkedIn, Discord) or Google's rich results engine, I want a WebApplication JSON-LD block, canonical URLs per route, and complete OG+Twitter meta so previews unfurl correctly and Google can surface rich results.",
+      "acceptanceCriteria": [
+        "src/routes/__root.tsx includes JSON-LD WebApplication schema in scripts",
+        "Root route sets og:title, og:description, og:image, og:url, og:type, og:site_name, twitter:card=summary_large_image, twitter:image",
+        "Canonical link set in __root.tsx pointing to the production origin + current path",
+        "how-it-works route overrides title + description with route-specific copy",
+        "Rich Results Test passes against the built site (manual verification note in progress file)"
+      ],
+      "priority": 2,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-003",
+      "title": "PWA: manifest.webmanifest + icons + meta + SW registration",
+      "description": "As a mobile user, I want to install the app to my home screen so I can open it with one tap instead of navigating a browser.",
+      "acceptanceCriteria": [
+        "public/manifest.webmanifest exists with name, short_name, description, start_url=/?source=pwa, display=standalone, theme_color, icons (192, 512, maskable-512)",
+        "public/icons/icon-192.png and icon-512.png and icon-maskable-512.png exist (generated from existing favicon or logo)",
+        "src/routes/__root.tsx links manifest and adds theme-color, apple-mobile-web-app-capable meta",
+        "Client entry registers /sw.js only in PROD when serviceWorker is available",
+        "DevTools Application tab shows no manifest warnings (manual verification note in progress file)"
+      ],
+      "priority": 3,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-004",
+      "title": "PWA: service worker with network-first HTML + cache-first assets",
+      "description": "As a mobile user who taps the app icon while briefly offline, I want the last-cached page to appear instantly (with an offline fallback if needed) instead of Chrome's dino.",
+      "acceptanceCriteria": [
+        "public/sw.js exists with install/activate/fetch handlers",
+        "HTML requests (request.mode='navigate' or accept includes text/html) use network-first with cache fallback",
+        "Static assets (.js .css .woff2 .png .svg etc) use cache-first",
+        "API requests are NOT cached by the SW",
+        "CACHE const uses a versioned name (e.g. 'conn-v1') that can be bumped on deploy",
+        "Activate handler deletes any cache whose key !== CACHE"
+      ],
+      "priority": 4,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-005",
+      "title": "PWA: InstallPrompt component with dismiss + session guard",
+      "description": "As a returning visitor (not first visit), I want an unobtrusive install prompt with a clear dismiss action that doesn't nag me again.",
+      "acceptanceCriteria": [
+        "src/components/InstallPrompt.tsx exists",
+        "Captures beforeinstallprompt event (preventDefault + store)",
+        "Does NOT render on first visit — wait for sessionStorage visit-count >= 2",
+        "Dismiss stores flag in localStorage; does not re-prompt after dismiss",
+        "Fires track('cta_clicked', { cta: 'pwa_install', location: 'prompt:accepted' | 'prompt:dismissed' })",
+        "Dialog uses role='dialog' with aria-label='Install this app'",
+        "Rendered in __root.tsx layout"
+      ],
+      "priority": 5,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-006",
+      "title": "a11y: vitest-axe setup + component-level accessibility tests",
+      "description": "As a developer, I want axe violations to fail unit tests on the most-important components so a11y regressions are caught before they reach CI.",
+      "acceptanceCriteria": [
+        "vitest-axe + axe-core + @testing-library/react installed as devDeps",
+        "src/test/axe-helper.ts exports expectNoA11yViolations(container)",
+        "Axe tests exist for: ShareButton, SettingsDialog (or settings route render), HintsPanel (or equivalent), StatsBanner",
+        "pnpm test passes with zero axe violations on the covered components",
+        "Tests use expect.extend(toHaveNoViolations) setup in a global test setup file"
+      ],
+      "priority": 6,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-007",
+      "title": "a11y: @axe-core/playwright e2e tests on key routes",
+      "description": "As a user with assistive tech, I want every rendered route to pass WCAG 2 AA checks at the e2e level so missed a11y bugs in composition (not just components) are caught.",
+      "acceptanceCriteria": [
+        "@axe-core/playwright installed as devDep",
+        "e2e/accessibility.spec.ts exists",
+        "Tests cover /, /how-it-works, /settings, /design-system (tags: wcag2a, wcag2aa, wcag21aa)",
+        "Tests fail when violations array is non-empty",
+        "pnpm exec playwright test e2e/accessibility.spec.ts passes locally"
+      ],
+      "priority": 7,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-008",
+      "title": "a11y: Lighthouse CI with 0.95 accessibility threshold",
+      "description": "As the team, we want a per-PR Lighthouse accessibility score of >= 0.95 as a build gate so the app doesn't silently regress.",
+      "acceptanceCriteria": [
+        "@lhci/cli installed as devDep",
+        "lighthouserc.json exists with startServerCommand=pnpm preview, url=[/, /how-it-works], numberOfRuns=3",
+        "Assertions: categories:accessibility >= 0.95 (error), best-practices >= 0.9 (warn), seo >= 0.9 (warn), performance >= 0.8 (warn)",
+        ".github/workflows/lighthouse.yml runs lhci on PR",
+        "Local pnpm exec lhci autorun passes against a built app"
+      ],
+      "priority": 8,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-009",
+      "title": "a11y: aria-live regions + focus management + skip-to-content",
+      "description": "As a screen-reader user, I want async state changes announced, modal focus managed, and a skip link so I can navigate the app without a mouse.",
+      "acceptanceCriteria": [
+        "Definitions loading region has role='status' aria-live='polite' aria-busy={isLoading}",
+        "Any error rendering uses role='alert'",
+        "ShareButton and SettingsDialog (or equivalent) focus the first interactive element on open and return focus to the trigger on close",
+        "Skip-to-content link is the first focusable element in __root.tsx, visible only when focused",
+        "<main id='main-content' tabIndex={-1}> wraps the main content area"
+      ],
+      "priority": 9,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-010",
+      "title": "Dynamic OG: /api/og endpoint via Satori + resvg-wasm on Workers",
+      "description": "As someone sharing a puzzle-day link, I want the preview card to show the puzzle date + a branded card so the share looks intentional, not generic.",
+      "acceptanceCriteria": [
+        "satori + @resvg/resvg-wasm installed",
+        "src/routes/api/og.ts exists and returns image/png",
+        "Accepts ?date=YYYY-MM-DD and ?title=... query params",
+        "Uses Inter (or existing app font) bundled via Vite; no runtime Google Fonts fetches",
+        "Returns 1200x630 PNG with Cache-Control: public, max-age=86400, s-maxage=604800, immutable",
+        "Falls back to a default card if params missing",
+        "curl 'http://localhost:3000/api/og?date=2026-04-12' returns valid PNG (file size > 10kb)"
+      ],
+      "priority": 10,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-011",
+      "title": "Dynamic OG: wire og:image per route to /api/og",
+      "description": "As a social-media user, I want each shareable URL to unfurl with its own OG image so my shares stand out in a feed.",
+      "acceptanceCriteria": [
+        "Root route og:image and twitter:image point to /api/og?title=Connections+Helper",
+        "Index route (with ?date= param) sets og:image to /api/og?date=<date>&title=Connections+for+<date>",
+        "how-it-works route sets og:image to /api/og?title=How+it+works",
+        "Removed references to static /og-image.png where they are replaced by dynamic URLs",
+        "Absolute URLs used for og:image (https://origin + path) so crawlers can fetch them"
+      ],
+      "priority": 11,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-012",
+      "title": "Visual regression: Playwright toHaveScreenshot baselines",
+      "description": "As a maintainer, I want pixel-diff baselines for the key routes across mobile + desktop so CSS regressions are caught before merge.",
+      "acceptanceCriteria": [
+        "playwright.config.ts includes expect.toHaveScreenshot defaults (maxDiffPixelRatio=0.01, threshold=0.2, animations=disabled, caret=hide)",
+        "use block includes locale=en-GB, timezoneId=Europe/Amsterdam, colorScheme=light, reducedMotion=reduce",
+        "e2e/visual.spec.ts covers /, /how-it-works, /?date=2026-04-12 at mobile (390x844) and desktop (1440x900)",
+        "Test masks anything dynamic (stats counters, timestamps) via mask: [locator]",
+        "Baselines committed under e2e/__screenshots__ (captured via Linux docker for CI consistency OR noted as macOS-baseline with a TODO)"
+      ],
+      "priority": 12,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-013",
+      "title": "Visual regression: GitHub Actions workflow with diff artifact",
+      "description": "As a reviewer, I want failed visual-regression runs to upload the diff PNGs and comment on the PR so I can see at a glance what changed.",
+      "acceptanceCriteria": [
+        ".github/workflows/visual-regression.yml exists",
+        "Runs on pull_request, installs deps, builds app, runs e2e/visual.spec.ts",
+        "On failure, uploads test-results/ as artifact with 7-day retention",
+        "On failure, posts a PR comment pointing at the artifact and the --update-snapshots command",
+        "Uses mcr.microsoft.com/playwright container OR pnpm exec playwright install --with-deps chromium"
+      ],
+      "priority": 13,
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}
