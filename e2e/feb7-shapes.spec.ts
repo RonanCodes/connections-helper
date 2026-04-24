@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 
-const BASE_URL = process.env.API_URL || 'https://connections.ronanconnolly.dev'
+const BASE_URL = process.env.API_URL || 'http://localhost:3000'
 
 test.describe('Feb 7th 2026 Special Edition - Shapes Puzzle', () => {
   test('API returns image-based puzzle data for 2026-02-07', async ({

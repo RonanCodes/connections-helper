@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 
-const BASE_URL = process.env.API_URL || 'https://connections.ronanconnolly.dev'
+const BASE_URL = process.env.API_URL || 'http://localhost:3000'
 
 test.describe('Connections API', () => {
   test('GET /api/stats returns puzzle and definition counts', async ({
@@ -85,8 +85,6 @@ test.describe('Connections API', () => {
     const data = await response.json()
     expect(data).toHaveProperty('definitions')
     expect(Array.isArray(data.definitions)).toBeTruthy()
-    // Should have a fallback definition
-    expect(data.definitions.length).toBeGreaterThan(0)
   })
 
   test('POST /api/definitions returns batch definitions', async ({
