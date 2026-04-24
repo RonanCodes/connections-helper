@@ -41,3 +41,4 @@ playwright-report/
 # TanStack (generated)
 src/routeTree.gen.ts
 .tanstack/
+.claude/

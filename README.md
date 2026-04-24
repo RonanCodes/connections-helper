@@ -1,13 +1,20 @@
 # Connections Helper 🧩
 
-A self-hostable helper for the [NYT Connections](https://www.nytimes.com/games/connections) puzzle. Shows definitions for each word so you can look up an unfamiliar term without spoiling the categories.
+Live: **[connectionshelper.app](https://connectionshelper.app)**
+
+A helper for the [NYT Connections](https://www.nytimes.com/games/connections) puzzle. Shows a definition for each of the 16 words so you can look up an unfamiliar term without spoiling the categories.
+
+![Connections Helper screenshot](./docs/screenshot.png)
 
 - Fetches the daily puzzle from the public NYT endpoint
-- Pulls definitions from Dictionary API, Datamuse, Wiktionary, Urban Dictionary
+- Definitions from Merriam-Webster, Free Dictionary, Datamuse, Wikipedia, and Urban Dictionary in a fallback waterfall, toggleable per word
 - Caches puzzles + definitions to Cloudflare D1 so repeat lookups are instant
-- Hints / category reveal for when you're really stuck
+- Optional hints and category reveal for when you're stuck
+- Date picker to catch up on previous days
 
-Live instance: [connections-helper.ronanconnolly.dev](https://connections-helper.ronanconnolly.dev)
+## Why I built this
+
+My girlfriend Becca plays Connections every day, and she'd often hit a word she didn't know and have to flick between a dictionary tab and the puzzle. We wanted a single screen with all 16 words and their definitions side by side. Later I added a hints mode for when you're stuck and a source toggle, because different dictionaries are good at different kinds of words.
 
 Not affiliated with the New York Times.
 

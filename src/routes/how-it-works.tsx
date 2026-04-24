@@ -89,6 +89,19 @@ function HowItWorks() {
         </header>
 
         <section className="mb-10">
+          <h2 className="text-xl font-semibold mb-3">Why I built this</h2>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            My girlfriend Becca plays Connections every day. She'd often hit a
+            word she didn't know and end up flicking between a dictionary tab
+            and the puzzle, losing her train of thought. We figured a single
+            screen showing all 16 words with their definitions side-by-side
+            would save the dance. Later I added a hints mode for when you're
+            properly stuck, and a toggle between dictionary sources because
+            different dictionaries are good at different kinds of words.
+          </p>
+        </section>
+
+        <section className="mb-10">
           <h2 className="text-xl font-semibold mb-3">What this app does</h2>
           <p className="text-sm text-muted-foreground leading-relaxed">
             Every day the New York Times publishes a Connections puzzle: 16
