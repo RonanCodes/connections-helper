@@ -156,7 +156,9 @@ function buildCard({ date, title }: OgParams) {
             children: [
               {
                 type: 'span',
-                props: { children: 'Stuck on a word? Look it up without spoilers.' },
+                props: {
+                  children: 'Stuck on a word? Look it up without spoilers.',
+                },
               },
               {
                 type: 'span',
@@ -187,7 +189,12 @@ export const Route = createFileRoute('/api/og')({
             width: 1200,
             height: 630,
             fonts: [
-              { name: 'Inter', data: fonts.regular, weight: 400, style: 'normal' },
+              {
+                name: 'Inter',
+                data: fonts.regular,
+                weight: 400,
+                style: 'normal',
+              },
               { name: 'Inter', data: fonts.bold, weight: 700, style: 'normal' },
             ],
           })
