@@ -5,6 +5,10 @@
   "compatibility_flags": ["nodejs_compat"],
   "main": "@tanstack/react-start/server-entry",
   "observability": { "enabled": true },
+  "routes": [
+    { "pattern": "connectionshelper.app", "custom_domain": true },
+    { "pattern": "www.connectionshelper.app", "custom_domain": true },
+  ],
   "vars": {
     // Observability keys, public by design (Sentry DSN and PostHog phc_ keys
     // are intended to ship to browsers). CI overrides via `wrangler deploy --var`
