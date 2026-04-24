@@ -30,10 +30,7 @@ async function prepare(page: Page, route: Route) {
 
 async function masksFor(page: Page) {
   // Dynamic content that would otherwise diff on every run.
-  return [
-    page.locator('[aria-live="polite"]'),
-    page.locator('[role="status"]'),
-  ]
+  return [page.locator('[aria-live="polite"]'), page.locator('[role="status"]')]
 }
 
 for (const route of ROUTES) {
