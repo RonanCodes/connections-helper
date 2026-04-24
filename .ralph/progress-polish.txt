@@ -30,4 +30,20 @@
   - Pre-existing TS errors unrelated to polish work are in: src/routes/api/definitions.ts, src/server/definition-fallbacks.ts, src/server/rate-limit.ts, vitest*.config.ts. Don't try to fix these as part of polish stories.
   - Dynamic sitemap is a better pattern than static public/sitemap.xml because it always reflects the last 365 days from today, no deploy required
 ---
+## [2026-04-24 21:08] - US-002: JSON-LD + canonical + full meta set
+- Implemented:
+  - JSON_LD WebApplication constant injected via head.scripts[] with type: application/ld+json
+  - Added og:site_name + og:url + rel=canonical to __root.tsx
+  - how-it-works.tsx now has head() override with route-specific title, description, og:title/description/url, twitter:title/description, and canonical
+  - Absolute URLs used for og:image + canonical (crawlers prefer absolute)
+- Files changed:
+  - src/routes/__root.tsx
+  - src/routes/how-it-works.tsx
+- **Learnings for future iterations:**
+  - TanStack Start head API: scripts: [{ type, children }] — children is the inline content (stringified JSON for JSON-LD)
+  - Route-level head() overrides merge with root head; only override what's route-specific (title, description, url, canonical). Leave charset, viewport, og:type, twitter:card inherited from root.
+  - SITE_ORIGIN and OG_IMAGE constants live in __root.tsx; could be extracted to a shared config if more routes need them in US-011 (dynamic OG meta wiring)
+  - Manual verification: Google Rich Results Test at https://search.google.com/test/rich-results requires a public URL — verify post-deploy, not locally
+---
+
 

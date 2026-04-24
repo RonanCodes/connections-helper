@@ -12,7 +12,26 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { SOURCE_DESCRIPTIONS } from '@/lib/source-descriptions'
 
-export const Route = createFileRoute('/how-it-works')({ component: HowItWorks })
+const HOW_IT_WORKS_TITLE = 'How it works — Connections Helper'
+const HOW_IT_WORKS_DESCRIPTION =
+  'Every dictionary, Wiktionary, and thesaurus source Connections Helper pulls from, in priority order, with the rationale for each.'
+const HOW_IT_WORKS_URL = 'https://connectionshelper.app/how-it-works'
+
+export const Route = createFileRoute('/how-it-works')({
+  component: HowItWorks,
+  head: () => ({
+    meta: [
+      { title: HOW_IT_WORKS_TITLE },
+      { name: 'description', content: HOW_IT_WORKS_DESCRIPTION },
+      { property: 'og:title', content: HOW_IT_WORKS_TITLE },
+      { property: 'og:description', content: HOW_IT_WORKS_DESCRIPTION },
+      { property: 'og:url', content: HOW_IT_WORKS_URL },
+      { name: 'twitter:title', content: HOW_IT_WORKS_TITLE },
+      { name: 'twitter:description', content: HOW_IT_WORKS_DESCRIPTION },
+    ],
+    links: [{ rel: 'canonical', href: HOW_IT_WORKS_URL }],
+  }),
+})
 
 interface Stats {
   puzzles: number

@@ -7,6 +7,24 @@ import appCss from '../styles.css?url'
 const DESCRIPTION =
   'Get instant definitions for NYT Connections puzzle words. Stuck on a word? Look it up without spoiling the categories!'
 const TITLE = 'Connections Helper: NYT Puzzle Sidekick 🧩'
+const SITE_ORIGIN = 'https://connectionshelper.app'
+const OG_IMAGE = `${SITE_ORIGIN}/og-image.png`
+
+const JSON_LD = {
+  '@context': 'https://schema.org',
+  '@type': 'WebApplication',
+  name: 'Connections Helper',
+  url: SITE_ORIGIN,
+  description: DESCRIPTION,
+  applicationCategory: 'GameApplication',
+  operatingSystem: 'Web',
+  offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+  author: {
+    '@type': 'Person',
+    name: 'Ronan Connolly',
+    url: 'https://ronanconnolly.dev',
+  },
+} as const
 
 const PRE_HYDRATE_THEME = `(function() {
   try {
@@ -31,18 +49,21 @@ export const Route = createRootRoute({
       { name: 'theme-color', content: '#121213' },
       { name: 'robots', content: 'index, follow' },
       { property: 'og:type', content: 'website' },
+      { property: 'og:site_name', content: 'Connections Helper' },
       { property: 'og:title', content: TITLE },
       { property: 'og:description', content: DESCRIPTION },
-      { property: 'og:image', content: '/og-image.png' },
+      { property: 'og:url', content: SITE_ORIGIN },
+      { property: 'og:image', content: OG_IMAGE },
       { property: 'og:image:width', content: '1200' },
       { property: 'og:image:height', content: '630' },
       { name: 'twitter:card', content: 'summary_large_image' },
       { name: 'twitter:title', content: TITLE },
       { name: 'twitter:description', content: DESCRIPTION },
-      { name: 'twitter:image', content: '/og-image.png' },
+      { name: 'twitter:image', content: OG_IMAGE },
     ],
     links: [
       { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
+      { rel: 'canonical', href: SITE_ORIGIN },
       {
         rel: 'preconnect',
         href: 'https://fonts.googleapis.com',
@@ -57,6 +78,12 @@ export const Route = createRootRoute({
         href: 'https://fonts.googleapis.com/css2?family=Libre+Franklin:wght@300;400;500;600;700&display=swap',
       },
       { rel: 'stylesheet', href: appCss },
+    ],
+    scripts: [
+      {
+        type: 'application/ld+json',
+        children: JSON.stringify(JSON_LD),
+      },
     ],
   }),
   shellComponent: RootDocument,

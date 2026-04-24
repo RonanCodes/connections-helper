@@ -30,8 +30,8 @@
         "Rich Results Test passes against the built site (manual verification note in progress file)"
       ],
       "priority": 2,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Added SITE_ORIGIN + OG_IMAGE constants, JSON-LD WebApplication in scripts[], og:url/og:site_name/canonical in __root. how-it-works has a head() override with route-specific title+description+canonical."
     },
     {
       "id": "US-003",
