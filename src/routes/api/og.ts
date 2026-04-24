@@ -34,7 +34,7 @@ function parseParams(url: URL): OgParams {
   const rawDate = url.searchParams.get('date')
   const date = /^\d{4}-\d{2}-\d{2}$/.test(rawDate ?? '') ? rawDate : null
   const title =
-    url.searchParams.get('title') ?? 'Connections Helper — NYT Puzzle Sidekick'
+    url.searchParams.get('title') ?? 'Connections Helper: NYT Puzzle Sidekick'
   return { date, title: title.slice(0, 80) }
 }
 

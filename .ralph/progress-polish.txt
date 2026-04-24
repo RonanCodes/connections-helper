@@ -198,4 +198,28 @@
   - Worker bundle grew from ~611kb (server index) + 1.5MB (router) to +2.5MB (resvg wasm) + ~600KB (fonts) + yoga wasm. CF Workers limits are 10MB compressed, so we're fine, but any further WASM additions (e.g. image resizing) need size budgeting.
   - US-011 (wiring og:image per route) should cap query-string length to keep unfurlers happy; Twitter caches per URL so long titles will create N distinct cache keys. The 80-char cap in `parseParams` pre-empts that.
 ---
+## [2026-04-24 22:00] - US-011: Wire og:image per route to /api/og
+- Implemented:
+  - __root.tsx OG_IMAGE constant now points to /api/og?title=Connections+Helper (absolute, with https://connectionshelper.app origin)
+  - src/routes/index.tsx gained validateSearch (normalises ?date= to YYYY-MM-DD or undefined) + head({ match }) that emits per-date og:title, og:url, og:image, twitter:title, twitter:image + canonical when a date is present
+  - src/routes/how-it-works.tsx adds og:image + twitter:image pointing to /api/og?title=How+it+works
+  - og.ts default fallback title changed from 'Connections Helper — NYT Puzzle Sidekick' to 'Connections Helper: NYT Puzzle Sidekick' (em-dash removed per /ro:write-copy)
+- Validation:
+  - pnpm run build — PASS
+  - pnpm run lint — PASS
+  - Server-rendered HTML verified via curl:
+    - / emits og:image=https://connectionshelper.app/api/og?title=Connections%20Helper
+    - /?date=2026-04-12 emits og:image with date + title, og:title='Connections for 2026-04-12', date-scoped canonical
+    - /how-it-works emits og:image=...?title=How%20it%20works
+- Files changed:
+  - src/routes/__root.tsx (OG_IMAGE constant)
+  - src/routes/index.tsx (validateSearch + head)
+  - src/routes/how-it-works.tsx (og:image + twitter:image)
+  - src/routes/api/og.ts (default title em-dash cleanup)
+- **Learnings for future iterations:**
+  - TanStack Router head() can take ({ match }) and read match.search — but you need to declare validateSearch so the search object is typed. Cast is still required because TS doesn't flow the validator's return type back into match.search at head() call time (looks like a known limitation of the head generic).
+  - Return `{}` from head() when there's nothing to override — TanStack merges partial head results, so a route with no date still inherits the root OG image.
+  - Returning meta + links together from head() works cleanly; the rest of the OG tag set (og:description, og:type, etc.) is inherited from __root.tsx, which is what you want — each route only owns the 3-4 tags that actually differ.
+  - public/og-image.png is still on disk as a safety net but not linked. Can be deleted in a separate pass once we've monitored a week of social shares to confirm crawlers never hit it.
+---
 

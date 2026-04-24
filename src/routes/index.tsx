@@ -5,7 +5,33 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 
-export const Route = createFileRoute('/')({ component: Home })
+const SITE_ORIGIN = 'https://connectionshelper.app'
+
+export const Route = createFileRoute('/')({
+  component: Home,
+  validateSearch: (search: Record<string, unknown>) => {
+    const raw = typeof search.date === 'string' ? search.date : undefined
+    const date = raw && /^\d{4}-\d{2}-\d{2}$/.test(raw) ? raw : undefined
+    return { date }
+  },
+  head: ({ match }) => {
+    const date = (match.search as { date?: string } | undefined)?.date
+    if (!date) return {}
+    const title = `Connections for ${date}`
+    const ogImage = `${SITE_ORIGIN}/api/og?date=${date}&title=${encodeURIComponent(title)}`
+    const url = `${SITE_ORIGIN}/?date=${date}`
+    return {
+      meta: [
+        { property: 'og:title', content: title },
+        { property: 'og:url', content: url },
+        { property: 'og:image', content: ogImage },
+        { name: 'twitter:title', content: title },
+        { name: 'twitter:image', content: ogImage },
+      ],
+      links: [{ rel: 'canonical', href: url }],
+    }
+  },
+})
 
 function ErrorFallback({ error }: { error: unknown }) {
   const message = error instanceof Error ? error.message : String(error)

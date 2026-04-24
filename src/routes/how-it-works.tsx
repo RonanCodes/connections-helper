@@ -12,10 +12,12 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { SOURCE_DESCRIPTIONS } from '@/lib/source-descriptions'
 
+const SITE_ORIGIN = 'https://connectionshelper.app'
 const HOW_IT_WORKS_TITLE = 'How it works — Connections Helper'
 const HOW_IT_WORKS_DESCRIPTION =
   'Every dictionary, Wiktionary, and thesaurus source Connections Helper pulls from, in priority order, with the rationale for each.'
-const HOW_IT_WORKS_URL = 'https://connectionshelper.app/how-it-works'
+const HOW_IT_WORKS_URL = `${SITE_ORIGIN}/how-it-works`
+const HOW_IT_WORKS_OG_IMAGE = `${SITE_ORIGIN}/api/og?title=${encodeURIComponent('How it works')}`
 
 export const Route = createFileRoute('/how-it-works')({
   component: HowItWorks,
@@ -26,8 +28,10 @@ export const Route = createFileRoute('/how-it-works')({
       { property: 'og:title', content: HOW_IT_WORKS_TITLE },
       { property: 'og:description', content: HOW_IT_WORKS_DESCRIPTION },
       { property: 'og:url', content: HOW_IT_WORKS_URL },
+      { property: 'og:image', content: HOW_IT_WORKS_OG_IMAGE },
       { name: 'twitter:title', content: HOW_IT_WORKS_TITLE },
       { name: 'twitter:description', content: HOW_IT_WORKS_DESCRIPTION },
+      { name: 'twitter:image', content: HOW_IT_WORKS_OG_IMAGE },
     ],
     links: [{ rel: 'canonical', href: HOW_IT_WORKS_URL }],
   }),

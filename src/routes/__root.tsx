@@ -8,7 +8,7 @@ const DESCRIPTION =
   'Get instant definitions for NYT Connections puzzle words. Stuck on a word? Look it up without spoiling the categories!'
 const TITLE = 'Connections Helper: NYT Puzzle Sidekick 🧩'
 const SITE_ORIGIN = 'https://connectionshelper.app'
-const OG_IMAGE = `${SITE_ORIGIN}/og-image.png`
+const OG_IMAGE = `${SITE_ORIGIN}/api/og?title=${encodeURIComponent('Connections Helper')}`
 
 const JSON_LD = {
   '@context': 'https://schema.org',

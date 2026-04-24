@@ -170,8 +170,8 @@
         "Absolute URLs used for og:image (https://origin + path) so crawlers can fetch them"
       ],
       "priority": 11,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "__root.tsx OG_IMAGE now points to /api/og?title=Connections+Helper (default fallback for any route without its own head override). Index route gained validateSearch (normalises ?date= to YYYY-MM-DD or undefined) + head({ match }) that, when a date is present, emits og:title='Connections for YYYY-MM-DD', og:image=/api/og?date=<date>&title=..., matching twitter:image, and a date-scoped canonical URL. how-it-works.tsx adds og:image + twitter:image pointing to /api/og?title=How+it+works. All og:image URLs use absolute https://connectionshelper.app origin so crawlers can fetch them. Verified via curl on dev server — all three routes emit the expected meta tags in server-rendered HTML. The static public/og-image.png is left in place as a safety net but is no longer referenced from code."
     },
     {
       "id": "US-012",
