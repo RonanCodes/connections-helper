@@ -45,5 +45,23 @@
   - SITE_ORIGIN and OG_IMAGE constants live in __root.tsx; could be extracted to a shared config if more routes need them in US-011 (dynamic OG meta wiring)
   - Manual verification: Google Rich Results Test at https://search.google.com/test/rich-results requires a public URL — verify post-deploy, not locally
 ---
+## [2026-04-24 21:15] - US-003: PWA manifest + icons + meta + SW registration
+- Implemented:
+  - public/manifest.webmanifest with name, short_name, start_url=/?source=pwa, display=standalone, theme_color=#22c55e, 3 icons
+  - public/icons/icon-192.png, icon-512.png, icon-maskable-512.png generated from favicon.svg via ImageMagick
+  - __root.tsx links manifest + apple-touch-icon; adds mobile-web-app-capable, apple-mobile-web-app-* meta; theme-color updated to puzzle-piece green
+  - App.tsx registers /sw.js guarded by import.meta.env.PROD && 'serviceWorker' in navigator
+- Files changed:
+  - public/manifest.webmanifest (new)
+  - public/icons/ (new, 3 PNGs)
+  - src/routes/__root.tsx
+  - src/App.tsx
+- **Learnings for future iterations:**
+  - TanStack Start has no explicit client entry — PostHog + SW registration live inside App.tsx useEffect; same pattern reused for SW
+  - Maskable icon background: use the brand color (#22c55e puzzle-piece green), not white, so Android adaptive masks show brand not negative space
+  - Icons from a thin-stroke SVG look sparse; acceptable for PWA install but should be replaced with a fuller logo pre-launch
+  - Theme-color was #121213 (dark) — swapped to #22c55e to match manifest theme_color; ensures consistent brand accent on mobile status bar
+---
+
 
 

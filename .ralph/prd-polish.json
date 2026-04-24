@@ -45,8 +45,8 @@
         "DevTools Application tab shows no manifest warnings (manual verification note in progress file)"
       ],
       "priority": 3,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "manifest.webmanifest + 3 icons (192, 512, maskable-512) generated from favicon.svg. __root.tsx links manifest + apple-touch-icon + adds mobile-web-app-capable meta. SW registration added to App.tsx — PROD + serviceWorker guarded, registers /sw.js on window.load."
     },
     {
       "id": "US-004",

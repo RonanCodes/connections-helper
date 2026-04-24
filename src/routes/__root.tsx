@@ -46,8 +46,15 @@ export const Route = createRootRoute({
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
       { title: TITLE },
       { name: 'description', content: DESCRIPTION },
-      { name: 'theme-color', content: '#121213' },
+      { name: 'theme-color', content: '#22c55e' },
       { name: 'robots', content: 'index, follow' },
+      { name: 'mobile-web-app-capable', content: 'yes' },
+      { name: 'apple-mobile-web-app-capable', content: 'yes' },
+      { name: 'apple-mobile-web-app-title', content: 'Connections' },
+      {
+        name: 'apple-mobile-web-app-status-bar-style',
+        content: 'black-translucent',
+      },
       { property: 'og:type', content: 'website' },
       { property: 'og:site_name', content: 'Connections Helper' },
       { property: 'og:title', content: TITLE },
@@ -64,6 +71,8 @@ export const Route = createRootRoute({
     links: [
       { rel: 'icon', type: 'image/svg+xml', href: '/favicon.svg' },
       { rel: 'canonical', href: SITE_ORIGIN },
+      { rel: 'manifest', href: '/manifest.webmanifest' },
+      { rel: 'apple-touch-icon', href: '/icons/icon-192.png' },
       {
         rel: 'preconnect',
         href: 'https://fonts.googleapis.com',
