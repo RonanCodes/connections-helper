@@ -13,6 +13,8 @@ import {
   tryUrbanDictionary,
 } from '../../server/definition-fallbacks'
 import { rateLimitByIp } from '../../server/rate-limit'
+import { WordParam, DefinitionSourceParam } from '../../server/schemas'
+import { jsonError, validate } from '../../server/validate'
 
 const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000
 
@@ -37,28 +39,23 @@ export const Route = createFileRoute('/api/definition/$word')({
   server: {
     handlers: {
       GET: async ({ params, request }) => {
-        const originalWord = params.word
+        const originalWord = params.word.trim()
+        const parsedWord = validate(WordParam, originalWord)
+        if (!parsedWord.ok) return parsedWord.response
         const word = originalWord.toLowerCase()
-        if (word.trim().length === 0) {
-          return Response.json(
-            { error: 'Word parameter is required' },
-            { status: 400 },
-          )
-        }
 
         const limited = await rateLimitByIp(request, 'definition')
         if (limited) return limited
 
         const url = new URL(request.url)
-        const source = url.searchParams.get('source')
+        const rawSource = url.searchParams.get('source')
 
-        if (source) {
-          if (!(source in SINGLE_SOURCE_FETCHERS)) {
-            return Response.json(
-              { error: `Unknown source: ${source}` },
-              { status: 400 },
-            )
+        if (rawSource) {
+          const parsedSource = DefinitionSourceParam.safeParse(rawSource)
+          if (!parsedSource.success) {
+            return jsonError(`Unknown source: ${rawSource}`)
           }
+          const source = parsedSource.data
 
           // Cloudflare's Workers runtime exposes `caches.default`, but the DOM
           // lib typings (which win in TS resolution) only declare the standard

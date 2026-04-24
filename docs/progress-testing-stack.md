@@ -11,6 +11,7 @@ Track per-task status and notes. Update after each commit.
 - [x] Confirm locally: `pnpm test:e2e` green (18/18).
 
 Notes:
+
 - Trimmed 5 stale UI tests in `e2e/connections.spec.ts` that were written against the pre-redesign UI (selectors like `input[type="date"]` and "Reveal Answers" no longer match). Kept 3 stable specs. Follow-up task: rewrite UI coverage against current selectors.
 - One API test (`handles unknown words gracefully`) was relaxed: the former "Inferred" fallback was removed from `definition.$word.ts` but the test still expected a fallback definition. Now it only asserts the response shape, not presence of a fallback.
 
@@ -23,6 +24,7 @@ Notes:
 - [x] Confirm locally: `pnpm test:integration` green (7/7).
 
 Notes:
+
 - Two SCARRY/GOREY assertions were hard-coded to `source === 'urban'`. After the Merriam-Webster key was added, MW answers both, so these now assert only that some source responds. Source-selection logic belongs in unit tests, not live integration tests.
 
 ## Task 3: Bruno collection
@@ -36,20 +38,24 @@ Notes:
 - [x] Confirm locally: `pnpm test:api` green (11/11 requests, 9/9 tests, 22/22 assertions).
 
 Notes:
+
 - Bruno's built-in assertion set does not include `isObject`; used chai `to.be.an("object")` in `tests { }` blocks instead.
 - `bru run` must execute from the collection root, so the script does `cd bruno && bru run . -r`.
 - `test:api:prod` runs the same collection against `connectionshelper.app` for post-deploy smoke verification.
 
 ## Task 4: Zod + OpenAPI + Scalar
 
-- [ ] Install `zod` and `@asteasolutions/zod-to-openapi`.
-- [ ] Create `src/server/schemas.ts` with request + response schemas for every in-scope route.
-- [ ] Add `validateJson` and `validateParams` helpers in `src/server/validate.ts`.
-- [ ] Wire validation into every route handler, replacing hand-rolled regex / type checks.
-- [ ] Create `src/server/openapi.ts` that registers every route and builds the document.
-- [ ] Add `/api/openapi.json` TanStack route.
-- [ ] Add `/api/docs` route serving Scalar HTML.
-- [ ] Confirm locally: `curl /api/openapi.json` returns valid JSON; `/api/docs` renders.
-- [ ] Update Bruno + integration tests if validation tightens any error shapes.
+- [x] Install `zod` 4.3 and `@asteasolutions/zod-to-openapi` 8.5.
+- [x] `src/server/schemas.ts` covers every in-scope route (request params, query, body; response shapes; shared `ErrorResponse`).
+- [x] `src/server/validate.ts` with `validate()` + `jsonError()` helpers.
+- [x] Wire validation into `/api/puzzle/:date`, `/api/definition/:word`, `/api/definitions`. Replaces regex + hand-rolled type checks.
+- [x] `src/server/openapi.ts` registers all six paths and assembles an OpenAPI 3.1 document at module load.
+- [x] Serve spec at `/api/openapi` (TanStack file-routing treats `.` as a path separator, so the filename-literal `.json` path isn't viable; kept the content JSON and dropped the suffix).
+- [x] `/api/docs` route returns HTML that loads Scalar from CDN and points at `/api/openapi`.
+- [x] Confirm locally: spec lists all six paths and eleven component schemas; `/api/docs` serves HTML.
+- [x] Updated `e2e/feb7-shapes.spec.ts` for the stricter contract (null/undefined in `words` now returns 400 instead of being silently filtered).
 
 Notes:
+
+- Path is `/api/openapi`, not `/api/openapi.json`. Documented in the PRD.
+- Error message for `/api/definitions` with a missing `words` key changed slightly (from hand-written string to Zod's `Invalid input: expected array, received undefined`). Still a 400, still `{ error: string }` shape. Existing Bruno and e2e assertions are content-agnostic so all pass.

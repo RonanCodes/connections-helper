@@ -6,6 +6,8 @@ import { definitions } from '../../db/schema'
 import { fetchDefinitionWithFallbacks } from '../../server/definition-fallbacks'
 import type { DefinitionResult } from '../../server/definition-fallbacks'
 import { rateLimitByIp } from '../../server/rate-limit'
+import { DefinitionsRequest } from '../../server/schemas'
+import { jsonError, validate } from '../../server/validate'
 
 const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000
 
@@ -16,21 +18,17 @@ export const Route = createFileRoute('/api/definitions')({
         const limited = await rateLimitByIp(request, 'definitions')
         if (limited) return limited
 
-        let body: { words?: Array<string> }
+        let raw: unknown
         try {
-          body = await request.json()
+          raw = await request.json()
         } catch {
-          return Response.json({ error: 'Invalid JSON body' }, { status: 400 })
+          return jsonError('Invalid JSON body')
         }
 
-        if (!Array.isArray(body.words)) {
-          return Response.json(
-            { error: 'Request body must contain a "words" array' },
-            { status: 400 },
-          )
-        }
+        const parsed = validate(DefinitionsRequest, raw)
+        if (!parsed.ok) return parsed.response
 
-        const originalWords = body.words.filter(
+        const originalWords = parsed.data.words.filter(
           (w): w is string => typeof w === 'string' && w.trim().length > 0,
         )
         const words = originalWords.map((w) => w.toLowerCase())

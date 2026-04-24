@@ -3,6 +3,8 @@ import { env } from 'cloudflare:workers'
 import { eq } from 'drizzle-orm'
 import { createDb } from '../../db'
 import { puzzles } from '../../db/schema'
+import { DateParam } from '../../server/schemas'
+import { validate } from '../../server/validate'
 
 type NYTPuzzle = {
   id: number
@@ -17,13 +19,9 @@ export const Route = createFileRoute('/api/puzzle/$date')({
   server: {
     handlers: {
       GET: async ({ params }) => {
-        const { date } = params
-        if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-          return Response.json(
-            { error: 'Invalid date format. Use YYYY-MM-DD' },
-            { status: 400 },
-          )
-        }
+        const parsed = validate(DateParam, params.date)
+        if (!parsed.ok) return parsed.response
+        const date = parsed.data
 
         const db = createDb(env.DB)
         const cached = await db
