@@ -62,6 +62,22 @@
   - Icons from a thin-stroke SVG look sparse; acceptable for PWA install but should be replaced with a fuller logo pre-launch
   - Theme-color was #121213 (dark) — swapped to #22c55e to match manifest theme_color; ensures consistent brand accent on mobile status bar
 ---
+## [2026-04-24 21:20] - US-004: Service worker with network-first HTML + cache-first assets
+- Implemented:
+  - public/sw.js — ~60 lines, CACHE='conn-v1' for versioned cache
+  - install: caches.addAll(['/']) + skipWaiting
+  - activate: delete any cache whose key !== CACHE, then clients.claim
+  - fetch handler: skips non-GET; skips /api/*; network-first for HTML (navigate mode or text/html accept header) with fallback to cached or '/'; cache-first for .js .css .woff2 .ttf .png .svg .webp .avif .jpg .jpeg .ico
+  - Added 'public/**' to eslint.config.js ignores (sw.js is not part of the TS project)
+- Files changed:
+  - public/sw.js (new)
+  - eslint.config.js
+- **Learnings for future iterations:**
+  - pnpm run lint includes public/ by default; needed to add public/** to ignores to stop @typescript-eslint from complaining about sw.js not being in a project
+  - Versioning via CACHE const is the deploy lever: bump to 'conn-v2' when you want to force clients to drop all old caches
+  - Deliberately no offline fallback page — the cache-first HTML fallback to '/' is good enough for a utility; a dedicated /offline page can land in a later story if desired
+---
+
 
 
 

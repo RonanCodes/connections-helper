@@ -61,8 +61,8 @@
         "Activate handler deletes any cache whose key !== CACHE"
       ],
       "priority": 4,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "public/sw.js with CACHE='conn-v1', install precaches /, activate deletes stale caches, fetch handler is network-first for HTML with fallback to /, cache-first for static assets, pass-through for /api/ requests. eslint ignore added for public/**."
     },
     {
       "id": "US-005",
