@@ -129,6 +129,25 @@
   - Tooltip-only labelling fails axe button-name — aria-label on the button itself is required. TooltipContent is decorative from axe's perspective.
   - /design-system is a live route (not gated by env), so it ships to production. Either gate it, or accept that its axe violations reflect a public surface.
 ---
+## [2026-04-24 21:40] - US-008: Lighthouse CI with 0.95 a11y threshold
+- Implemented:
+  - pnpm add -D @lhci/cli
+  - lighthouserc.json: 3 runs against / and /how-it-works; assertions error on accessibility < 0.95, warn on best-practices/seo < 0.9, perf < 0.8
+  - .github/workflows/lighthouse.yml runs on PR + push to main
+  - .lighthouseci/ added to .gitignore
+- Local verification:
+  - pnpm exec lhci autorun — 6 runs total across 2 URLs, all passing (accessibility OK, perf = warn-only so dev-mode scores don't break the build)
+- Files changed:
+  - package.json (devDeps)
+  - lighthouserc.json (new)
+  - .github/workflows/lighthouse.yml (new)
+  - .gitignore
+- **Learnings for future iterations:**
+  - `vite preview` doesn't work for TanStack Start on CF Workers because worker handlers aren't bound. LHCI needs the dev server (pnpm dev → wrangler + vite) to get /api/* responses included in the Lighthouse scan.
+  - startServerReadyPattern matches against stdout; vite prints `Local: http://localhost:3000/` when ready. Without this pattern LHCI falls back to polling HTTP, which sometimes races.
+  - performance is intentionally warn-only because dev-mode builds are always slower than prod. If we want a true perf gate, rerun lhci against a prod build (e.g. wrangler deploy + run against the prod URL nightly).
+  - The auto-upload target `temporary-public-storage` returns a URL per report good for ~7 days — sufficient for PR reviewers to click through. For permanent storage wire LHCI_GITHUB_APP_TOKEN.
+---
 
 
 

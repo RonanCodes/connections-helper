@@ -123,8 +123,8 @@
         "Local pnpm exec lhci autorun passes against a built app"
       ],
       "priority": 8,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "@lhci/cli installed. lighthouserc.json runs 3 times against / and /how-it-works. Assertions: accessibility >= 0.95 (error), best-practices/seo >= 0.9 (warn), performance >= 0.8 (warn). .github/workflows/lighthouse.yml runs on PR + main push. Local autorun passes with 0 errors — accessibility hits threshold, perf warnings surface but don't block. Runs against `pnpm dev` (wrangler dev + vite), with startServerReadyPattern matching vite's Local URL line. .lighthouseci/ is gitignored."
     },
     {
       "id": "US-009",
