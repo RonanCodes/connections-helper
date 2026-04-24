@@ -8,6 +8,7 @@ export const ErrorResponse = z
   .openapi('ErrorResponse', {
     description:
       'Standard error envelope returned for 400 (bad input), 404 (not found) and 429 (rate limited) responses.',
+    example: { error: 'Invalid date format. Use YYYY-MM-DD' },
   })
 
 export const DateParam = z
@@ -61,6 +62,17 @@ export const DefinitionResult = z
   .openapi('DefinitionResult', {
     description:
       'Result of a definition lookup. `definitions` may be empty when no upstream matched.',
+    example: {
+      definitions: [
+        {
+          definition:
+            'the round fruit of a tree of the rose family, with crisp flesh and a green, red, or yellow skin',
+          partOfSpeech: 'noun',
+          source: 'merriam-webster',
+        },
+      ],
+      source: 'merriam-webster',
+    },
   })
 
 export const DefinitionsRequest = z
@@ -110,6 +122,48 @@ export const Puzzle = z
   .openapi('Puzzle', {
     description:
       'NYT Connections puzzle as returned by the NYT Connections V2 endpoint. Always has four categories of four cards each.',
+    example: {
+      id: 378,
+      print_date: '2024-06-15',
+      categories: [
+        {
+          title: 'CLEVER',
+          cards: [
+            { content: 'BRIGHT', position: 0 },
+            { content: 'KEEN', position: 5 },
+            { content: 'SHARP', position: 10 },
+            { content: 'SMART', position: 15 },
+          ],
+        },
+        {
+          title: 'GARDEN TOOLS',
+          cards: [
+            { content: 'HOE', position: 1 },
+            { content: 'RAKE', position: 6 },
+            { content: 'SHEARS', position: 11 },
+            { content: 'SPADE', position: 4 },
+          ],
+        },
+        {
+          title: 'CARD GAMES',
+          cards: [
+            { content: 'BRIDGE', position: 2 },
+            { content: 'POKER', position: 7 },
+            { content: 'RUMMY', position: 12 },
+            { content: 'WHIST', position: 8 },
+          ],
+        },
+        {
+          title: 'PROHIBIT',
+          cards: [
+            { content: 'BAN', position: 3 },
+            { content: 'BAR', position: 9 },
+            { content: 'BLOCK', position: 13 },
+            { content: 'FORBID', position: 14 },
+          ],
+        },
+      ],
+    },
   })
 
 export const Stats = z

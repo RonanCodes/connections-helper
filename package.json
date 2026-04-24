@@ -44,7 +44,7 @@
     "test:api": "start-server-and-test dev http://localhost:3000 'cd bruno && bru run . -r --env local'",
     "test:api:prod": "cd bruno && bru run . -r --env production",
     "openapi:dump": "tsx scripts/generate-openapi.ts",
-    "mock": "pnpm run openapi:dump && prism mock openapi.json --port 4010 --dynamic",
+    "mock": "pnpm run openapi:dump && prism mock openapi.json --port 4010",
     "lint": "eslint",
     "format": "prettier --check .",
     "check": "prettier --write . && eslint --fix",
