@@ -138,8 +138,8 @@
         "<main id='main-content' tabIndex={-1}> wraps the main content area"
       ],
       "priority": 9,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "Skip-to-content link + <main id='main-content' tabIndex={-1}> landmark added in __root.tsx (sr-only, focus:not-sr-only, first focusable element). Loading skeleton grid in App.tsx carries role='status' aria-live='polite' aria-busy to announce puzzle definitions loading. Error Card is role='alert'. ShareButton got full focus trap: triggerRef + firstMenuItemRef + wasOpenRef; Escape closes, first item auto-focuses on open, focus returns to trigger on close; aria-haspopup='menu' + aria-expanded on trigger; role='menu' + role='menuitem' on popup. SettingsDialog relies on Radix Dialog's built-in focus management (verified in unit axe test). e2e axe still 4/4 passing."
     },
     {
       "id": "US-010",

@@ -148,7 +148,26 @@
   - performance is intentionally warn-only because dev-mode builds are always slower than prod. If we want a true perf gate, rerun lhci against a prod build (e.g. wrangler deploy + run against the prod URL nightly).
   - The auto-upload target `temporary-public-storage` returns a URL per report good for ~7 days — sufficient for PR reviewers to click through. For permanent storage wire LHCI_GITHUB_APP_TOKEN.
 ---
-
-
-
+## [2026-04-24 21:45] - US-009: aria-live + focus management + skip-to-content
+- Implemented:
+  - Skip-to-content link in __root.tsx (sr-only, focus:not-sr-only, first focusable element in body)
+  - <main id="main-content" tabIndex={-1}> wraps children inside RootDocument
+  - Loading skeleton grid: role="status" aria-live="polite" aria-busy={true} aria-label="Loading puzzle definitions"
+  - Error Card: role="alert"; decorative emoji inside carries aria-hidden
+  - ShareButton focus trap: triggerRef + firstMenuItemRef + wasOpenRef refs, useEffect moves focus to first menu item on open, returns to trigger on close; Escape key handler closes menu; aria-haspopup="menu" + aria-expanded on trigger; role="menu" aria-label="Share puzzle" on popup; role="menuitem" on each item
+  - SettingsDialog: no code changes needed — Radix Dialog primitive already handles focus trap, initial focus, and focus return (verified via the a11y unit test which passed from US-006)
+- Validation:
+  - pnpm run build — PASS, no type errors
+  - pnpm run test — 9/9 passing across 4 suites
+  - pnpm exec playwright test e2e/accessibility.spec.ts — 4/4 passing; no regressions; baselines unchanged (color-contrast + label still deferred per US-009 scope)
+- Files changed:
+  - src/routes/__root.tsx (skip-link + main landmark)
+  - src/App.tsx (aria-live on loader, role=alert on error, full focus management on ShareButton)
+- **Learnings for future iterations:**
+  - React 19 lets refs be passed as plain props — no forwardRef dance needed for the firstMenuItemRef Button assignment
+  - The `wasOpenRef` pattern (remember was-open across renders) is the cleanest way to avoid focusing the trigger on first mount — without it, focus moves to the trigger button on initial page load, which is jarring
+  - Radix Dialog is the reason SettingsDialog didn't need any focus-management code — worth preferring Radix primitives over hand-rolled popovers for future UI work where focus matters (command palette, popover menus, etc.)
+  - color-contrast baseline still exists — next logical step is a theme pass (US-TBD) to tighten contrast on muted text + placeholder colours. Out of scope for this story by design.
+  - role="menu" + role="menuitem" on a share popup is the correct pattern when the items *perform actions* (copy, X, FB). If it contained nav links instead, it'd be role="listbox" or plain nav. Don't overthink it: axe + NVDA both accept menu/menuitem here.
+---
 

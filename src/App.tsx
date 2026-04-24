@@ -867,6 +867,9 @@ function ShareButton({
   const [copied, setCopied] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
+  const triggerRef = useRef<HTMLButtonElement>(null)
+  const firstMenuItemRef = useRef<HTMLButtonElement>(null)
+  const wasOpenRef = useRef(false)
 
   const shareUrl =
     typeof window !== 'undefined'
@@ -887,6 +890,28 @@ function ShareButton({
     }
     setTimeout(() => document.addEventListener('click', handleClick), 0)
     return () => document.removeEventListener('click', handleClick)
+  }, [showMenu])
+
+  // Focus management: move focus into the menu on open, back to the
+  // trigger on close. Keyboard users land exactly where they expect.
+  useEffect(() => {
+    if (showMenu) {
+      wasOpenRef.current = true
+      firstMenuItemRef.current?.focus()
+    } else if (wasOpenRef.current) {
+      wasOpenRef.current = false
+      triggerRef.current?.focus()
+    }
+  }, [showMenu])
+
+  // Escape closes the menu (parity with dialog semantics).
+  useEffect(() => {
+    if (!showMenu) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowMenu(false)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
   }, [showMenu])
 
   const sharePayload = { puzzle_id: puzzleId, puzzle_date: puzzleDate }
@@ -955,22 +980,34 @@ function ShareButton({
     setShowMenu(false)
   }
 
+  const hasNativeShare =
+    typeof navigator !== 'undefined' && 'share' in navigator
+
   return (
     <div ref={menuRef} className="relative">
       <Button
+        ref={triggerRef}
         variant="ghost"
         size="icon"
         onClick={() => setShowMenu(!showMenu)}
         aria-label="Share"
+        aria-haspopup="menu"
+        aria-expanded={showMenu}
         title="Share"
       >
         <Share2 className="w-4 h-4" />
       </Button>
 
       {showMenu && (
-        <div className="absolute top-full right-0 mt-2 z-50 min-w-[180px] rounded-lg p-1 shadow-lg bg-popover text-popover-foreground border border-border">
-          {typeof navigator !== 'undefined' && 'share' in navigator && (
+        <div
+          role="menu"
+          aria-label="Share puzzle"
+          className="absolute top-full right-0 mt-2 z-50 min-w-[180px] rounded-lg p-1 shadow-lg bg-popover text-popover-foreground border border-border"
+        >
+          {hasNativeShare && (
             <Button
+              ref={firstMenuItemRef}
+              role="menuitem"
               variant="ghost"
               size="sm"
               onClick={handleNativeShare}
@@ -981,6 +1018,8 @@ function ShareButton({
             </Button>
           )}
           <Button
+            ref={hasNativeShare ? undefined : firstMenuItemRef}
+            role="menuitem"
             variant="ghost"
             size="sm"
             onClick={handleX}
@@ -1736,7 +1775,13 @@ export default function App() {
 
           {/* Loading State: skeleton grid matching the real layout */}
           {loadingPuzzle && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div
+              role="status"
+              aria-live="polite"
+              aria-busy={true}
+              aria-label="Loading puzzle definitions"
+              className="grid grid-cols-1 sm:grid-cols-2 gap-4"
+            >
               {Array.from({ length: 16 }).map((_, i) => (
                 <SkeletonWordCard key={i} index={i} />
               ))}
@@ -1745,9 +1790,11 @@ export default function App() {
 
           {/* Error State */}
           {error && !loadingPuzzle && (
-            <Card className="text-center py-16">
+            <Card className="text-center py-16" role="alert">
               <CardContent>
-                <div className="text-6xl mb-4">😕</div>
+                <div className="text-6xl mb-4" aria-hidden>
+                  😕
+                </div>
                 <p className="text-muted-foreground mb-6">{error}</p>
                 <Button onClick={() => handleDateChange(getToday())}>
                   <RefreshCw className="w-4 h-4 mr-2" />
