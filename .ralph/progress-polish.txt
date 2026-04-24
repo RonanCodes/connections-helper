@@ -222,4 +222,28 @@
   - Returning meta + links together from head() works cleanly; the rest of the OG tag set (og:description, og:type, etc.) is inherited from __root.tsx, which is what you want — each route only owns the 3-4 tags that actually differ.
   - public/og-image.png is still on disk as a safety net but not linked. Can be deleted in a separate pass once we've monitored a week of social shares to confirm crawlers never hit it.
 ---
+## [2026-04-24 22:05] - US-012: Playwright visual regression baselines
+- Implemented:
+  - playwright.config.js: added expect.toHaveScreenshot defaults (maxDiffPixelRatio=0.01, threshold=0.2, animations='disabled', caret='hide')
+  - playwright.config.js use block: locale='en-GB', timezoneId='Europe/Amsterdam', colorScheme='light', reducedMotion='reduce' — all flake-sources locked down
+  - e2e/visual.spec.ts: 3 routes (/, /how-it-works, /?date=2026-04-12) × 2 viewports (desktop 1440x900, mobile 390x844) = 6 snapshot tests
+  - prepare() helper: goto domcontentloaded → waitForSelector('h1') → addStyleTag disabling animations/transitions → 500ms settle
+  - masksFor() returns [aria-live='polite', role='status'] so stats banner + loading states don't diff
+  - Baselines generated at e2e/visual.spec.ts-snapshots/*-chromium-darwin.png (6 PNGs), all 6 pass on a second clean run
+- Validation:
+  - pnpm exec playwright test e2e/visual.spec.ts --update-snapshots — 6 passed (4.8s)
+  - pnpm exec playwright test e2e/visual.spec.ts (clean re-run, no --update) — 6 passed (3.0s)
+- Files changed:
+  - playwright.config.js (expect + use blocks tightened)
+  - e2e/visual.spec.ts (new)
+  - e2e/visual.spec.ts-snapshots/home-{desktop,mobile}-chromium-darwin.png (new)
+  - e2e/visual.spec.ts-snapshots/how-it-works-{desktop,mobile}-chromium-darwin.png (new)
+  - e2e/visual.spec.ts-snapshots/home-dated-{desktop,mobile}-chromium-darwin.png (new)
+- **Learnings for future iterations:**
+  - Do NOT use `page.waitForLoadState('networkidle')` on this app — PostHog + Sentry open long-lived connections that never settle, so the call times out at 30s on every test. `{ waitUntil: 'domcontentloaded' }` + a targeted `waitForSelector` is the right pattern.
+  - Playwright suffixes snapshot filenames with `-{project}-{os}` (e.g. `-chromium-darwin.png`). Platforms don't collide — a Linux CI run can coexist with these macOS PNGs under different suffixes. That lets US-013 defer the "docker container to match macOS baselines" question: the first CI run simply generates `-chromium-linux.png` siblings and those become the CI-authoritative set.
+  - Animation disabling has to happen both at config (reducedMotion + animations: 'disabled') AND via `addStyleTag` with `* { animation: none !important; transition: none !important; }` — the CSS tag catches any element-scoped animation that ignores `prefers-reduced-motion`.
+  - Masking via `mask: [locator]` is preferable to hiding content via CSS — the masked region gets overlaid with a solid color block in the snapshot, so any layout shift caused by dynamic content is still visible in the diff, just not the content itself.
+  - File size of committed baselines: ~1-2MB total. Not concerning yet, but if we grow to 20+ routes, consider using LFS or delta-only CI snapshots.
+---
 

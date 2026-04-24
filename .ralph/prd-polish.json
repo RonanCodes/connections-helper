@@ -185,8 +185,8 @@
         "Baselines committed under e2e/__screenshots__ (captured via Linux docker for CI consistency OR noted as macOS-baseline with a TODO)"
       ],
       "priority": 12,
-      "passes": false,
-      "notes": ""
+      "passes": true,
+      "notes": "playwright.config.js: expect.toHaveScreenshot defaults set (maxDiffPixelRatio=0.01, threshold=0.2, animations=disabled, caret=hide); use block locked to locale=en-GB, timezoneId=Europe/Amsterdam, colorScheme=light, reducedMotion=reduce for baseline stability. e2e/visual.spec.ts drives 3 routes × 2 viewports = 6 snapshots: / home, /how-it-works, /?date=2026-04-12 at mobile (390x844) and desktop (1440x900). prepare() helper uses domcontentloaded + waitForSelector('h1') + 500ms settle (networkidle never fires because PostHog/Sentry keep long-lived connections open). masksFor() masks [aria-live='polite'] and [role='status'] — covers the stats banner + any dynamic loading region. All 6 baselines written to e2e/visual.spec.ts-snapshots/*-chromium-darwin.png and confirmed to pass on a second clean run. macOS-only baselines for now; US-013 CI workflow will either run via mcr.microsoft.com/playwright container to match the existing PNGs OR the first CI run will regenerate Linux-suffixed baselines alongside (Playwright snapshots are platform-scoped by filename suffix so both can coexist)."
     },
     {
       "id": "US-013",
