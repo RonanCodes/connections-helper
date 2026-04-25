@@ -1,7 +1,7 @@
 /* eslint-env serviceworker */
 /* global self, caches, fetch */
 
-const CACHE = 'conn-v1'
+const CACHE = 'conn-v2'
 const PRECACHE_URLS = ['/']
 
 self.addEventListener('install', (event) => {
