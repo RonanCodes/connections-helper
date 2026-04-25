@@ -31,7 +31,7 @@
     "#/*": "./src/*"
   },
   "scripts": {
-    "dev": "vite dev --port 3000",
+    "dev": "vite dev --port 3000 --host 127.0.0.1",
     "build": "vite build",
     "preview": "vite preview",
     "deploy": "pnpm run build && wrangler deploy",
@@ -46,10 +46,10 @@
     "test:api:prod": "cd bruno && bru run . -r --env production",
     "openapi:dump": "tsx scripts/generate-openapi.ts",
     "mock": "pnpm run openapi:dump && prism mock openapi.json --port 4010",
-    "loadtest:smoke": "PROFILE=smoke BASE_URL=http://[::1]:3000 k6 run scripts/loadtest.js",
-    "loadtest:local": "PROFILE=standard BASE_URL=http://[::1]:3000 k6 run scripts/loadtest.js",
+    "loadtest:smoke": "PROFILE=smoke k6 run scripts/loadtest.js",
+    "loadtest:local": "PROFILE=standard k6 run scripts/loadtest.js",
     "loadtest:prod": "PROFILE=standard BASE_URL=https://connectionshelper.app k6 run scripts/loadtest.js",
-    "loadtest:burst": "PROFILE=burst BASE_URL=http://[::1]:3000 k6 run scripts/loadtest.js",
+    "loadtest:burst": "PROFILE=burst k6 run scripts/loadtest.js",
     "lint": "eslint",
     "format": "prettier --check .",
     "format:write": "prettier --write .",
