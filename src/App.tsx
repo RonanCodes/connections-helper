@@ -1566,7 +1566,21 @@ export default function App() {
     <TooltipProvider>
       <div className="min-h-screen bg-background transition-colors">
         <div className="fixed top-3 right-3 z-50 pointer-events-none">
-          <div className="pointer-events-auto">
+          <div className="pointer-events-auto flex items-center gap-2">
+            {import.meta.env.DEV && (
+              <Link to="/design-system" target="_blank" rel="noopener">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="bg-white/90 backdrop-blur"
+                  aria-label="Open design system showcase (dev only)"
+                  title="Design system (dev only)"
+                >
+                  <Palette className="w-4 h-4" />
+                  <span className="hidden sm:inline">Design system</span>
+                </Button>
+              </Link>
+            )}
             <EnvironmentBadge showExternal={false} />
           </div>
         </div>
