@@ -1495,17 +1495,23 @@ export default function App() {
   // modal/dialog is open (Radix sets aria-hidden on siblings), or when any
   // modifier key is held (don't hijack Cmd+R, Cmd+L, etc.).
   useEffect(() => {
-    const isEditable = (el: Element | null): boolean => {
-      if (!el) return false
-      const tag = el.tagName
-      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return true
-      if ((el as HTMLElement).isContentEditable) return true
+    // Walk the composed event path so we also detect inputs inside Shadow
+    // DOM (e.g. Sentry's feedback widget, which is a web component).
+    // document.activeElement only sees the shadow host, not the inner field.
+    const isEditableEvent = (e: KeyboardEvent): boolean => {
+      for (const el of e.composedPath()) {
+        if (!(el instanceof HTMLElement)) continue
+        const tag = el.tagName
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT')
+          return true
+        if (el.isContentEditable) return true
+      }
       return false
     }
 
     const handler = (e: KeyboardEvent) => {
       if (e.metaKey || e.ctrlKey || e.altKey) return
-      if (isEditable(document.activeElement)) return
+      if (isEditableEvent(e)) return
       if (settingsOpen) return
 
       switch (e.key) {
