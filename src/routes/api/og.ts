@@ -10,6 +10,19 @@ import yogaWasmModule from 'satori/yoga.wasm'
 // fetch their own domain (observed 522s in prod).
 import interRegular from '../../assets/fonts/Inter-Regular.ttf?arraybuffer'
 import interBold from '../../assets/fonts/Inter-Bold.ttf?arraybuffer'
+import robotoSlabBlack from '../../assets/fonts/RobotoSlab-Black.ttf?arraybuffer'
+
+const NYT_INK = '#121212'
+const NYT_BG = '#ffffff'
+const BRAND_GREEN = '#22c55e'
+const TAGLINE_GREY = '#5a5a5a'
+
+// Lucide-style puzzle icon, stroke-only, brand green. Inlined as a data URL
+// so satori can render it via the <img> element (most reliable path for
+// arbitrary SVG inside satori).
+const PUZZLE_ICON_DATA_URL = `data:image/svg+xml;utf8,${encodeURIComponent(
+  `<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 24 24" fill="none" stroke="${BRAND_GREEN}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.39 4.39a1 1 0 0 0 1.68-.474 2.5 2.5 0 1 1 3.014 3.015 1 1 0 0 0-.474 1.68l1.683 1.682a2.414 2.414 0 0 1 0 3.414L19.61 15.39a1 1 0 0 1-1.68-.474 2.5 2.5 0 1 0-3.014 3.015 1 1 0 0 1 .474 1.68l-1.683 1.682a2.414 2.414 0 0 1-3.414 0L8.61 19.61a1 1 0 0 0-1.68.474 2.5 2.5 0 1 1-3.014-3.015 1 1 0 0 0 .474-1.68l-1.683-1.682a2.414 2.414 0 0 1 0-3.414L4.39 8.61a1 1 0 0 1 1.68.474 2.5 2.5 0 1 0 3.014-3.015 1 1 0 0 1-.474-1.68l1.683-1.682a2.414 2.414 0 0 1 3.414 0z"/></svg>`,
+)}`
 
 let engineReady: Promise<void> | null = null
 function ensureEngines(): Promise<void> {
@@ -22,14 +35,12 @@ function ensureEngines(): Promise<void> {
   return engineReady
 }
 
-type OgParams = { date: string | null; title: string }
+type OgParams = { date: string | null }
 
 function parseParams(url: URL): OgParams {
   const rawDate = url.searchParams.get('date')
   const date = /^\d{4}-\d{2}-\d{2}$/.test(rawDate ?? '') ? rawDate : null
-  const title =
-    url.searchParams.get('title') ?? 'Connections Helper: NYT Puzzle Sidekick'
-  return { date, title: title.slice(0, 80) }
+  return { date }
 }
 
 function formatDate(iso: string): string {
@@ -51,107 +62,81 @@ function formatDate(iso: string): string {
   return `${monthNames[m - 1]} ${d}, ${y}`
 }
 
-function buildCard({ date, title }: OgParams) {
+function buildCard({ date }: OgParams) {
+  const subline = date ? formatDate(date) : 'Your puzzle-solving sidekick'
   return {
     type: 'div',
     props: {
       style: {
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'space-between',
+        alignItems: 'center',
+        justifyContent: 'center',
         width: '1200px',
         height: '630px',
-        padding: '72px',
-        background: 'linear-gradient(135deg, #22c55e 0%, #16a34a 100%)',
-        color: '#ffffff',
+        padding: '60px',
+        backgroundColor: NYT_BG,
         fontFamily: 'Inter',
       },
       children: [
+        {
+          type: 'img',
+          props: {
+            src: PUZZLE_ICON_DATA_URL,
+            width: 140,
+            height: 140,
+          },
+        },
+        {
+          type: 'div',
+          props: {
+            style: {
+              fontFamily: 'Roboto Slab',
+              fontWeight: 900,
+              fontSize: '96px',
+              color: NYT_INK,
+              letterSpacing: '-2px',
+              lineHeight: 1.05,
+              marginTop: '36px',
+              whiteSpace: 'nowrap',
+            },
+            children: 'Connections Helper',
+          },
+        },
+        {
+          type: 'div',
+          props: {
+            style: {
+              fontFamily: 'Inter',
+              fontWeight: 500,
+              fontSize: '36px',
+              color: TAGLINE_GREY,
+              marginTop: '20px',
+            },
+            children: subline,
+          },
+        },
         {
           type: 'div',
           props: {
             style: {
               display: 'flex',
               alignItems: 'center',
-              fontSize: '36px',
+              marginTop: '36px',
+              backgroundColor: NYT_INK,
+              color: '#ffffff',
+              padding: '22px 44px',
+              borderRadius: '14px',
+              fontSize: '38px',
               fontWeight: 700,
-              letterSpacing: '-0.02em',
-            },
-            children: [
-              {
-                type: 'div',
-                props: {
-                  style: {
-                    display: 'flex',
-                    width: '48px',
-                    height: '48px',
-                    borderRadius: '12px',
-                    background: '#ffffff',
-                    color: '#22c55e',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    marginRight: '20px',
-                    fontSize: '32px',
-                  },
-                  children: '🧩',
-                },
-              },
-              { type: 'span', props: { children: 'Connections Helper' } },
-            ],
-          },
-        },
-        {
-          type: 'div',
-          props: {
-            style: { display: 'flex', flexDirection: 'column' },
-            children: [
-              ...(date
-                ? [
-                    {
-                      type: 'div',
-                      props: {
-                        style: {
-                          fontSize: '40px',
-                          fontWeight: 400,
-                          opacity: 0.85,
-                          marginBottom: '16px',
-                        },
-                        children: formatDate(date),
-                      },
-                    },
-                  ]
-                : []),
-              {
-                type: 'div',
-                props: {
-                  style: {
-                    fontSize: '88px',
-                    fontWeight: 700,
-                    letterSpacing: '-0.03em',
-                    lineHeight: 1.05,
-                  },
-                  children: title,
-                },
-              },
-            ],
-          },
-        },
-        {
-          type: 'div',
-          props: {
-            style: {
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'flex-end',
-              fontSize: '28px',
-              fontWeight: 500,
-              opacity: 0.85,
+              letterSpacing: '-0.5px',
             },
             children: [
               {
                 type: 'span',
                 props: {
-                  children: 'Stuck on a word? Look it up without spoilers.',
+                  style: { color: BRAND_GREEN, marginRight: '20px' },
+                  children: '→',
                 },
               },
               {
@@ -190,6 +175,12 @@ export const Route = createFileRoute('/api/og')({
                 name: 'Inter',
                 data: interBold,
                 weight: 700,
+                style: 'normal',
+              },
+              {
+                name: 'Roboto Slab',
+                data: robotoSlabBlack,
+                weight: 900,
                 style: 'normal',
               },
             ],

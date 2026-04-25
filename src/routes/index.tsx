@@ -18,7 +18,7 @@ export const Route = createFileRoute('/')({
     const date = (match.search as { date?: string } | undefined)?.date
     if (!date) return {}
     const title = `Connections for ${date}`
-    const ogImage = `${SITE_ORIGIN}/api/og?date=${date}&title=${encodeURIComponent(title)}`
+    const ogImage = `${SITE_ORIGIN}/api/og?date=${date}`
     const url = `${SITE_ORIGIN}/?date=${date}`
     return {
       meta: [
