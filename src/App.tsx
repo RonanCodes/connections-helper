@@ -283,9 +283,7 @@ const SWAPPABLE_SOURCE_KEYS = [
 // - Dictionary.com uses lowercase + hyphens for multi-word entries
 // - Urban Dictionary is case-insensitive
 function buildSourceUrl(sourceKey: string, word: string): string | undefined {
-  const info = SOURCE_INFO[sourceKey] as
-    | (typeof SOURCE_INFO)[keyof typeof SOURCE_INFO]
-    | undefined
+  const info = SOURCE_INFO[sourceKey]
   if (!info?.url) return undefined
   const lower = word.toLowerCase()
   let slug = lower
@@ -732,6 +730,7 @@ function WordCard({
                         target="_blank"
                         rel="noopener noreferrer"
                         aria-label={`Open ${SOURCE_INFO[activeSource].label} for "${word.word}" in a new tab`}
+                        className="!text-foreground"
                       >
                         <ExternalLink className="w-4 h-4" />
                       </a>
@@ -763,7 +762,7 @@ function WordCard({
           {primaryDef?.partOfSpeech && !word.loading && (
             <Badge
               variant="secondary"
-              className="text-xs font-normal mt-1 lowercase pl-0"
+              className="text-xs font-normal mt-1 lowercase"
             >
               {primaryDef.partOfSpeech}
             </Badge>
@@ -1627,23 +1626,15 @@ export default function App() {
                     min={FIRST_PUZZLE_DATE}
                     max={getToday()}
                   />
-                  <a
-                    href={puzzleId ? companionUrl : undefined}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    title={
-                      companionNumber
-                        ? `Read NYT's Connections Companion No. ${companionNumber}`
-                        : "Read NYT's Connections Companion for this puzzle"
-                    }
+                  <span
                     aria-hidden={!puzzleId}
                     className={cn(
-                      'text-sm text-muted-foreground hover:text-foreground underline-offset-4 hover:underline transition-colors hidden sm:inline-block w-14 text-center',
-                      !puzzleId && 'invisible pointer-events-none',
+                      'text-sm text-muted-foreground transition-colors hidden sm:inline-block w-14 text-center',
+                      !puzzleId && 'invisible',
                     )}
                   >
                     #{companionNumber ?? puzzleId ?? '0000'}
-                  </a>
+                  </span>
                   <Button
                     onClick={() => handleDateChange(getToday())}
                     size="sm"
@@ -1715,6 +1706,7 @@ export default function App() {
                       target="_blank"
                       rel="noopener noreferrer"
                       aria-label="Play today's puzzle on NYT"
+                      className="!text-foreground"
                     >
                       <Gamepad2 className="w-4 h-4" />
                     </a>
@@ -1735,6 +1727,7 @@ export default function App() {
                             ? `Read NYT's Connections Companion No. ${companionNumber}`
                             : `Read NYT's Connections Companion for puzzle #${puzzleId}`
                         }
+                        className="!text-foreground"
                       >
                         <Newspaper className="w-4 h-4" />
                       </a>
