@@ -4,13 +4,63 @@ import { getRuntimeConfig } from './runtime-config'
 let initialised = false
 
 const TEST_USER_FLAG = 'ch_test_user'
-const TEST_USER_ID = 'test-user'
-// Email under the domain that the PostHog project's "Internal & Test
-// Accounts" filter already excludes (Settings → Project → Internal & Test
-// Accounts → "Email doesn't contain @ronanconnolly.dev"). PostHog's
-// recommended pattern is email-domain matching, so we piggyback on the
-// existing rule rather than introducing a second one.
-const TEST_USER_EMAIL = 'test-user@ronanconnolly.dev'
+
+type TestEnv = 'localhost' | 'ci' | 'manual'
+
+// Distinct identity per environment so PostHog can tell local dev sessions
+// apart from CI runs and manual opt-ins. Emails sit under the domain that
+// the project's "Internal & Test Accounts" filter already excludes
+// (Settings → Project → Internal & Test Accounts → "Email doesn't contain
+// @ronanconnolly.dev"), so all three are filtered out by one rule.
+const TEST_USER_PROFILES: Record<
+  TestEnv,
+  { id: string; email: string; name: string }
+> = {
+  localhost: {
+    id: 'test-user-localhost',
+    email: 'test-user-localhost@ronanconnolly.dev',
+    name: 'Test User (localhost)',
+  },
+  ci: {
+    id: 'test-user-ci',
+    email: 'test-user-ci@ronanconnolly.dev',
+    name: 'Test User (CI)',
+  },
+  manual: {
+    id: 'test-user-manual',
+    email: 'test-user-manual@ronanconnolly.dev',
+    name: 'Test User (manual)',
+  },
+}
+
+function detectAutoTestEnv(): 'localhost' | 'ci' | null {
+  if (typeof window === 'undefined') return null
+  // Playwright (and other webdrivers) set navigator.webdriver = true. CI
+  // runs may hit a preview URL rather than localhost, so the webdriver
+  // signal is what tells the two apart. Check it before hostname.
+  if (typeof navigator !== 'undefined' && navigator.webdriver === true) {
+    return 'ci'
+  }
+  const host = window.location.hostname
+  if (
+    host === 'localhost' ||
+    host === '127.0.0.1' ||
+    host === '0.0.0.0' ||
+    host.endsWith('.localhost')
+  ) {
+    return 'localhost'
+  }
+  return null
+}
+
+function resolveTestEnv(stored: string | null): TestEnv | null {
+  if (stored === 'localhost' || stored === 'ci' || stored === 'manual') {
+    return stored
+  }
+  // Pre-existing '1' flag from older builds — treat as a manual opt-in.
+  if (stored) return 'manual'
+  return null
+}
 
 function consumeTestUserQuery(): 'enabled' | 'disabled' | null {
   const url = new URL(window.location.href)
@@ -19,7 +69,7 @@ function consumeTestUserQuery(): 'enabled' | 'disabled' | null {
   url.searchParams.delete('testuser')
   window.history.replaceState({}, '', url.toString())
   if (raw === '1') {
-    window.localStorage.setItem(TEST_USER_FLAG, '1')
+    window.localStorage.setItem(TEST_USER_FLAG, 'manual')
     return 'enabled'
   }
   window.localStorage.removeItem(TEST_USER_FLAG)
@@ -35,6 +85,12 @@ export async function initPostHog() {
   // when runtime-config is blocked (local dev without secrets, ad-blockers
   // killing the request) so future loads can identify once PH does init.
   const testUserChange = consumeTestUserQuery()
+  const autoEnv = detectAutoTestEnv()
+  // Auto-enable the test-user flag for localhost browsers and automated
+  // runs. ?testuser=0 takes precedence and persists for the current load.
+  if (autoEnv && testUserChange !== 'disabled') {
+    window.localStorage.setItem(TEST_USER_FLAG, autoEnv)
+  }
   const { posthogKey, posthogHost } = await getRuntimeConfig()
   if (!posthogKey.startsWith('phc_')) return
   posthog.init(posthogKey, {
@@ -57,11 +113,18 @@ export async function initPostHog() {
     // to anonymous immediately, not only after the cookie expires.
     posthog.reset()
   }
-  if (window.localStorage.getItem(TEST_USER_FLAG) === '1') {
-    posthog.identify(TEST_USER_ID, {
-      email: TEST_USER_EMAIL,
+  const env = resolveTestEnv(window.localStorage.getItem(TEST_USER_FLAG))
+  if (env) {
+    const profile = TEST_USER_PROFILES[env]
+    posthog.identify(profile.id, {
+      email: profile.email,
+      name: profile.name,
       $is_test_user: true,
+      test_env: env,
     })
+    // Surfaces on every event, not just $identify, so filters and insights
+    // can slice by env without joining person properties.
+    posthog.register({ test_env: env })
   }
   initialised = true
 }

@@ -17,11 +17,6 @@ function buildSitemap(): string {
       changefreq: 'monthly',
     },
     { loc: `${SITE_ORIGIN}/settings`, priority: '0.5', changefreq: 'monthly' },
-    {
-      loc: `${SITE_ORIGIN}/design-system`,
-      priority: '0.3',
-      changefreq: 'monthly',
-    },
   ]
 
   const puzzleUrls = Array.from({ length: 365 }, (_, i) => {
