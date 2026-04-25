@@ -128,7 +128,7 @@ pnpm loadtest:burst    # 200 VU / 50s, useful before high-traffic days
 
 Traffic mix is weighted to roughly match real sessions: 10% `/api/stats`, 30% `/api/puzzle/:date`, 40% `/api/definition/:word`, 20% `POST /api/definitions`. Thresholds enforce p95 latency budgets per endpoint and a sub-2% overall failure rate; the run exits non-zero if any threshold breaks.
 
-`/api/definition/*` and `/api/definitions` are rate-limited per IP via the `API_RATE_LIMIT` Workers binding. Local runs bypass the limiter (binding unset). Prod runs from a single machine will hit the limiter quickly, which is expected. The script tracks `rate_limited` as a separate metric so a high 429 rate is visible without inflating the failure count. To stress prod headroom past the limiter, run from multiple egress IPs (k6 Cloud, GitHub Actions matrix, or simply two laptops on different networks).
+`/api/definition/*` and `/api/definitions` are rate-limited per IP via the `API_RATE_LIMIT` Workers binding, and miniflare enforces it locally too. To measure raw throughput on `pnpm loadtest:local`, set `RATE_LIMIT_BYPASS=1` in `.dev.vars`. Without that, even local runs will see ~50% 429s from one egress IP. The script tracks `rate_limited` as a separate metric so a high 429 rate is visible without inflating the failure count. To stress prod headroom past the limiter, run from multiple egress IPs (k6 Cloud, GitHub Actions matrix, or simply two laptops on different networks).
 
 A summary (request count, failure rate, rate-limited rate, p50/p95/p99) prints to stdout; the full per-tag breakdown lands in `loadtest-summary.json` next to the script.
 

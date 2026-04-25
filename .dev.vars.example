@@ -13,3 +13,8 @@ MERRIAM_WEBSTER_API_KEY=
 # Free sign-up: https://developer.wordnik.com/
 # Tier 2 source in the fallback chain when set.
 WORDNIK_API_KEY=
+
+# Bypass the per-IP rate limiter (Cloudflare ratelimits binding is enforced
+# locally by miniflare too). Set to "1" so `pnpm loadtest:local` can drive
+# real concurrency without 429s.
+# RATE_LIMIT_BYPASS=1
