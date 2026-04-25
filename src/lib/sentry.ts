@@ -1,5 +1,7 @@
 import { getRuntimeConfig } from './runtime-config'
 
+declare const __APP_RELEASE__: string
+
 let initialised = false
 let initPromise: Promise<boolean> | null = null
 
@@ -19,14 +21,25 @@ export function initSentry(): Promise<boolean> {
       const Sentry = await import('@sentry/react')
       Sentry.init({
         dsn: sentryDsn,
-        tracesSampleRate: 0.1,
-        replaysSessionSampleRate: 0,
-        replaysOnErrorSampleRate: 1,
         environment: import.meta.env.MODE,
+        release:
+          typeof __APP_RELEASE__ === 'string' ? __APP_RELEASE__ : undefined,
+        sendDefaultPii: true,
+        integrations: [
+          Sentry.browserTracingIntegration(),
+          Sentry.replayIntegration({
+            maskAllInputs: true,
+            blockAllMedia: false,
+          }),
+        ],
+        tracesSampleRate: 0.1,
+        replaysSessionSampleRate: 0.1,
+        replaysOnErrorSampleRate: 1,
       })
       initialised = true
       console.info('[sentry] initialised', {
         environment: import.meta.env.MODE,
+        release: typeof __APP_RELEASE__ === 'string' ? __APP_RELEASE__ : null,
       })
       return true
     } catch (err) {
