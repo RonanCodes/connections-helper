@@ -1,3 +1,4 @@
+import type * as SentryReact from '@sentry/react'
 import { getRuntimeConfig } from './runtime-config'
 
 declare const __APP_RELEASE__: string
@@ -31,12 +32,17 @@ export function initSentry(): Promise<boolean> {
             maskAllInputs: true,
             blockAllMedia: false,
           }),
+          Sentry.feedbackIntegration({
+            colorScheme: 'system',
+            showBranding: false,
+          }),
         ],
         tracesSampleRate: 0.1,
         replaysSessionSampleRate: 0.1,
         replaysOnErrorSampleRate: 1,
       })
       initialised = true
+      void linkPostHog(Sentry)
       console.info('[sentry] initialised', {
         environment: import.meta.env.MODE,
         release: typeof __APP_RELEASE__ === 'string' ? __APP_RELEASE__ : null,
@@ -53,4 +59,26 @@ export function initSentry(): Promise<boolean> {
 
 export function isSentryReady() {
   return initialised
+}
+
+// Tag every Sentry event with the PostHog distinct_id and a deep link to the
+// session replay. Lets you pivot from a Sentry issue straight to "what was
+// this user doing right before it broke" in PostHog.
+async function linkPostHog(Sentry: typeof SentryReact): Promise<void> {
+  try {
+    const { initPostHog, posthog } = await import('./posthog')
+    await initPostHog()
+    const distinctId =
+      typeof posthog.get_distinct_id === 'function'
+        ? posthog.get_distinct_id()
+        : null
+    if (distinctId) Sentry.setUser({ id: distinctId })
+    const sessionUrl =
+      typeof posthog.get_session_replay_url === 'function'
+        ? posthog.get_session_replay_url()
+        : null
+    if (sessionUrl) Sentry.setTag('posthog.session_url', sessionUrl)
+  } catch (err) {
+    console.warn('[sentry] posthog cross-link skipped', err)
+  }
 }
