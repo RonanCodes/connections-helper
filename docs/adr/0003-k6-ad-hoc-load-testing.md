@@ -71,7 +71,7 @@ To keep this honest:
 - Track `rate_limited` (429) as a separate Rate metric. It counts toward visibility but **not** toward the failure rate.
 - The failure-rate threshold (`http_req_failed: rate<0.02`) only counts non-429 failures.
 - A separate threshold (`rate_limited: rate<0.5`) flags when the limiter engages so aggressively that the test can't drive useful load — that's the signal to scale egress.
-- Local runs bypass the limiter (the binding is unset on `localhost`), so `loadtest:local` measures raw throughput.
+- Local runs do _not_ bypass the limiter automatically. The `API_RATE_LIMIT` binding is in `wrangler.jsonc` and miniflare enforces it on `pnpm dev` too. Set `RATE_LIMIT_BYPASS=1` in `.dev.vars` so `loadtest:local` can measure raw throughput.
 - For prod runs that need to stress past the limiter (e.g. simulating 100 unique-IP users), use k6 Cloud or a GH Actions matrix with multiple runners. Faking `CF-Connecting-IP` from outside Cloudflare doesn't work — the edge overwrites it.
 
 ### Output
