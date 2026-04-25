@@ -5,6 +5,12 @@ let initialised = false
 
 const TEST_USER_FLAG = 'ch_test_user'
 const TEST_USER_ID = 'test-user'
+// Email under the domain that the PostHog project's "Internal & Test
+// Accounts" filter already excludes (Settings → Project → Internal & Test
+// Accounts → "Email doesn't contain @ronanconnolly.dev"). PostHog's
+// recommended pattern is email-domain matching, so we piggyback on the
+// existing rule rather than introducing a second one.
+const TEST_USER_EMAIL = 'test-user@ronanconnolly.dev'
 
 function consumeTestUserQuery(): 'enabled' | 'disabled' | null {
   const url = new URL(window.location.href)
@@ -52,7 +58,10 @@ export async function initPostHog() {
     posthog.reset()
   }
   if (window.localStorage.getItem(TEST_USER_FLAG) === '1') {
-    posthog.identify(TEST_USER_ID, { $is_test_user: true })
+    posthog.identify(TEST_USER_ID, {
+      email: TEST_USER_EMAIL,
+      $is_test_user: true,
+    })
   }
   initialised = true
 }
