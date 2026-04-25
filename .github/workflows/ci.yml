@@ -100,7 +100,13 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - run: pnpm build
+      - name: Build (with Sentry source map upload + release)
+        run: pnpm build
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
+          SENTRY_ORG: ronan-connolly
+          SENTRY_PROJECT: connections-helper
+          SENTRY_REGION_URL: https://de.sentry.io
       - name: Apply D1 migrations
         run: pnpm wrangler d1 migrations apply connections_helper_db --remote
         env:
