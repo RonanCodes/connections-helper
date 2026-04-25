@@ -2,12 +2,14 @@ import type { Plugin } from 'vite'
 import { defineConfig } from 'vite'
 import { devtools } from '@tanstack/devtools-vite'
 import { readFile } from 'node:fs/promises'
+import { execSync } from 'node:child_process'
 
 import { tanstackStart } from '@tanstack/react-start/plugin/vite'
 
 import viteReact from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { cloudflare } from '@cloudflare/vite-plugin'
+import { sentryVitePlugin } from '@sentry/vite-plugin'
 
 // Inline binary files as ArrayBuffer. Lets server code bundle font bytes
 // directly (e.g. /api/og inlining Inter-*.ttf) without needing a network
@@ -39,8 +41,35 @@ function arrayBufferLoader(): Plugin {
   }
 }
 
+const release = (() => {
+  if (process.env.VITE_RELEASE) return process.env.VITE_RELEASE
+  try {
+    return execSync('git rev-parse --short HEAD', { encoding: 'utf8' }).trim()
+  } catch {
+    return 'dev'
+  }
+})()
+
+const sentryAuthToken = process.env.SENTRY_AUTH_TOKEN
+const sentryPlugin = sentryAuthToken
+  ? sentryVitePlugin({
+      org: process.env.SENTRY_ORG ?? 'ronan-connolly',
+      project: process.env.SENTRY_PROJECT ?? 'connections-helper',
+      authToken: sentryAuthToken,
+      url: process.env.SENTRY_REGION_URL ?? 'https://de.sentry.io',
+      release: { name: release },
+      sourcemaps: {
+        filesToDeleteAfterUpload: ['**/*.map'],
+      },
+    })
+  : null
+
 const config = defineConfig({
   resolve: { tsconfigPaths: true },
+  define: {
+    __APP_RELEASE__: JSON.stringify(release),
+  },
+  build: { sourcemap: true },
   plugins: [
     arrayBufferLoader(),
     devtools(),
@@ -48,6 +77,7 @@ const config = defineConfig({
     tailwindcss(),
     tanstackStart(),
     viteReact(),
+    ...(sentryPlugin ? [sentryPlugin] : []),
   ],
 })
 
