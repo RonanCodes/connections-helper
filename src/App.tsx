@@ -8,7 +8,6 @@ import {
   RefreshCw,
   Calendar,
   Sparkles,
-  Puzzle,
   Gamepad2,
   Newspaper,
   Share2,
@@ -78,17 +77,17 @@ const THEME_CONFETTI: Record<Theme, string[]> = {
 const WIGGLE_CSS = `
 @-webkit-keyframes wiggle {
   0%, 90%, 100% { -webkit-transform: rotate(0deg); transform: rotate(0deg); }
-  92% { -webkit-transform: rotate(-4deg); transform: rotate(-4deg); }
-  94% { -webkit-transform: rotate(4deg); transform: rotate(4deg); }
-  96% { -webkit-transform: rotate(-2deg); transform: rotate(-2deg); }
-  98% { -webkit-transform: rotate(2deg); transform: rotate(2deg); }
+  92% { -webkit-transform: rotate(-2deg); transform: rotate(-2deg); }
+  94% { -webkit-transform: rotate(2deg); transform: rotate(2deg); }
+  96% { -webkit-transform: rotate(-1deg); transform: rotate(-1deg); }
+  98% { -webkit-transform: rotate(1deg); transform: rotate(1deg); }
 }
 @keyframes wiggle {
   0%, 90%, 100% { -webkit-transform: rotate(0deg); transform: rotate(0deg); }
-  92% { -webkit-transform: rotate(-4deg); transform: rotate(-4deg); }
-  94% { -webkit-transform: rotate(4deg); transform: rotate(4deg); }
-  96% { -webkit-transform: rotate(-2deg); transform: rotate(-2deg); }
-  98% { -webkit-transform: rotate(2deg); transform: rotate(2deg); }
+  92% { -webkit-transform: rotate(-2deg); transform: rotate(-2deg); }
+  94% { -webkit-transform: rotate(2deg); transform: rotate(2deg); }
+  96% { -webkit-transform: rotate(-1deg); transform: rotate(-1deg); }
+  98% { -webkit-transform: rotate(1deg); transform: rotate(1deg); }
 }
 @-webkit-keyframes squish {
   0% { -webkit-transform: scale(1); transform: scale(1); }
@@ -1566,7 +1565,7 @@ export default function App() {
   return (
     <TooltipProvider>
       <div className="min-h-screen bg-background transition-colors">
-        <div className="fixed top-3 left-3 z-50 pointer-events-none">
+        <div className="fixed top-3 right-3 z-50 pointer-events-none">
           <div className="pointer-events-auto">
             <EnvironmentBadge showExternal={false} />
           </div>
@@ -1575,16 +1574,52 @@ export default function App() {
           {/* Header */}
           <header className="mb-4">
             <h1 className="text-2xl md:text-3xl font-bold tracking-tight flex items-center gap-3">
-              <Puzzle
+              <svg
                 ref={puzzleIconRef}
+                viewBox="0 0 32 32"
+                xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true"
                 className={cn(
                   // design-system:allow — easter-egg delight, not a state indicator
-                  'w-8 h-8 flex-shrink-0 cursor-pointer transition-all hover:scale-110 select-none',
+                  'w-6 h-6 flex-shrink-0 cursor-pointer transition-all hover:scale-110 select-none',
                   wiggleDisabled ? '' : 'wiggle-occasional',
-                  rainbowMode ? 'rainbow-icon' : 'text-green-500',
                 )}
                 onClick={handlePuzzleClick}
-              />
+              >
+                <rect width="32" height="32" rx="6" fill="#181818" />
+                <rect
+                  x="2"
+                  y="2"
+                  width="13"
+                  height="13"
+                  rx="2.5"
+                  fill="#f9df6d"
+                />
+                <rect
+                  x="17"
+                  y="2"
+                  width="13"
+                  height="13"
+                  rx="2.5"
+                  fill="#a0c35a"
+                />
+                <rect
+                  x="2"
+                  y="17"
+                  width="13"
+                  height="13"
+                  rx="2.5"
+                  fill="#b0c4ef"
+                />
+                <rect
+                  x="17"
+                  y="17"
+                  width="13"
+                  height="13"
+                  rx="2.5"
+                  fill="#ba81c5"
+                />
+              </svg>
               <span className={cn(rainbowMode ? 'rainbow-text' : '')}>
                 Connections Helper
               </span>
