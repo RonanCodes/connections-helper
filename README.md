@@ -106,11 +106,31 @@ pnpm format             # prettier --check
 pnpm check              # prettier --write + eslint --fix
 pnpm test               # Vitest unit tests
 pnpm test:e2e           # Playwright e2e tests (needs app running)
+pnpm loadtest:smoke     # 5 VUs / 35s sanity check against localhost (needs k6)
+pnpm loadtest:local     # 100 VUs / 2min against localhost (needs dev server up)
+pnpm loadtest:prod      # 100 VUs / 2min against connectionshelper.app
 pnpm quality            # format + lint + build + test (what CI runs)
 pnpm db:generate        # emit drizzle migrations from schema changes
 pnpm db:migrate:local   # apply migrations to local D1
 pnpm db:migrate:remote  # apply migrations to remote D1
 ```
+
+## Load testing
+
+Ad-hoc load tests live in `scripts/loadtest.js` and run via [k6](https://k6.io). Install once with `brew install k6`.
+
+```bash
+pnpm loadtest:smoke    # quick 5 VU / 35s sanity check
+pnpm loadtest:local    # 100 VU / 2min against localhost (run pnpm dev in another terminal)
+pnpm loadtest:prod     # 100 VU / 2min against connectionshelper.app
+pnpm loadtest:burst    # 200 VU / 50s, useful before high-traffic days
+```
+
+Traffic mix is weighted to roughly match real sessions: 10% `/api/stats`, 30% `/api/puzzle/:date`, 40% `/api/definition/:word`, 20% `POST /api/definitions`. Thresholds enforce p95 latency budgets per endpoint and a sub-2% overall failure rate; the run exits non-zero if any threshold breaks.
+
+`/api/definition/*` and `/api/definitions` are rate-limited per IP via the `API_RATE_LIMIT` Workers binding. Local runs bypass the limiter (binding unset). Prod runs from a single machine will hit the limiter quickly, which is expected. The script tracks `rate_limited` as a separate metric so a high 429 rate is visible without inflating the failure count. To stress prod headroom past the limiter, run from multiple egress IPs (k6 Cloud, GitHub Actions matrix, or simply two laptops on different networks).
+
+A summary (request count, failure rate, rate-limited rate, p50/p95/p99) prints to stdout; the full per-tag breakdown lands in `loadtest-summary.json` next to the script.
 
 ## License
 

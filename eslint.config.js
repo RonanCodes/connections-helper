@@ -22,6 +22,7 @@ export default [
       'e2e/**',
       'tests/**',
       'public/**',
+      'scripts/loadtest.js',
       'worker-configuration.d.ts',
     ],
   },
