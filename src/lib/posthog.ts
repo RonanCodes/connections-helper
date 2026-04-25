@@ -6,12 +6,18 @@ let initialised = false
 const TEST_USER_FLAG = 'ch_test_user'
 const TEST_USER_ID = 'test-user'
 
-function consumeTestUserQuery() {
+function consumeTestUserQuery(): 'enabled' | 'disabled' | null {
   const url = new URL(window.location.href)
-  if (url.searchParams.get('testuser') !== '1') return
-  window.localStorage.setItem(TEST_USER_FLAG, '1')
+  const raw = url.searchParams.get('testuser')
+  if (raw !== '1' && raw !== '0') return null
   url.searchParams.delete('testuser')
   window.history.replaceState({}, '', url.toString())
+  if (raw === '1') {
+    window.localStorage.setItem(TEST_USER_FLAG, '1')
+    return 'enabled'
+  }
+  window.localStorage.removeItem(TEST_USER_FLAG)
+  return 'disabled'
 }
 
 // Max-data config. Project has no auth and no PII — anything a visitor types
@@ -21,7 +27,7 @@ export async function initPostHog() {
   if (initialised || typeof window === 'undefined') return
   const { posthogKey, posthogHost } = await getRuntimeConfig()
   if (!posthogKey.startsWith('phc_')) return
-  consumeTestUserQuery()
+  const testUserChange = consumeTestUserQuery()
   posthog.init(posthogKey, {
     api_host: posthogHost,
     person_profiles: 'identified_only',
@@ -37,6 +43,11 @@ export async function initPostHog() {
     capture_performance: true,
     capture_exceptions: true,
   })
+  if (testUserChange === 'disabled') {
+    // Break the current session's identified cookie so the user goes back
+    // to anonymous immediately, not only after the cookie expires.
+    posthog.reset()
+  }
   if (window.localStorage.getItem(TEST_USER_FLAG) === '1') {
     posthog.identify(TEST_USER_ID, { $is_test_user: true })
   }
