@@ -729,7 +729,6 @@ function WordCard({
                         target="_blank"
                         rel="noopener noreferrer"
                         aria-label={`Open ${SOURCE_INFO[activeSource].label} for "${word.word}" in a new tab`}
-                        className="!text-foreground"
                       >
                         <ExternalLink className="w-4 h-4" />
                       </a>
@@ -1747,7 +1746,6 @@ export default function App() {
                       target="_blank"
                       rel="noopener noreferrer"
                       aria-label="Play today's puzzle on NYT"
-                      className="!text-foreground"
                     >
                       <Gamepad2 className="w-4 h-4" />
                     </a>
@@ -1768,7 +1766,6 @@ export default function App() {
                             ? `Read NYT's Connections Companion No. ${companionNumber}`
                             : `Read NYT's Connections Companion for puzzle #${puzzleId}`
                         }
-                        className="!text-foreground"
                       >
                         <Newspaper className="w-4 h-4" />
                       </a>
