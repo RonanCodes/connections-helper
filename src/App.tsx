@@ -1305,6 +1305,7 @@ export default function App() {
   const clickCountRef = useRef(0)
   const clickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const puzzleIconRef = useRef<SVGSVGElement>(null)
+  const reportBugRef = useRef<HTMLButtonElement>(null)
 
   // Easter egg: Click puzzle icon 7 times for rainbow mode
   const handlePuzzleClick = () => {
@@ -1376,6 +1377,27 @@ export default function App() {
             console.warn('SW registration failed:', err)
           })
       })
+    }
+  }, [])
+
+  // Wire the footer "Report a bug" link to the Sentry feedback widget. The
+  // SDK is loaded lazily on idle (see analytics scheduling above), so this
+  // effect's awaited init may not resolve until after the user starts
+  // interacting. attachFeedbackTo handles that wait internally.
+  useEffect(() => {
+    const el = reportBugRef.current
+    if (!el) return
+    let cleanup: (() => void) | null = null
+    let cancelled = false
+    void import('@/lib/sentry').then(({ attachFeedbackTo }) =>
+      attachFeedbackTo(el).then((c) => {
+        if (cancelled) c?.()
+        else cleanup = c
+      }),
+    )
+    return () => {
+      cancelled = true
+      cleanup?.()
     }
   }, [])
 
@@ -1867,14 +1889,19 @@ export default function App() {
               vertically aligned with adjacent text instead of floating at
               the icon's inline-flex centre (which sits above the baseline). */}
           <footer className="mt-12 space-y-3">
+            {/* Each interactive item carries `min-h-6 inline-flex items-center`
+                so click targets are at least 24×24 CSS pixels — required by
+                WCAG 2.2 target-size (Lighthouse will fail the page below 0.95
+                without it). Visual layout is unchanged because the row is
+                already vertically centred. */}
             <div className="text-xs text-muted-foreground flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
-              <span>
-                Made by{' '}
+              <span className="inline-flex items-center min-h-6">
+                Made by
                 <a
                   href="https://ronanconnolly.dev"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="underline hover:text-foreground transition-colors"
+                  className="underline hover:text-foreground transition-colors ml-1"
                 >
                   Ronan Connolly
                 </a>
@@ -1884,7 +1911,7 @@ export default function App() {
                 href="https://x.com/ronancodes"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="underline hover:text-foreground transition-colors inline-flex items-center gap-1"
+                className="underline hover:text-foreground transition-colors inline-flex items-center gap-1 min-h-6"
                 aria-label="Follow @ronancodes on X"
               >
                 <svg
@@ -1902,7 +1929,7 @@ export default function App() {
                 href="https://github.com/RonanCodes/connections-helper"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="underline hover:text-foreground transition-colors inline-flex items-center gap-1"
+                className="underline hover:text-foreground transition-colors inline-flex items-center gap-1 min-h-6"
               >
                 <GithubLogo className="w-3 h-3" />
                 Source
@@ -1910,7 +1937,7 @@ export default function App() {
               <span aria-hidden>•</span>
               <Link
                 to="/how-it-works"
-                className="underline hover:text-foreground transition-colors"
+                className="underline hover:text-foreground transition-colors inline-flex items-center min-h-6"
               >
                 How it works
               </Link>
@@ -1919,10 +1946,18 @@ export default function App() {
                 href="/api/docs"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="underline hover:text-foreground transition-colors"
+                className="underline hover:text-foreground transition-colors inline-flex items-center min-h-6"
               >
                 API
               </a>
+              <span aria-hidden>•</span>
+              <button
+                ref={reportBugRef}
+                type="button"
+                className="underline hover:text-foreground transition-colors cursor-pointer inline-flex items-center min-h-6"
+              >
+                Report a bug
+              </button>
               <span aria-hidden>•</span>
               <span>Not affiliated with NYT</span>
             </div>
