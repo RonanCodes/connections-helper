@@ -238,3 +238,14 @@
   box-shadow: none;
   border: 1px solid var(--border);
 }
+
+/* Secondary badge: NYT surfaces are flat, --secondary matches --card so the
+ * pill is invisible. Render as a plain muted text label so it sits flush
+ * with the heading and the description below — no orphan padding. */
+[data-theme='nyt'] [data-slot='badge'][data-variant='secondary'] {
+  background-color: transparent;
+  padding-left: 0;
+  padding-right: 0;
+  color: var(--muted-foreground);
+  font-style: italic;
+}

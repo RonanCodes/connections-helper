@@ -25,9 +25,12 @@ function consumeTestUserQuery(): 'enabled' | 'disabled' | null {
 // `maskAllInputs` back to true and narrow `session_recording.recordBody`.
 export async function initPostHog() {
   if (initialised || typeof window === 'undefined') return
+  // Consume ?testuser=1|0 BEFORE the PostHog gate. The flag has to work even
+  // when runtime-config is blocked (local dev without secrets, ad-blockers
+  // killing the request) so future loads can identify once PH does init.
+  const testUserChange = consumeTestUserQuery()
   const { posthogKey, posthogHost } = await getRuntimeConfig()
   if (!posthogKey.startsWith('phc_')) return
-  const testUserChange = consumeTestUserQuery()
   posthog.init(posthogKey, {
     api_host: posthogHost,
     person_profiles: 'identified_only',
