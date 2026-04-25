@@ -17,11 +17,11 @@ const NYT_BG = '#ffffff'
 const BRAND_GREEN = '#22c55e'
 const TAGLINE_GREY = '#5a5a5a'
 
-// Lucide-style puzzle icon, stroke-only, brand green. Inlined as a data URL
-// so satori can render it via the <img> element (most reliable path for
-// arbitrary SVG inside satori).
-const PUZZLE_ICON_DATA_URL = `data:image/svg+xml;utf8,${encodeURIComponent(
-  `<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 24 24" fill="none" stroke="${BRAND_GREEN}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.39 4.39a1 1 0 0 0 1.68-.474 2.5 2.5 0 1 1 3.014 3.015 1 1 0 0 0-.474 1.68l1.683 1.682a2.414 2.414 0 0 1 0 3.414L19.61 15.39a1 1 0 0 1-1.68-.474 2.5 2.5 0 1 0-3.014 3.015 1 1 0 0 1 .474 1.68l-1.683 1.682a2.414 2.414 0 0 1-3.414 0L8.61 19.61a1 1 0 0 0-1.68.474 2.5 2.5 0 1 1-3.014-3.015 1 1 0 0 0 .474-1.68l-1.683-1.682a2.414 2.414 0 0 1 0-3.414L4.39 8.61a1 1 0 0 1 1.68.474 2.5 2.5 0 1 0 3.014-3.015 1 1 0 0 1-.474-1.68l1.683-1.682a2.414 2.414 0 0 1 3.414 0z"/></svg>`,
+// 4-color NYT Connections grid (yellow / green / blue / purple — the puzzle's
+// difficulty palette). Same artwork as the favicon. Inlined as a data URL so
+// satori can render it via <img>.
+const GRID_ICON_DATA_URL = `data:image/svg+xml;utf8,${encodeURIComponent(
+  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="6" fill="#181818"/><rect x="2" y="2" width="13" height="13" rx="2.5" fill="#f9df6d"/><rect x="17" y="2" width="13" height="13" rx="2.5" fill="#a0c35a"/><rect x="2" y="17" width="13" height="13" rx="2.5" fill="#b0c4ef"/><rect x="17" y="17" width="13" height="13" rx="2.5" fill="#ba81c5"/></svg>`,
 )}`
 
 let engineReady: Promise<void> | null = null
@@ -82,7 +82,7 @@ function buildCard({ date }: OgParams) {
         {
           type: 'img',
           props: {
-            src: PUZZLE_ICON_DATA_URL,
+            src: GRID_ICON_DATA_URL,
             width: 140,
             height: 140,
           },
