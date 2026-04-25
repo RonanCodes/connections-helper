@@ -3,6 +3,17 @@ import { getRuntimeConfig } from './runtime-config'
 
 let initialised = false
 
+const TEST_USER_FLAG = 'ch_test_user'
+const TEST_USER_ID = 'test-user'
+
+function consumeTestUserQuery() {
+  const url = new URL(window.location.href)
+  if (url.searchParams.get('testuser') !== '1') return
+  window.localStorage.setItem(TEST_USER_FLAG, '1')
+  url.searchParams.delete('testuser')
+  window.history.replaceState({}, '', url.toString())
+}
+
 // Max-data config. Project has no auth and no PII — anything a visitor types
 // into the page is already public (puzzle words). When auth is added, flip
 // `maskAllInputs` back to true and narrow `session_recording.recordBody`.
@@ -10,6 +21,7 @@ export async function initPostHog() {
   if (initialised || typeof window === 'undefined') return
   const { posthogKey, posthogHost } = await getRuntimeConfig()
   if (!posthogKey.startsWith('phc_')) return
+  consumeTestUserQuery()
   posthog.init(posthogKey, {
     api_host: posthogHost,
     person_profiles: 'identified_only',
@@ -25,6 +37,9 @@ export async function initPostHog() {
     capture_performance: true,
     capture_exceptions: true,
   })
+  if (window.localStorage.getItem(TEST_USER_FLAG) === '1') {
+    posthog.identify(TEST_USER_ID, { $is_test_user: true })
+  }
   initialised = true
 }
 
