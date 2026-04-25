@@ -53,7 +53,7 @@ export const Route = createFileRoute('/api/definitions')({
           const cached = cacheByWord.get(word)
           if (cached && Date.now() - cached.fetchedAt < THIRTY_DAYS) {
             const cachedData = JSON.parse(cached.data) as DefinitionResult
-            if (!cachedData.definitions[0]?.definition?.includes('not found')) {
+            if (!cachedData.definitions[0]?.definition.includes('not found')) {
               results[word] = cachedData
               continue
             }
