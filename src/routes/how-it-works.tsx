@@ -18,7 +18,7 @@ const HOW_IT_WORKS_TITLE = 'How it works — Connections Helper'
 const HOW_IT_WORKS_DESCRIPTION =
   'Every dictionary, Wiktionary, and thesaurus source Connections Helper pulls from, in priority order, with the rationale for each.'
 const HOW_IT_WORKS_URL = `${SITE_ORIGIN}/how-it-works`
-const HOW_IT_WORKS_OG_IMAGE = `${SITE_ORIGIN}/api/og?title=${encodeURIComponent('How it works')}`
+const HOW_IT_WORKS_OG_IMAGE = `${SITE_ORIGIN}/api/og`
 
 export const Route = createFileRoute('/how-it-works')({
   component: HowItWorks,
