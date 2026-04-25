@@ -1307,6 +1307,7 @@ export default function App() {
   const clickCountRef = useRef(0)
   const clickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const puzzleIconRef = useRef<SVGSVGElement>(null)
+  const reportBugRef = useRef<HTMLButtonElement>(null)
 
   // Easter egg: Click puzzle icon 7 times for rainbow mode
   const handlePuzzleClick = () => {
@@ -1378,6 +1379,27 @@ export default function App() {
             console.warn('SW registration failed:', err)
           })
       })
+    }
+  }, [])
+
+  // Wire the footer "Report a bug" link to the Sentry feedback widget. The
+  // SDK is loaded lazily on idle (see analytics scheduling above), so this
+  // effect's awaited init may not resolve until after the user starts
+  // interacting. attachFeedbackTo handles that wait internally.
+  useEffect(() => {
+    const el = reportBugRef.current
+    if (!el) return
+    let cleanup: (() => void) | null = null
+    let cancelled = false
+    void import('@/lib/sentry').then(({ attachFeedbackTo }) =>
+      attachFeedbackTo(el).then((c) => {
+        if (cancelled) c?.()
+        else cleanup = c
+      }),
+    )
+    return () => {
+      cancelled = true
+      cleanup?.()
     }
   }, [])
 
@@ -1891,6 +1913,14 @@ export default function App() {
               >
                 API
               </a>
+              <span aria-hidden>•</span>
+              <button
+                ref={reportBugRef}
+                type="button"
+                className="underline hover:text-foreground transition-colors cursor-pointer"
+              >
+                Report a bug
+              </button>
               <span aria-hidden>•</span>
               <span>Not affiliated with NYT</span>
             </div>
