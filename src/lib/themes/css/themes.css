@@ -32,15 +32,13 @@ body {
     color 0.3s ease;
 }
 
-/* Links */
+/* Links: only kill the default browser underline on bare anchors. Color is the
+   consumer's responsibility (use Tailwind text-* classes). The previous global
+   color rule painted every <a> with var(--color-primary), which leaked into
+   icon-only buttons rendered with `asChild` and forced ad-hoc !text-foreground
+   overrides at every call site. */
 a {
-  color: var(--color-primary);
   text-decoration: none;
-  transition: color 0.2s ease;
-}
-
-a:hover {
-  color: var(--color-primary-hover);
 }
 
 /* ========================================
