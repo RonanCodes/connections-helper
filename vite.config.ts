@@ -59,7 +59,11 @@ const sentryPlugin = sentryAuthToken
       url: process.env.SENTRY_REGION_URL ?? 'https://de.sentry.io',
       release: { name: release },
       sourcemaps: {
-        filesToDeleteAfterUpload: ['**/*.map'],
+        // Delete client-side maps post-upload so we don't ship them to
+        // browsers. Keep dist/server/**/*.map because wrangler deploy
+        // reads them via the `//# sourceMappingURL=` footer in each
+        // worker bundle and hard-fails if the file is missing.
+        filesToDeleteAfterUpload: ['dist/client/**/*.map'],
       },
     })
   : null
