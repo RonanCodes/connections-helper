@@ -1,6 +1,8 @@
 import posthog from 'posthog-js'
 import { getRuntimeConfig } from './runtime-config'
 
+declare const __APP_RELEASE__: string
+
 let initialised = false
 
 const TEST_USER_FLAG = 'ch_test_user'
@@ -113,6 +115,10 @@ export async function initPostHog() {
     // to anonymous immediately, not only after the cookie expires.
     posthog.reset()
   }
+  // Stamp every event with the build SHA. Lets insights compare event
+  // volume / error rates across releases without joining $session metadata.
+  const release = typeof __APP_RELEASE__ === 'string' ? __APP_RELEASE__ : 'dev'
+  posthog.register({ app_release: release })
   const env = resolveTestEnv(window.localStorage.getItem(TEST_USER_FLAG))
   if (env) {
     const profile = TEST_USER_PROFILES[env]
