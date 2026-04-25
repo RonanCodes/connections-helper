@@ -28,15 +28,18 @@ const ENV_CONFIG: Record<
   Environment,
   { label: string; Icon: typeof Monitor; className: string }
 > = {
+  // Tailwind green-500/blue-500 on white text fail WCAG AA (~2.2:1). Darker
+  // 700 variants give 5.6:1 / 8.6:1 so Lighthouse's color-contrast audit
+  // passes. Visual difference is small; this badge is dev-only chrome.
   local: {
     label: 'Local Dev',
     Icon: Monitor,
-    className: 'bg-green-500 text-white hover:bg-green-600',
+    className: 'bg-green-700 text-white hover:bg-green-800',
   },
   external: {
     label: 'External',
     Icon: Globe,
-    className: 'bg-blue-500 text-white hover:bg-blue-600',
+    className: 'bg-blue-700 text-white hover:bg-blue-800',
   },
 }
 

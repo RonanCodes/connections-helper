@@ -5,6 +5,7 @@ declare const __APP_RELEASE__: string
 
 let initialised = false
 let initPromise: Promise<boolean> | null = null
+let sentryRef: typeof SentryReact | null = null
 
 export function initSentry(): Promise<boolean> {
   if (typeof window === 'undefined') return Promise.resolve(false)
@@ -35,6 +36,7 @@ export function initSentry(): Promise<boolean> {
           Sentry.feedbackIntegration({
             colorScheme: 'system',
             showBranding: false,
+            autoInject: false,
           }),
         ],
         tracesSampleRate: 0.1,
@@ -42,6 +44,7 @@ export function initSentry(): Promise<boolean> {
         replaysOnErrorSampleRate: 1,
       })
       initialised = true
+      sentryRef = Sentry
       void linkPostHog(Sentry)
       console.info('[sentry] initialised', {
         environment: import.meta.env.MODE,
@@ -59,6 +62,20 @@ export function initSentry(): Promise<boolean> {
 
 export function isSentryReady() {
   return initialised
+}
+
+// Attach the Sentry user-feedback widget to an existing DOM element so the
+// trigger lives in our footer instead of as Sentry's default floating pill.
+// Resolves to a cleanup fn (call on unmount), or null if Sentry didn't init
+// (DSN missing in local dev, ad-blocker killed the SDK fetch, etc.).
+export async function attachFeedbackTo(
+  element: HTMLElement,
+): Promise<(() => void) | null> {
+  const ok = await initSentry()
+  if (!ok || !sentryRef) return null
+  const feedback = sentryRef.getFeedback()
+  if (!feedback) return null
+  return feedback.attachTo(element, { formTitle: 'Report a bug' })
 }
 
 // Tag every Sentry event with the PostHog distinct_id and a deep link to the
