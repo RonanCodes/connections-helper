@@ -135,10 +135,6 @@
     "wrangler": "^4.85.0"
   },
   "pnpm": {
-    "onlyBuiltDependencies": [
-      "esbuild",
-      "lightningcss"
-    ],
     "overrides": {
       "lodash@<4.17.24": ">=4.17.24",
       "axios@<1.15.0": ">=1.15.0",
