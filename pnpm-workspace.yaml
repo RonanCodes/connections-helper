@@ -27,15 +27,15 @@ overrides:
   # Transitive CVE patches added 2026-05-19 to clear `pnpm audit --audit-level=high`.
   # All entries pin the deepest affected package to its patched version so EVERY
   # transitive path inherits the fix. See PR #49 for context.
-  'basic-ftp@<5.3.1': '>=5.3.1'                       # GHSA-rpmf-866q-6p89
-  'fast-uri@<3.1.2': '>=3.1.2'                        # GHSA-q3j6-qgpj-74h6, GHSA-v39h-62p7-jpjc
-  'fast-xml-builder@<1.1.7': '>=1.1.7'                # GHSA-5wm8-gmm8-39j9
-  'protobufjs@<7.5.6': '>=7.5.6'                      # GHSA-66ff-xgx4-vchm + 3 sibling advisories
-  '@protobufjs/utf8@<1.1.1': '>=1.1.1'                # GHSA-q6x5-8v7m-xcrf
+  'basic-ftp@<5.3.1': '>=5.3.1' # GHSA-rpmf-866q-6p89
+  'fast-uri@<3.1.2': '>=3.1.2' # GHSA-q3j6-qgpj-74h6, GHSA-v39h-62p7-jpjc
+  'fast-xml-builder@<1.1.7': '>=1.1.7' # GHSA-5wm8-gmm8-39j9
+  'protobufjs@<7.5.6': '>=7.5.6' # GHSA-66ff-xgx4-vchm + 3 sibling advisories
+  '@protobufjs/utf8@<1.1.1': '>=1.1.1' # GHSA-q6x5-8v7m-xcrf
   '@tanstack/start-server-core@<1.167.30': '>=1.167.30' # GHSA-9m65-766c-r333
-  'brace-expansion@<5.0.6': '>=5.0.6'                 # GHSA-jxxr-4gwj-5jf2
-  'ip-address@<10.1.1': '>=10.1.1'                    # GHSA-v2v4-37r5-5v8g
-  'ws@<8.20.1': '>=8.20.1'                            # GHSA-58qx-3vcg-4xpx
+  'brace-expansion@<5.0.6': '>=5.0.6' # GHSA-jxxr-4gwj-5jf2
+  'ip-address@<10.1.1': '>=10.1.1' # GHSA-v2v4-37r5-5v8g
+  'ws@<8.20.1': '>=8.20.1' # GHSA-58qx-3vcg-4xpx
 
 auditConfig:
   # GHSA-45c6-75p6-83cc is an unfixed (`patched_versions: null`) moderate-severity
